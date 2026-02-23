@@ -1,6 +1,22 @@
 app:
   name: "auth-service"
 
+auth:
+  bcrypt:
+    cost: 10
+  jwt:
+    issuer: "klasshub"
+    secret: ""
+    duration: "10m"
+  duration:
+    session: "24h"
+
+server:
+  host: "localhost"
+  port: 50051
+  timeout:
+    shutdown: "10s"
+
 database:
   host: "localhost"
   port: 5432
@@ -12,3 +28,7 @@ database:
   min_conns: 1
   max_conn_lifetime: "1h"
   max_conn_idle_time: "30m"
+
+tracer:
+  host: "localhost"
+  port: 4317

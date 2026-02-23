@@ -1,4 +1,38 @@
 services:
+  auth-service:
+    image: klasshub-auth-service
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile.app
+    container_name: ${AUTH_SERVICE_HOST}
+    networks:
+      - klasshub-net
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - APP_NAME=${AUTH_SERVICE_HOST}
+      - SERVER_HOST=${AUTH_SERVICE_HOST}
+      - SERVER_PORT=${AUTH_SERVICE_PORT}
+      - SERVER_TIMEOUT_SHUTDOWN=${AUTH_SERVICE_TIMEOUT_SHUTDOWN}
+      - DATABASE_HOST=${AUTH_DATABASE_HOST}
+      - DATABASE_PORT=${AUTH_DATABASE_PORT}
+      - DATABASE_USER=${AUTH_DATABASE_USER}
+      - DATABASE_PASS=${AUTH_DATABASE_PASS}
+      - DATABASE_NAME=${AUTH_DATABASE_NAME}
+      - DATABASE_SSL_MODE=${AUTH_DATABASE_SSL_MODE}
+      - DATABASE_MAX_CONNS=${AUTH_DATABASE_MAX_CONNS}
+      - DATABASE_MIN_CONNS=${AUTH_DATABASE_MIN_CONNS}
+      - DATABASE_MAX_CONN_LIFETIME=${AUTH_DATABASE_MAX_CONN_LIFETIME}
+      - DATABASE_MAX_CONN_IDLE_TIME=${AUTH_DATABASE_MAX_CONN_IDLE_TIME}
+      - TRACER_PORT=${TRACER_GRPC_PORT}
+    depends_on:
+      auth-database:
+        condition: service_healthy
+      auth-migrator:
+        condition: service_completed_successfully
+
   auth-database:
     image: postgres:16-alpine
     container_name: ${AUTH_DATABASE_HOST}
@@ -45,6 +79,22 @@ services:
       test: ["CMD", "pg_isready", "-h", "${AUTH_DATABASE_HOST}"]
       interval: 10s
       retries: 3
+
+  # ---------- Jaeger ----------
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    container_name: ${TRACER_HOST}
+    ports:
+      - ${TRACER_GRPC_PORT}:${TRACER_GRPC_PORT}
+      - ${TRACER_HTTP_PORT}:${TRACER_HTTP_PORT}
+      - ${TRACER_WEB_UI_PORT}:${TRACER_WEB_UI_PORT}
+    networks:
+      - klasshub-net
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
 
 networks:
   klasshub-net:

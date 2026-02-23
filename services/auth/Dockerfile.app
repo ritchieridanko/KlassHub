@@ -13,19 +13,18 @@ COPY services/auth/go.mod services/auth/go.sum ./
 RUN go mod download
 
 # Copy app source
-COPY services/auth/cmd/migrator ./cmd/migrator
+COPY services/auth/cmd/app ./cmd/app
 COPY services/auth/configs ./configs
-COPY services/auth/internal/constants ./internal/constants
-COPY services/auth/internal/infra/database ./internal/infra/database
-COPY services/auth/internal/infra/logger ./internal/infra/logger
-COPY services/auth/internal/utils ./internal/utils
-COPY services/auth/migrations ./migrations
+COPY services/auth/internal ./internal
 
 # Build app
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/migrator cmd/migrator/main.go
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/app cmd/app/main.go
 
 # ---------- Runtime Stage ----------
 FROM alpine:3.20
+
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates
 
 # Set work directory
 WORKDIR /root
@@ -33,7 +32,9 @@ WORKDIR /root
 # Copy from the Build Stage
 COPY --from=builder /app/services/auth/bin ./bin
 COPY --from=builder /app/services/auth/configs ./configs
-COPY --from=builder /app/services/auth/migrations ./migrations
+
+# Expose port
+EXPOSE 50051
 
 # Set entry point
-ENTRYPOINT ["./bin/migrator"]
+ENTRYPOINT ["./bin/app"]
