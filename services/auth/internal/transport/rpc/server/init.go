@@ -8,6 +8,7 @@ import (
 	"github.com/ritchieridanko/klasshub/services/auth/configs"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/transport/rpc/handlers"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/transport/rpc/interceptors"
 	"github.com/ritchieridanko/klasshub/shared/contract/apis/v1"
 	"google.golang.org/grpc"
 )
@@ -21,7 +22,12 @@ type Server struct {
 }
 
 func Init(name string, cfg *configs.Server, l *logger.Logger, ah *handlers.AuthHandler) *Server {
-	srv := grpc.NewServer()
+	srv := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			interceptors.RequestInterceptor(),
+		),
+	)
+
 	apis.RegisterAuthServiceServer(srv, ah)
 
 	return &Server{
