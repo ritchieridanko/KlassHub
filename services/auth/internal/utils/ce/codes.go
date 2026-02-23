@@ -22,6 +22,7 @@ const (
 	CodeInvalidPassword         errCode = "ERR_INVALID_PASSWORD"
 	CodeInvalidRequestMeta      errCode = "ERR_INVALID_REQUEST_META"
 	CodeJWTGenerationFailed     errCode = "ERR_JWT_GENERATION_FAILED"
+	CodeUnknown                 errCode = "ERR_UNKNOWN"
 	CodeUUIDGenerationFailed    errCode = "ERR_UUID_GENERATION_FAILED"
 	CodeWrongPassword           errCode = "ERR_WRONG_PASSWORD"
 )

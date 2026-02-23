@@ -1,6 +1,10 @@
 package ce
 
-import "github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
+import (
+	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
 
 type errCode string
 
@@ -46,4 +50,20 @@ func (e *Error) Unwrap() error {
 func (e *Error) AppendFields(fields ...logger.Field) *Error {
 	e.fields = append(e.fields, fields...)
 	return e
+}
+
+func (e *Error) ToGRPCStatus() error {
+	switch e.code {
+	case CodeInvalidIdentifier, CodeInvalidPassword, CodeInvalidRequestMeta:
+		return status.Error(codes.InvalidArgument, e.message)
+	case CodeIdentifierNotRegistered, CodeWrongPassword:
+		return status.Error(codes.Unauthenticated, e.message)
+	case CodeAuthNotFound:
+		return status.Error(codes.NotFound, e.message)
+	case CodeDBQueryExec, CodeDBTransaction, CodeJWTGenerationFailed,
+		CodeUnknown, CodeUUIDGenerationFailed:
+		return status.Error(codes.Internal, e.message)
+	default:
+		return status.Error(codes.Internal, e.message)
+	}
 }
