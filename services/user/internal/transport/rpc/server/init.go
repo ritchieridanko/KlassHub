@@ -25,6 +25,7 @@ func Init(name string, cfg *configs.Server, l *logger.Logger, uh *handlers.UserH
 	srv := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			interceptors.RequestInterceptor(),
+			interceptors.RecoveryInterceptor(l),
 		),
 	)
 
