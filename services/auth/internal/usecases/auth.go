@@ -3,6 +3,7 @@ package usecases
 import (
 	"context"
 
+	"github.com/ritchieridanko/klasshub/services/auth/internal/clients"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/database"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/models"
@@ -22,16 +23,18 @@ type authUsecase struct {
 	appName    string
 	su         SessionUsecase
 	ar         repositories.AuthRepository
+	us         clients.UserService
 	transactor *database.Transactor
 	validator  *validator.Validator
 	bcrypt     *bcrypt.BCrypt
 }
 
-func NewAuthUsecase(appName string, su SessionUsecase, ar repositories.AuthRepository, tx *database.Transactor, v *validator.Validator, bcrypt *bcrypt.BCrypt) AuthUsecase {
+func NewAuthUsecase(appName string, su SessionUsecase, ar repositories.AuthRepository, us clients.UserService, tx *database.Transactor, v *validator.Validator, bcrypt *bcrypt.BCrypt) AuthUsecase {
 	return &authUsecase{
 		appName:    appName,
 		su:         su,
 		ar:         ar,
+		us:         us,
 		transactor: tx,
 		validator:  v,
 		bcrypt:     bcrypt,
@@ -68,12 +71,7 @@ func (u *authUsecase) Login(ctx context.Context, req *models.LoginRequest) (*mod
 		)
 	}
 	if err != nil {
-		return nil, nil, ce.NewError(
-			err.Code(),
-			err.Message(),
-			err.Unwrap(),
-			subdomainField,
-		)
+		return nil, nil, err.AppendFields(subdomainField)
 	}
 
 	// Password Validation
@@ -85,6 +83,17 @@ func (u *authUsecase) Login(ctx context.Context, req *models.LoginRequest) (*mod
 			logger.NewField("auth_id", a.ID),
 			subdomainField,
 		)
+	}
+
+	// School ID and Role Fetching
+	if !a.IsSchool {
+		schoolID, role, err := u.us.GetSchoolAndRole(ctx, a.ID)
+		if err != nil {
+			return nil, nil, err.AppendFields(subdomainField)
+		}
+
+		a.SchoolID = schoolID
+		a.Role = role
 	}
 
 	// Session Creation

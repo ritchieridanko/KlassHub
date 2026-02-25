@@ -13,6 +13,7 @@ type Config struct {
 	App      App      `mapstructure:"app"`
 	Auth     Auth     `mapstructure:"auth"`
 	Server   Server   `mapstructure:"server"`
+	Service  Service  `mapstructure:"service"`
 	Database Database `mapstructure:"database"`
 	Tracer   Tracer   `mapstructure:"tracer"`
 }
@@ -46,6 +47,15 @@ type Server struct {
 	Timeout struct {
 		Shutdown time.Duration `mapstructure:"shutdown"`
 	} `mapstructure:"timeout"`
+}
+
+type Service struct {
+	User struct {
+		Name string `mapstructure:"name"`
+		Addr string
+		Host string `mapstructure:"host"`
+		Port int    `mapstructure:"port"`
+	} `mapstructure:"user"`
 }
 
 type Database struct {
@@ -95,6 +105,7 @@ func Init(path string) (*Config, error) {
 
 	cfg.App.Env = env
 	cfg.Server.Addr = fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
+	cfg.Service.User.Addr = fmt.Sprintf("%s:%d", cfg.Service.User.Host, cfg.Service.User.Port)
 	cfg.Tracer.Endpoint = fmt.Sprintf("%s:%d", cfg.Tracer.Host, cfg.Tracer.Port)
 	cfg.Database.DSN = fmt.Sprintf(
 		"postgresql://%s:%s@%s:%d/%s?sslmode=%s",

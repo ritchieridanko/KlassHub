@@ -2,6 +2,7 @@ package di
 
 import (
 	"github.com/ritchieridanko/klasshub/services/auth/configs"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/clients"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/database"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
@@ -44,6 +45,9 @@ func Init(cfg *configs.Config, i *infra.Infra) *Container {
 	tx := database.NewTransactor(i.Database())
 	l := logger.NewLogger(i.Logger())
 
+	// Services
+	us := clients.NewUserService(i.UserServiceClient())
+
 	// Databases
 	adb := databases.NewAuthDatabase(db)
 	sdb := databases.NewSessionDatabase(db)
@@ -59,7 +63,7 @@ func Init(cfg *configs.Config, i *infra.Infra) *Container {
 
 	// Usecases
 	su := usecases.NewSessionUsecase(cfg.App.Name, cfg.Auth.JWT.Duration, cfg.Auth.Duration.Session, sr, tx, v, j)
-	au := usecases.NewAuthUsecase(cfg.App.Name, su, ar, tx, v, b)
+	au := usecases.NewAuthUsecase(cfg.App.Name, su, ar, us, tx, v, b)
 
 	// Handlers
 	ah := handlers.NewAuthHandler(au, l)
