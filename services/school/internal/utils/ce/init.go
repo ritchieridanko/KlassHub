@@ -1,6 +1,10 @@
 package ce
 
-import "github.com/ritchieridanko/klasshub/services/school/internal/infra/logger"
+import (
+	"github.com/ritchieridanko/klasshub/services/school/internal/infra/logger"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
 
 type errCode string
 
@@ -46,4 +50,15 @@ func (e *Error) Unwrap() error {
 func (e *Error) AppendFields(fields ...logger.Field) *Error {
 	e.fields = append(e.fields, fields...)
 	return e
+}
+
+func (e *Error) ToGRPCStatus() error {
+	switch e.code {
+	case CodeSchoolNotFound:
+		return status.Error(codes.NotFound, e.message)
+	case CodeDBQueryExec, CodeDBTransaction, CodeUnknown:
+		return status.Error(codes.Internal, e.message)
+	default:
+		return status.Error(codes.Internal, e.message)
+	}
 }

@@ -27,6 +27,7 @@ func Init(name string, cfg *configs.Server, l *logger.Logger, sh *handlers.Schoo
 			interceptors.RequestInterceptor(),
 			interceptors.RecoveryInterceptor(l),
 			interceptors.TracingInterceptor(name),
+			interceptors.LoggingInterceptor(l),
 		),
 	)
 
