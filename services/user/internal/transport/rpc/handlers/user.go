@@ -32,6 +32,17 @@ func (h *UserHandler) GetUser(ctx context.Context, req *apis.GetUserRequest) (*a
 	return &apis.GetUserResponse{User: h.toUser(u)}, nil
 }
 
+func (h *UserHandler) GetSchoolAndRole(ctx context.Context, req *apis.GetSchoolAndRoleRequest) (*apis.GetSchoolAndRoleResponse, error) {
+	schoolID, role, err := h.uu.GetSchoolAndRole(ctx, req.GetAuthId())
+	if err != nil {
+		return nil, err
+	}
+	return &apis.GetSchoolAndRoleResponse{
+		SchoolId: schoolID,
+		Role:     role,
+	}, nil
+}
+
 func (h *UserHandler) toUser(u *models.User) *apis.User {
 	if u == nil {
 		return nil

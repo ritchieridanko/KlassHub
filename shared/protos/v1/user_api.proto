@@ -9,6 +9,7 @@ option go_package = "github.com/ritchieridanko/klasshub/shared/contract/apis/v1;
 
 service UserService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc GetSchoolAndRole(GetSchoolAndRoleRequest) returns (GetSchoolAndRoleResponse);
 }
 
 message User {
@@ -37,4 +38,13 @@ message GetUserRequest {
 
 message GetUserResponse {
   User user = 1;
+}
+
+message GetSchoolAndRoleRequest {
+  int64 auth_id = 1;
+}
+
+message GetSchoolAndRoleResponse {
+  int64 school_id = 1;
+  string role = 2;
 }

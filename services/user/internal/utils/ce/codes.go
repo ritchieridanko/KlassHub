@@ -24,6 +24,6 @@ const (
 
 // External Error Messages
 const (
-	MsgInternalServer   string = "Internal server error"
-	MsgResourceNotFound string = "Resource not found"
+	MsgInternalServer string = "Internal server error"
+	MsgUserNotFound   string = "User not found"
 )

@@ -12,6 +12,7 @@ import (
 
 type UserDatabase interface {
 	GetByAuthID(ctx context.Context, data *models.GetUser) (u *models.User, err *ce.Error)
+	GetSchoolAndRole(ctx context.Context, authID int64) (schoolID int64, role string, err *ce.Error)
 }
 
 type userDatabase struct {
@@ -53,7 +54,7 @@ func (d *userDatabase) GetByAuthID(ctx context.Context, data *models.GetUser) (*
 		if errors.Is(err, ce.ErrDBQueryNoRows) {
 			return nil, ce.NewError(
 				ce.CodeUserNotFound,
-				ce.MsgResourceNotFound,
+				ce.MsgUserNotFound,
 				err,
 				authIDField,
 				schoolIDField,
@@ -69,4 +70,47 @@ func (d *userDatabase) GetByAuthID(ctx context.Context, data *models.GetUser) (*
 	}
 
 	return &u, nil
+}
+
+func (d *userDatabase) GetSchoolAndRole(ctx context.Context, authID int64) (int64, string, *ce.Error) {
+	query := `
+		SELECT school_id, role
+		FROM users
+		WHERE
+			auth_id = $1
+			AND deleted_at IS NULL
+	`
+	if d.database.WithinTx(ctx) {
+		query += " FOR UPDATE"
+	}
+
+	var schoolID int64
+	var role string
+	err := d.database.Query(
+		ctx, query,
+		authID,
+	).Scan(
+		&schoolID,
+		&role,
+	)
+	if err != nil {
+		authIDField := logger.NewField("auth_id", authID)
+
+		if errors.Is(err, ce.ErrDBQueryNoRows) {
+			return 0, "", ce.NewError(
+				ce.CodeUserNotFound,
+				ce.MsgUserNotFound,
+				err,
+				authIDField,
+			)
+		}
+		return 0, "", ce.NewError(
+			ce.CodeDBQueryExec,
+			ce.MsgInternalServer,
+			err,
+			authIDField,
+		)
+	}
+
+	return schoolID, role, nil
 }

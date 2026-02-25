@@ -283,6 +283,102 @@ func (x *GetUserResponse) GetUser() *User {
 	return nil
 }
 
+type GetSchoolAndRoleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AuthId        int64                  `protobuf:"varint,1,opt,name=auth_id,json=authId,proto3" json:"auth_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSchoolAndRoleRequest) Reset() {
+	*x = GetSchoolAndRoleRequest{}
+	mi := &file_v1_user_api_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSchoolAndRoleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSchoolAndRoleRequest) ProtoMessage() {}
+
+func (x *GetSchoolAndRoleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_user_api_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSchoolAndRoleRequest.ProtoReflect.Descriptor instead.
+func (*GetSchoolAndRoleRequest) Descriptor() ([]byte, []int) {
+	return file_v1_user_api_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetSchoolAndRoleRequest) GetAuthId() int64 {
+	if x != nil {
+		return x.AuthId
+	}
+	return 0
+}
+
+type GetSchoolAndRoleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SchoolId      int64                  `protobuf:"varint,1,opt,name=school_id,json=schoolId,proto3" json:"school_id,omitempty"`
+	Role          string                 `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSchoolAndRoleResponse) Reset() {
+	*x = GetSchoolAndRoleResponse{}
+	mi := &file_v1_user_api_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSchoolAndRoleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSchoolAndRoleResponse) ProtoMessage() {}
+
+func (x *GetSchoolAndRoleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_user_api_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSchoolAndRoleResponse.ProtoReflect.Descriptor instead.
+func (*GetSchoolAndRoleResponse) Descriptor() ([]byte, []int) {
+	return file_v1_user_api_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetSchoolAndRoleResponse) GetSchoolId() int64 {
+	if x != nil {
+		return x.SchoolId
+	}
+	return 0
+}
+
+func (x *GetSchoolAndRoleResponse) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
 var File_v1_user_api_proto protoreflect.FileDescriptor
 
 const file_v1_user_api_proto_rawDesc = "" +
@@ -316,9 +412,15 @@ const file_v1_user_api_proto_rawDesc = "" +
 	"\aauth_id\x18\x01 \x01(\x03R\x06authId\x12\x1b\n" +
 	"\tschool_id\x18\x02 \x01(\x03R\bschoolId\"4\n" +
 	"\x0fGetUserResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user2K\n" +
+	"\x04user\x18\x01 \x01(\v2\r.user.v1.UserR\x04user\"2\n" +
+	"\x17GetSchoolAndRoleRequest\x12\x17\n" +
+	"\aauth_id\x18\x01 \x01(\x03R\x06authId\"K\n" +
+	"\x18GetSchoolAndRoleResponse\x12\x1b\n" +
+	"\tschool_id\x18\x01 \x01(\x03R\bschoolId\x12\x12\n" +
+	"\x04role\x18\x02 \x01(\tR\x04role2\xa4\x01\n" +
 	"\vUserService\x12<\n" +
-	"\aGetUser\x12\x17.user.v1.GetUserRequest\x1a\x18.user.v1.GetUserResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
+	"\aGetUser\x12\x17.user.v1.GetUserRequest\x1a\x18.user.v1.GetUserResponse\x12W\n" +
+	"\x10GetSchoolAndRole\x12 .user.v1.GetSchoolAndRoleRequest\x1a!.user.v1.GetSchoolAndRoleResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
 
 var (
 	file_v1_user_api_proto_rawDescOnce sync.Once
@@ -332,33 +434,37 @@ func file_v1_user_api_proto_rawDescGZIP() []byte {
 	return file_v1_user_api_proto_rawDescData
 }
 
-var file_v1_user_api_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_v1_user_api_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_v1_user_api_proto_goTypes = []any{
-	(*User)(nil),                 // 0: user.v1.User
-	(*GetUserRequest)(nil),       // 1: user.v1.GetUserRequest
-	(*GetUserResponse)(nil),      // 2: user.v1.GetUserResponse
-	(*wrappers.StringValue)(nil), // 3: google.protobuf.StringValue
-	(*timestamp.Timestamp)(nil),  // 4: google.protobuf.Timestamp
+	(*User)(nil),                     // 0: user.v1.User
+	(*GetUserRequest)(nil),           // 1: user.v1.GetUserRequest
+	(*GetUserResponse)(nil),          // 2: user.v1.GetUserResponse
+	(*GetSchoolAndRoleRequest)(nil),  // 3: user.v1.GetSchoolAndRoleRequest
+	(*GetSchoolAndRoleResponse)(nil), // 4: user.v1.GetSchoolAndRoleResponse
+	(*wrappers.StringValue)(nil),     // 5: google.protobuf.StringValue
+	(*timestamp.Timestamp)(nil),      // 6: google.protobuf.Timestamp
 }
 var file_v1_user_api_proto_depIdxs = []int32{
-	3,  // 0: user.v1.User.school_user_id:type_name -> google.protobuf.StringValue
-	3,  // 1: user.v1.User.nickname:type_name -> google.protobuf.StringValue
-	3,  // 2: user.v1.User.birthplace:type_name -> google.protobuf.StringValue
-	4,  // 3: user.v1.User.birthdate:type_name -> google.protobuf.Timestamp
-	3,  // 4: user.v1.User.sex:type_name -> google.protobuf.StringValue
-	3,  // 5: user.v1.User.phone:type_name -> google.protobuf.StringValue
-	3,  // 6: user.v1.User.profile_picture:type_name -> google.protobuf.StringValue
-	3,  // 7: user.v1.User.profile_banner:type_name -> google.protobuf.StringValue
-	3,  // 8: user.v1.User.created_by:type_name -> google.protobuf.StringValue
-	3,  // 9: user.v1.User.created_by_name:type_name -> google.protobuf.StringValue
-	4,  // 10: user.v1.User.created_at:type_name -> google.protobuf.Timestamp
-	4,  // 11: user.v1.User.updated_at:type_name -> google.protobuf.Timestamp
-	4,  // 12: user.v1.User.deleted_at:type_name -> google.protobuf.Timestamp
+	5,  // 0: user.v1.User.school_user_id:type_name -> google.protobuf.StringValue
+	5,  // 1: user.v1.User.nickname:type_name -> google.protobuf.StringValue
+	5,  // 2: user.v1.User.birthplace:type_name -> google.protobuf.StringValue
+	6,  // 3: user.v1.User.birthdate:type_name -> google.protobuf.Timestamp
+	5,  // 4: user.v1.User.sex:type_name -> google.protobuf.StringValue
+	5,  // 5: user.v1.User.phone:type_name -> google.protobuf.StringValue
+	5,  // 6: user.v1.User.profile_picture:type_name -> google.protobuf.StringValue
+	5,  // 7: user.v1.User.profile_banner:type_name -> google.protobuf.StringValue
+	5,  // 8: user.v1.User.created_by:type_name -> google.protobuf.StringValue
+	5,  // 9: user.v1.User.created_by_name:type_name -> google.protobuf.StringValue
+	6,  // 10: user.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	6,  // 11: user.v1.User.updated_at:type_name -> google.protobuf.Timestamp
+	6,  // 12: user.v1.User.deleted_at:type_name -> google.protobuf.Timestamp
 	0,  // 13: user.v1.GetUserResponse.user:type_name -> user.v1.User
 	1,  // 14: user.v1.UserService.GetUser:input_type -> user.v1.GetUserRequest
-	2,  // 15: user.v1.UserService.GetUser:output_type -> user.v1.GetUserResponse
-	15, // [15:16] is the sub-list for method output_type
-	14, // [14:15] is the sub-list for method input_type
+	3,  // 15: user.v1.UserService.GetSchoolAndRole:input_type -> user.v1.GetSchoolAndRoleRequest
+	2,  // 16: user.v1.UserService.GetUser:output_type -> user.v1.GetUserResponse
+	4,  // 17: user.v1.UserService.GetSchoolAndRole:output_type -> user.v1.GetSchoolAndRoleResponse
+	16, // [16:18] is the sub-list for method output_type
+	14, // [14:16] is the sub-list for method input_type
 	14, // [14:14] is the sub-list for extension type_name
 	14, // [14:14] is the sub-list for extension extendee
 	0,  // [0:14] is the sub-list for field type_name
@@ -375,7 +481,7 @@ func file_v1_user_api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_user_api_proto_rawDesc), len(file_v1_user_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

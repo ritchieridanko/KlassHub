@@ -10,6 +10,7 @@ import (
 
 type UserUsecase interface {
 	GetUser(ctx context.Context, req *models.GetUserRequest) (u *models.User, err *ce.Error)
+	GetSchoolAndRole(ctx context.Context, authID int64) (schoolID int64, role string, err *ce.Error)
 }
 
 type userUsecase struct {
@@ -28,4 +29,8 @@ func (u *userUsecase) GetUser(ctx context.Context, req *models.GetUserRequest) (
 			SchoolID: req.SchoolID,
 		},
 	)
+}
+
+func (u *userUsecase) GetSchoolAndRole(ctx context.Context, authID int64) (int64, string, *ce.Error) {
+	return u.ur.GetSchoolAndRole(ctx, authID)
 }
