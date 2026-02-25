@@ -164,6 +164,53 @@ services:
       interval: 10s
       retries: 3
 
+  school-database:
+    image: postgres:16-alpine
+    container_name: ${SCHOOL_DATABASE_HOST}
+    networks:
+      - klasshub-net
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${SCHOOL_DATABASE_USER}
+      - POSTGRES_PASSWORD=${SCHOOL_DATABASE_PASS}
+      - POSTGRES_DB=${SCHOOL_DATABASE_NAME}
+    volumes:
+      - school_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SCHOOL_DATABASE_USER} -d ${SCHOOL_DATABASE_NAME}"]
+      interval: 5s
+      retries: 5
+
+  school-migrator:
+    image: klasshub-school-migrator
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: services/school/Dockerfile.migrator
+    container_name: school-migrator
+    networks:
+      - klasshub-net
+    restart: "no"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_HOST=${SCHOOL_DATABASE_HOST}
+      - DATABASE_PORT=${SCHOOL_DATABASE_PORT}
+      - DATABASE_USER=${SCHOOL_DATABASE_USER}
+      - DATABASE_PASS=${SCHOOL_DATABASE_PASS}
+      - DATABASE_NAME=${SCHOOL_DATABASE_NAME}
+      - DATABASE_SSL_MODE=${SCHOOL_DATABASE_SSL_MODE}
+    depends_on:
+      school-database:
+        condition: service_healthy
+    entrypoint: ["./bin/migrator"]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "${SCHOOL_DATABASE_HOST}"]
+      interval: 10s
+      retries: 3
+
   # ---------- Jaeger ----------
   jaeger:
     image: jaegertracing/all-in-one:1.62.0
@@ -188,3 +235,4 @@ networks:
 volumes:
   auth_db_data:
   user_db_data:
+  school_db_data:
