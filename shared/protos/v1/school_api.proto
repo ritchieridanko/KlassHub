@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package school.v1;
+
+option go_package = "github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apis";
+
+service SchoolService {
+  rpc GetID(GetIDRequest) returns (GetIDResponse);
+}
+
+message GetIDRequest {
+  int64 auth_id = 1;
+}
+
+message GetIDResponse {
+  int64 school_id = 1;
+}

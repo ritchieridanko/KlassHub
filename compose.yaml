@@ -164,6 +164,40 @@ services:
       interval: 10s
       retries: 3
 
+  school-service:
+    image: klasshub-school-service
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: services/school/Dockerfile.app
+    container_name: ${SCHOOL_SERVICE_HOST}
+    networks:
+      - klasshub-net
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - APP_NAME=${SCHOOL_SERVICE_HOST}
+      - SERVER_HOST=${SCHOOL_SERVICE_HOST}
+      - SERVER_PORT=${SCHOOL_SERVICE_PORT}
+      - SERVER_TIMEOUT_SHUTDOWN=${SCHOOL_SERVICE_TIMEOUT_SHUTDOWN}
+      - DATABASE_HOST=${SCHOOL_DATABASE_HOST}
+      - DATABASE_PORT=${SCHOOL_DATABASE_PORT}
+      - DATABASE_USER=${SCHOOL_DATABASE_USER}
+      - DATABASE_PASS=${SCHOOL_DATABASE_PASS}
+      - DATABASE_NAME=${SCHOOL_DATABASE_NAME}
+      - DATABASE_SSL_MODE=${SCHOOL_DATABASE_SSL_MODE}
+      - DATABASE_MAX_CONNS=${SCHOOL_DATABASE_MAX_CONNS}
+      - DATABASE_MIN_CONNS=${SCHOOL_DATABASE_MIN_CONNS}
+      - DATABASE_MAX_CONN_LIFETIME=${SCHOOL_DATABASE_MAX_CONN_LIFETIME}
+      - DATABASE_MAX_CONN_IDLE_TIME=${SCHOOL_DATABASE_MAX_CONN_IDLE_TIME}
+      - TRACER_PORT=${TRACER_GRPC_PORT}
+    depends_on:
+      school-database:
+        condition: service_healthy
+      school-migrator:
+        condition: service_completed_successfully
+
   school-database:
     image: postgres:16-alpine
     container_name: ${SCHOOL_DATABASE_HOST}
