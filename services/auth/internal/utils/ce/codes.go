@@ -31,7 +31,7 @@ const (
 
 // External Error Messages
 const (
+	MsgAuthNotFound       string = "Auth not found"
 	MsgInternalServer     string = "Internal server error"
 	MsgInvalidCredentials string = "Invalid credentials"
-	MsgResourceNotFound   string = "Resource not found"
 )

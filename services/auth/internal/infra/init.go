@@ -20,6 +20,7 @@ type Infra struct {
 	tracer   *tracer.Tracer
 
 	usc *services.UserServiceClient
+	ssc *services.SchoolServiceClient
 }
 
 func Init(cfg *configs.Config) (*Infra, error) {
@@ -42,6 +43,10 @@ func Init(cfg *configs.Config) (*Infra, error) {
 	if err != nil {
 		return nil, err
 	}
+	ssc, err := services.NewSchoolServiceClient(&cfg.Service, l)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Infra{
 		config:   cfg,
@@ -49,6 +54,7 @@ func Init(cfg *configs.Config) (*Infra, error) {
 		logger:   l,
 		tracer:   t,
 		usc:      usc,
+		ssc:      ssc,
 	}, nil
 }
 
@@ -64,12 +70,19 @@ func (i *Infra) UserServiceClient() apis.UserServiceClient {
 	return i.usc.Client()
 }
 
+func (i *Infra) SchoolServiceClient() apis.SchoolServiceClient {
+	return i.ssc.Client()
+}
+
 func (i *Infra) Close() error {
 	if err := i.logger.Sync(); err != nil {
 		return fmt.Errorf("failed to close logger: %w", err)
 	}
 	if err := i.usc.Close(); err != nil {
 		return fmt.Errorf("failed to close user service client: %w", err)
+	}
+	if err := i.ssc.Close(); err != nil {
+		return fmt.Errorf("failed to close school service client: %w", err)
 	}
 
 	i.database.Close()

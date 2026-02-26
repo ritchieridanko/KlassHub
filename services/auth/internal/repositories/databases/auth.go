@@ -48,7 +48,7 @@ func (d *authDatabase) GetByIdentifier(ctx context.Context, identifier string) (
 	)
 	if err != nil {
 		if errors.Is(err, ce.ErrDBQueryNoRows) {
-			return nil, ce.NewError(ce.CodeAuthNotFound, ce.MsgResourceNotFound, err)
+			return nil, ce.NewError(ce.CodeAuthNotFound, ce.MsgAuthNotFound, err)
 		}
 		return nil, ce.NewError(ce.CodeDBQueryExec, ce.MsgInternalServer, err)
 	}

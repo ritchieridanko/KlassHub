@@ -22,6 +22,9 @@ type Container struct {
 	transactor *database.Transactor
 	logger     *logger.Logger
 
+	us clients.UserService
+	ss clients.SchoolService
+
 	adb databases.AuthDatabase
 	sdb databases.SessionDatabase
 
@@ -47,6 +50,7 @@ func Init(cfg *configs.Config, i *infra.Infra) *Container {
 
 	// Services
 	us := clients.NewUserService(i.UserServiceClient())
+	ss := clients.NewSchoolService(i.SchoolServiceClient())
 
 	// Databases
 	adb := databases.NewAuthDatabase(db)
@@ -63,7 +67,7 @@ func Init(cfg *configs.Config, i *infra.Infra) *Container {
 
 	// Usecases
 	su := usecases.NewSessionUsecase(cfg.App.Name, cfg.Auth.JWT.Duration, cfg.Auth.Duration.Session, sr, tx, v, j)
-	au := usecases.NewAuthUsecase(cfg.App.Name, su, ar, us, tx, v, b)
+	au := usecases.NewAuthUsecase(cfg.App.Name, su, ar, us, ss, tx, v, b)
 
 	// Handlers
 	ah := handlers.NewAuthHandler(au, l)
@@ -76,6 +80,8 @@ func Init(cfg *configs.Config, i *infra.Infra) *Container {
 		database:   db,
 		transactor: tx,
 		logger:     l,
+		us:         us,
+		ss:         ss,
 		adb:        adb,
 		sdb:        sdb,
 		ar:         ar,
