@@ -1,4 +1,35 @@
 services:
+  gateway-service:
+    image: klasshub-gateway-service
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile.app
+    container_name: ${GATEWAY_SERVICE_HOST}
+    ports:
+      - ${GATEWAY_SERVICE_PORT}:${GATEWAY_SERVICE_PORT}
+    networks:
+      - klasshub-net
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - APP_NAME=${GATEWAY_SERVICE_HOST}
+      - SERVER_HOST=${GATEWAY_SERVICE_HOST}
+      - SERVER_PORT=${GATEWAY_SERVICE_PORT}
+      - SERVER_TIMEOUT_READ=${GATEWAY_SERVICE_TIMEOUT_READ}
+      - SERVER_TIMEOUT_WRITE=${GATEWAY_SERVICE_TIMEOUT_WRITE}
+      - SERVER_TIMEOUT_SHUTDOWN=${GATEWAY_SERVICE_TIMEOUT_SHUTDOWN}
+      - SERVICE_AUTH_NAME=${AUTH_SERVICE_HOST}
+      - SERVICE_AUTH_HOST=${AUTH_SERVICE_HOST}
+      - SERVICE_AUTH_PORT=${AUTH_SERVICE_PORT}
+      - TRACER_PORT=${TRACER_HTTP_PORT}
+    depends_on:
+      jaeger:
+        condition: service_started
+      auth-service:
+        condition: service_started
+
   auth-service:
     image: klasshub-auth-service
     platform: linux/amd64
