@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/google/uuid"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/constants"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/metadata"
@@ -42,6 +43,11 @@ func CtxTraceID(ctx context.Context) string {
 		return sp.SpanContext().TraceID().String()
 	}
 	return ""
+}
+
+// Create a new random UUID v7
+func GenerateUUIDv7() (uuid.UUID, error) {
+	return uuid.NewV7()
 }
 
 // Strip string of leading and trailing whitespaces

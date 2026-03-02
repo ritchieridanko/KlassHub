@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/transport/http/handlers"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"github.com/ritchieridanko/klasshub/services/gateway/internal/transport/http/middlewares"
 )
 
 type Router struct {
@@ -15,8 +15,6 @@ type Router struct {
 
 func Init(appName string, l *logger.Logger, ah *handlers.AuthHandler) *Router {
 	r := gin.New()
-	r.Use(gin.Recovery())
-	r.Use(otelgin.Middleware(appName))
 	r.ContextWithFallback = true
 
 	r.GET("/health", func(ctx *gin.Context) {
@@ -26,7 +24,7 @@ func Init(appName string, l *logger.Logger, ah *handlers.AuthHandler) *Router {
 		})
 	})
 
-	v1 := r.Group("/api/v1")
+	v1 := r.Group("/api/v1", middlewares.Request(l))
 
 	// Auth Endpoints
 	auth := v1.Group("/auth")
