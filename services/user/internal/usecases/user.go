@@ -10,7 +10,7 @@ import (
 
 type UserUsecase interface {
 	GetUser(ctx context.Context, req *models.GetUserRequest) (u *models.User, err *ce.Error)
-	GetSchoolAndRole(ctx context.Context, authID int64) (schoolID int64, role string, err *ce.Error)
+	GetUserAuthInfo(ctx context.Context, req *models.GetUserAuthInfoRequest) (uai *models.UserAuthInfo, err *ce.Error)
 }
 
 type userUsecase struct {
@@ -22,7 +22,7 @@ func NewUserUsecase(ur repositories.UserRepository) UserUsecase {
 }
 
 func (u *userUsecase) GetUser(ctx context.Context, req *models.GetUserRequest) (*models.User, *ce.Error) {
-	return u.ur.GetByAuthID(
+	return u.ur.Get(
 		ctx,
 		&models.GetUser{
 			AuthID:   req.AuthID,
@@ -31,6 +31,6 @@ func (u *userUsecase) GetUser(ctx context.Context, req *models.GetUserRequest) (
 	)
 }
 
-func (u *userUsecase) GetSchoolAndRole(ctx context.Context, authID int64) (int64, string, *ce.Error) {
-	return u.ur.GetSchoolAndRole(ctx, authID)
+func (u *userUsecase) GetUserAuthInfo(ctx context.Context, req *models.GetUserAuthInfoRequest) (*models.UserAuthInfo, *ce.Error) {
+	return u.ur.GetAuthInfo(ctx, &models.GetUserAuthInfo{AuthID: req.AuthID})
 }

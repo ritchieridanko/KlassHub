@@ -32,44 +32,44 @@ func (h *UserHandler) GetUser(ctx context.Context, req *apis.GetUserRequest) (*a
 	return &apis.GetUserResponse{User: h.toUser(u)}, nil
 }
 
-func (h *UserHandler) GetSchoolAndRole(ctx context.Context, req *apis.GetSchoolAndRoleRequest) (*apis.GetSchoolAndRoleResponse, error) {
-	schoolID, role, err := h.uu.GetSchoolAndRole(ctx, req.GetAuthId())
+func (h *UserHandler) GetUserAuthInfo(ctx context.Context, req *apis.GetUserAuthInfoRequest) (*apis.GetUserAuthInfoResponse, error) {
+	uai, err := h.uu.GetUserAuthInfo(
+		ctx,
+		&models.GetUserAuthInfoRequest{
+			AuthID: req.GetAuthId(),
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
-	return &apis.GetSchoolAndRoleResponse{
-		SchoolId: schoolID,
-		Role:     role,
-	}, nil
+	return &apis.GetUserAuthInfoResponse{AuthInfo: h.toUserAuthInfo(uai)}, nil
 }
 
 func (h *UserHandler) toUser(u *models.User) *apis.User {
 	if u == nil {
 		return nil
 	}
-
-	var createdBy *string
-	if u.CreatedBy != nil {
-		v := u.CreatedBy.String()
-		createdBy = &v
-	}
-
 	return &apis.User{
 		Id:             u.ID.String(),
-		SchoolUserId:   utils.WrapString(u.SchoolUserID),
+		SchoolUserId:   u.SchoolUserID,
 		Role:           u.Role,
 		Name:           u.Name,
-		Nickname:       utils.WrapString(u.Nickname),
-		Birthplace:     utils.WrapString(u.Birthplace),
-		Birthdate:      utils.WrapTime(u.Birthdate),
-		Sex:            utils.WrapString(u.Sex),
-		Phone:          utils.WrapString(u.Phone),
-		ProfilePicture: utils.WrapString(u.ProfilePicture),
-		ProfileBanner:  utils.WrapString(u.ProfileBanner),
-		CreatedBy:      utils.WrapString(createdBy),
-		CreatedByName:  utils.WrapString(u.CreatedByName),
-		CreatedAt:      utils.WrapTime(u.CreatedAt),
-		UpdatedAt:      utils.WrapTime(u.UpdatedAt),
-		DeletedAt:      utils.WrapTime(u.DeletedAt),
+		Nickname:       u.Nickname,
+		Birthplace:     u.Birthplace,
+		Birthdate:      utils.ToTimestamp(&u.Birthdate),
+		Sex:            u.Sex,
+		Phone:          u.Phone,
+		ProfilePicture: u.ProfilePicture,
+		ProfileBanner:  u.ProfileBanner,
+	}
+}
+
+func (h *UserHandler) toUserAuthInfo(uai *models.UserAuthInfo) *apis.UserAuthInfo {
+	if uai == nil {
+		return nil
+	}
+	return &apis.UserAuthInfo{
+		SchoolId: uai.SchoolID,
+		Role:     uai.Role,
 	}
 }

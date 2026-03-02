@@ -11,8 +11,8 @@ import (
 )
 
 type UserDatabase interface {
-	GetByAuthID(ctx context.Context, data *models.GetUser) (u *models.User, err *ce.Error)
-	GetSchoolAndRole(ctx context.Context, authID int64) (schoolID int64, role string, err *ce.Error)
+	Get(ctx context.Context, params *models.GetUser) (u *models.User, err *ce.Error)
+	GetAuthInfo(ctx context.Context, params *models.GetUserAuthInfo) (uai *models.UserAuthInfo, err *ce.Error)
 }
 
 type userDatabase struct {
@@ -23,12 +23,13 @@ func NewUserDatabase(db *database.Database) UserDatabase {
 	return &userDatabase{database: db}
 }
 
-func (d *userDatabase) GetByAuthID(ctx context.Context, data *models.GetUser) (*models.User, *ce.Error) {
+func (d *userDatabase) Get(ctx context.Context, params *models.GetUser) (*models.User, *ce.Error) {
 	query := `
 		SELECT
 			id, school_user_id, role, name, nickname, birthplace,
 			birthdate, sex, phone, profile_picture, profile_banner
-		FROM users
+		FROM
+			users
 		WHERE
 			auth_id = $1
 			AND school_id = $2
@@ -41,15 +42,15 @@ func (d *userDatabase) GetByAuthID(ctx context.Context, data *models.GetUser) (*
 	var u models.User
 	err := d.database.Query(
 		ctx, query,
-		data.AuthID, data.SchoolID,
+		params.AuthID, params.SchoolID,
 	).Scan(
 		&u.ID, &u.SchoolUserID, &u.Role, &u.Name,
 		&u.Nickname, &u.Birthplace, &u.Birthdate,
 		&u.Sex, &u.Phone, &u.ProfilePicture, &u.ProfileBanner,
 	)
 	if err != nil {
-		authIDField := logger.NewField("auth_id", data.AuthID)
-		schoolIDField := logger.NewField("school_id", data.SchoolID)
+		authIDField := logger.NewField("auth_id", params.AuthID)
+		schoolIDField := logger.NewField("school_id", params.SchoolID)
 
 		if errors.Is(err, ce.ErrDBQueryNoRows) {
 			return nil, ce.NewError(
@@ -72,7 +73,7 @@ func (d *userDatabase) GetByAuthID(ctx context.Context, data *models.GetUser) (*
 	return &u, nil
 }
 
-func (d *userDatabase) GetSchoolAndRole(ctx context.Context, authID int64) (int64, string, *ce.Error) {
+func (d *userDatabase) GetAuthInfo(ctx context.Context, params *models.GetUserAuthInfo) (*models.UserAuthInfo, *ce.Error) {
 	query := `
 		SELECT school_id, role
 		FROM users
@@ -84,27 +85,26 @@ func (d *userDatabase) GetSchoolAndRole(ctx context.Context, authID int64) (int6
 		query += " FOR UPDATE"
 	}
 
-	var schoolID int64
-	var role string
+	var i models.UserAuthInfo
 	err := d.database.Query(
 		ctx, query,
-		authID,
+		params.AuthID,
 	).Scan(
-		&schoolID,
-		&role,
+		&i.SchoolID,
+		&i.Role,
 	)
 	if err != nil {
-		authIDField := logger.NewField("auth_id", authID)
+		authIDField := logger.NewField("auth_id", params.AuthID)
 
 		if errors.Is(err, ce.ErrDBQueryNoRows) {
-			return 0, "", ce.NewError(
+			return nil, ce.NewError(
 				ce.CodeUserNotFound,
 				ce.MsgUserNotFound,
 				err,
 				authIDField,
 			)
 		}
-		return 0, "", ce.NewError(
+		return nil, ce.NewError(
 			ce.CodeDBQueryExec,
 			ce.MsgInternalServer,
 			err,
@@ -112,5 +112,5 @@ func (d *userDatabase) GetSchoolAndRole(ctx context.Context, authID int64) (int6
 		)
 	}
 
-	return schoolID, role, nil
+	return &i, nil
 }

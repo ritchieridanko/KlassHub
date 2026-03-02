@@ -47,15 +47,13 @@ func (e *Error) Unwrap() error {
 	return e.err
 }
 
-func (e *Error) AppendFields(fields ...logger.Field) *Error {
+func (e *Error) Append(fields ...logger.Field) *Error {
 	e.fields = append(e.fields, fields...)
 	return e
 }
 
 func (e *Error) ToGRPCStatus() error {
 	switch e.code {
-	case CodeInvalidRequestMeta:
-		return status.Error(codes.InvalidArgument, e.message)
 	case CodeUserNotFound:
 		return status.Error(codes.NotFound, e.message)
 	case CodeDBQueryExec, CodeDBTransaction, CodeUnknown,

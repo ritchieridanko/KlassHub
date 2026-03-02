@@ -28,11 +28,11 @@ type Container struct {
 	server *server.Server
 }
 
-func Init(cfg *configs.Config, i *infra.Infra) *Container {
+func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	// Infra
-	db := database.NewDatabase(i.Database())
-	tx := database.NewTransactor(i.Database())
-	l := logger.NewLogger(i.Logger())
+	db := database.NewDatabase(inf.Database())
+	tx := database.NewTransactor(inf.Database())
+	l := logger.NewLogger(inf.Logger())
 
 	// Databases
 	udb := databases.NewUserDatabase(db)
@@ -47,7 +47,7 @@ func Init(cfg *configs.Config, i *infra.Infra) *Container {
 	uh := handlers.NewUserHandler(uu)
 
 	// Server
-	srv := server.Init(cfg.App.Name, &cfg.Server, l, uh)
+	srv := server.Init(&cfg.Server, cfg.App.Name, l, uh)
 
 	return &Container{
 		config:     cfg,

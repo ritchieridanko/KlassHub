@@ -14,27 +14,25 @@ import (
 )
 
 type Server struct {
-	name   string
 	config *configs.Server
 	server *grpc.Server
 	logger *logger.Logger
 	uh     *handlers.UserHandler
 }
 
-func Init(name string, cfg *configs.Server, l *logger.Logger, uh *handlers.UserHandler) *Server {
+func Init(cfg *configs.Server, name string, l *logger.Logger, uh *handlers.UserHandler) *Server {
 	srv := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			interceptors.RequestInterceptor(),
-			interceptors.RecoveryInterceptor(l),
-			interceptors.TracingInterceptor(name),
-			interceptors.LoggingInterceptor(l),
+			interceptors.Request(),
+			interceptors.Recovery(l),
+			interceptors.Tracing(name),
+			interceptors.Logging(l),
 		),
 	)
 
 	apis.RegisterUserServiceServer(srv, uh)
 
 	return &Server{
-		name:   name,
 		config: cfg,
 		server: srv,
 		logger: l,

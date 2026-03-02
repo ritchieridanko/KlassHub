@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func RequestInterceptor() grpc.UnaryServerInterceptor {
+func Request() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req any,
@@ -17,21 +17,17 @@ func RequestInterceptor() grpc.UnaryServerInterceptor {
 	) (any, error) {
 		md, _ := metadata.FromIncomingContext(ctx)
 
-		var requestID, userAgent, ipAddress string
+		var requestID string
 		if values := md.Get(constants.MDKeyRequestID); len(values) > 0 {
 			requestID = values[0]
 		}
-		if values := md.Get(constants.MDKeyUserAgent); len(values) > 0 {
-			userAgent = values[0]
-		}
-		if values := md.Get(constants.MDKeyIPAddress); len(values) > 0 {
-			ipAddress = values[0]
-		}
-
-		ctx = context.WithValue(ctx, constants.CtxKeyRequestID, requestID)
-		ctx = context.WithValue(ctx, constants.CtxKeyUserAgent, userAgent)
-		ctx = context.WithValue(ctx, constants.CtxKeyIPAddress, ipAddress)
-
-		return handler(ctx, req)
+		return handler(
+			context.WithValue(
+				ctx,
+				constants.CtxKeyRequestID,
+				requestID,
+			),
+			req,
+		)
 	}
 }

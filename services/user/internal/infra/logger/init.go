@@ -7,18 +7,18 @@ import (
 )
 
 func Init(env string) (*zap.Logger, error) {
-	var cfg zap.Config
+	var conf zap.Config
 	if env == "prod" {
-		cfg = zap.NewProductionConfig()
-		cfg.DisableStacktrace = true
-		cfg.DisableCaller = false
+		conf = zap.NewProductionConfig()
+		conf.DisableStacktrace = true
+		conf.DisableCaller = false
 	} else {
-		cfg = zap.NewDevelopmentConfig()
-		cfg.DisableStacktrace = false
-		cfg.DisableCaller = false
+		conf = zap.NewDevelopmentConfig()
+		conf.DisableStacktrace = false
+		conf.DisableCaller = false
 	}
 
-	l, err := cfg.Build(zap.AddStacktrace(zap.PanicLevel))
+	l, err := conf.Build(zap.AddStacktrace(zap.PanicLevel))
 	if err != nil {
 		return nil, fmt.Errorf("failed to build logger: %w", err)
 	}

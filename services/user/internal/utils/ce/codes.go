@@ -16,7 +16,6 @@ var (
 const (
 	CodeDBQueryExec          errCode = "ERR_DB_QUERY_EXECUTION"
 	CodeDBTransaction        errCode = "ERR_DB_TRANSACTION"
-	CodeInvalidRequestMeta   errCode = "ERR_INVALID_REQUEST_META"
 	CodeUnknown              errCode = "ERR_UNKNOWN"
 	CodeUserNotFound         errCode = "ERR_USER_NOT_FOUND"
 	CodeUUIDGenerationFailed errCode = "ERR_UUID_GENERATION_FAILED"

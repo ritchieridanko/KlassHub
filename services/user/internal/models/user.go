@@ -14,20 +14,29 @@ type User struct {
 	Role           string
 	Name           string
 	Nickname       *string
-	Birthplace     *string
-	Birthdate      *time.Time
-	Sex            *string
+	Birthplace     string
+	Birthdate      time.Time
+	Sex            string
 	Phone          *string
 	ProfilePicture *string
 	ProfileBanner  *string
 	CreatedBy      *uuid.UUID
 	CreatedByName  *string
-	CreatedAt      *time.Time
-	UpdatedAt      *time.Time
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 	DeletedAt      *time.Time
+}
+
+type UserAuthInfo struct {
+	SchoolID int64
+	Role     string
 }
 
 type GetUser struct {
 	AuthID   int64
 	SchoolID int64
+}
+
+type GetUserAuthInfo struct {
+	AuthID int64
 }
