@@ -1,0 +1,39 @@
+package middlewares
+
+import (
+	"net/http"
+	"runtime/debug"
+
+	"github.com/gin-gonic/gin"
+	"github.com/ritchieridanko/klasshub/services/gateway/internal/infra/logger"
+	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils"
+	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils/ce"
+)
+
+func Recovery(l *logger.Logger) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		defer func() {
+			if r := recover(); r != nil {
+				l.Error(
+					ctx.Request.Context(),
+					"PANIC RECOVERED",
+					logger.NewField("request_id", utils.CtxRequestID(ctx.Request.Context())),
+					logger.NewField("method", ctx.Request.Method),
+					logger.NewField("path", ctx.Request.URL.Path),
+					logger.NewField("panic", r),
+					logger.NewField("stack_trace", debug.Stack()),
+				)
+
+				ctx.AbortWithStatusJSON(
+					http.StatusInternalServerError,
+					gin.H{
+						"status":  http.StatusInternalServerError,
+						"message": ce.MsgInternalServer,
+					},
+				)
+			}
+		}()
+
+		ctx.Next()
+	}
+}

@@ -15,8 +15,8 @@ import (
 
 func Request(l *logger.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		requestID := ctx.GetHeader("X-Request-ID")
-		if strings.TrimSpace(requestID) == "" {
+		requestID := strings.TrimSpace(ctx.GetHeader("X-Request-ID"))
+		if requestID == "" {
 			uuid, err := utils.GenerateUUIDv7()
 			if err != nil {
 				requestID = fmt.Sprintf("fallback-%d", time.Now().UnixNano())

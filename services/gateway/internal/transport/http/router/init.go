@@ -24,7 +24,11 @@ func Init(appName string, l *logger.Logger, ah *handlers.AuthHandler) *Router {
 		})
 	})
 
-	v1 := r.Group("/api/v1", middlewares.Request(l))
+	v1 := r.Group(
+		"/api/v1",
+		middlewares.Request(l),
+		middlewares.Recovery(l),
+	)
 
 	// Auth Endpoints
 	auth := v1.Group("/auth")
