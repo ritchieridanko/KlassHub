@@ -5,13 +5,13 @@ package school.v1;
 option go_package = "github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apis";
 
 service SchoolService {
-  rpc GetID(GetIDRequest) returns (GetIDResponse);
+  rpc GetSchoolID(GetSchoolIDRequest) returns (GetSchoolIDResponse);
 }
 
-message GetIDRequest {
+message GetSchoolIDRequest {
   int64 auth_id = 1;
 }
 
-message GetIDResponse {
+message GetSchoolIDResponse {
   int64 school_id = 1;
 }

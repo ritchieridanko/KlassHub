@@ -46,9 +46,9 @@ type Database struct {
 }
 
 type Tracer struct {
-	Endpoint string
-	Host     string `mapstructure:"host"`
-	Port     int    `mapstructure:"port"`
+	Addr string
+	Host string `mapstructure:"host"`
+	Port int    `mapstructure:"port"`
 }
 
 func Init(path string) (*Config, error) {
@@ -78,7 +78,7 @@ func Init(path string) (*Config, error) {
 
 	cfg.App.Env = env
 	cfg.Server.Addr = fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
-	cfg.Tracer.Endpoint = fmt.Sprintf("%s:%d", cfg.Tracer.Host, cfg.Tracer.Port)
+	cfg.Tracer.Addr = fmt.Sprintf("%s:%d", cfg.Tracer.Host, cfg.Tracer.Port)
 	cfg.Database.DSN = fmt.Sprintf(
 		"postgresql://%s:%s@%s:%d/%s?sslmode=%s",
 		cfg.Database.User,

@@ -57,12 +57,12 @@ func (m *Migrator) Down(steps int) error {
 }
 
 func (m *Migrator) Close() error {
-	se, de := m.migrate.Close()
-	if se != nil {
-		return fmt.Errorf("failed to close migration source: %w", se)
+	sourceErr, dbErr := m.migrate.Close()
+	if sourceErr != nil {
+		return fmt.Errorf("failed to close migration source: %w", sourceErr)
 	}
-	if de != nil {
-		return fmt.Errorf("failed to close migration database: %w", de)
+	if dbErr != nil {
+		return fmt.Errorf("failed to close migration database: %w", dbErr)
 	}
 	return nil
 }

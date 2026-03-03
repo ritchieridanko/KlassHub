@@ -47,7 +47,7 @@ func (e *Error) Unwrap() error {
 	return e.err
 }
 
-func (e *Error) AppendFields(fields ...logger.Field) *Error {
+func (e *Error) Append(fields ...logger.Field) *Error {
 	e.fields = append(e.fields, fields...)
 	return e
 }

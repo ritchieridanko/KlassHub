@@ -11,20 +11,20 @@ import (
 )
 
 func Init(cfg *configs.Database, l *zap.Logger) (*pgxpool.Pool, error) {
-	c, err := pgxpool.ParseConfig(cfg.DSN)
+	conf, err := pgxpool.ParseConfig(cfg.DSN)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build database config: %w", err)
 	}
 
-	c.MaxConns = int32(cfg.MaxConns)
-	c.MinConns = int32(cfg.MinConns)
-	c.MaxConnLifetime = cfg.MaxConnLifetime
-	c.MaxConnIdleTime = cfg.MaxConnIdleTime
+	conf.MaxConns = int32(cfg.MaxConns)
+	conf.MinConns = int32(cfg.MinConns)
+	conf.MaxConnLifetime = cfg.MaxConnLifetime
+	conf.MaxConnIdleTime = cfg.MaxConnIdleTime
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	p, err := pgxpool.NewWithConfig(ctx, c)
+	p, err := pgxpool.NewWithConfig(ctx, conf)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create database connection pool: %w", err)
 	}
@@ -33,6 +33,6 @@ func Init(cfg *configs.Database, l *zap.Logger) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	l.Sugar().Infof("[DATABASE] initialized (host=%s, port=%d, name=%s)", cfg.Host, cfg.Port, cfg.Name)
+	l.Sugar().Infof("[DATABASE] connected (host=%s, port=%d, name=%s)", cfg.Host, cfg.Port, cfg.Name)
 	return p, nil
 }

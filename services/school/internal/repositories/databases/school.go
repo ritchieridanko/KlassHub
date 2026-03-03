@@ -6,11 +6,12 @@ import (
 
 	"github.com/ritchieridanko/klasshub/services/school/internal/infra/database"
 	"github.com/ritchieridanko/klasshub/services/school/internal/infra/logger"
+	"github.com/ritchieridanko/klasshub/services/school/internal/models"
 	"github.com/ritchieridanko/klasshub/services/school/internal/utils/ce"
 )
 
 type SchoolDatabase interface {
-	GetID(ctx context.Context, authID int64) (schoolID int64, err *ce.Error)
+	GetID(ctx context.Context, params *models.GetSchoolID) (schoolID int64, err *ce.Error)
 }
 
 type schoolDatabase struct {
@@ -21,7 +22,7 @@ func NewSchoolDatabase(db *database.Database) SchoolDatabase {
 	return &schoolDatabase{database: db}
 }
 
-func (d *schoolDatabase) GetID(ctx context.Context, authID int64) (int64, *ce.Error) {
+func (d *schoolDatabase) GetID(ctx context.Context, params *models.GetSchoolID) (int64, *ce.Error) {
 	query := "SELECT id FROM schools WHERE auth_id = $1 AND deleted_at IS NULL"
 	if d.database.WithinTx(ctx) {
 		query += " FOR UPDATE"
@@ -30,10 +31,12 @@ func (d *schoolDatabase) GetID(ctx context.Context, authID int64) (int64, *ce.Er
 	var schoolID int64
 	err := d.database.Query(
 		ctx, query,
-		authID,
-	).Scan(&schoolID)
+		params.AuthID,
+	).Scan(
+		&schoolID,
+	)
 	if err != nil {
-		authIDField := logger.NewField("auth_id", authID)
+		authIDField := logger.NewField("auth_id", params.AuthID)
 
 		if errors.Is(err, ce.ErrDBQueryNoRows) {
 			return 0, ce.NewError(ce.CodeSchoolNotFound, ce.MsgSchoolNotFound, err, authIDField)
