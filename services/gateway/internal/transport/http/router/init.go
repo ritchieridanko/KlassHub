@@ -29,6 +29,7 @@ func Init(cfg *configs.Client, appName string, l *logger.Logger, ah *handlers.Au
 		"/api/v1",
 		middlewares.Request(l),
 		middlewares.Recovery(l),
+		middlewares.Logging(l),
 	)
 
 	// Auth Endpoints

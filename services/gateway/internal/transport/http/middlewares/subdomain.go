@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/constants"
+	"github.com/ritchieridanko/klasshub/services/gateway/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils/ce"
 )
 
@@ -27,13 +27,16 @@ func Subdomain(hostname, tld string) gin.HandlerFunc {
 		}
 
 		if subdomain != constants.SubdomainAdmin && subdomain != constants.SubdomainLMS {
-			ctx.AbortWithStatusJSON(
-				http.StatusBadRequest,
-				gin.H{
-					"status":  http.StatusBadRequest,
-					"message": ce.MsgInvalidSubdomain,
-				},
+			ce.NewError(
+				ce.CodeInvalidSubdomain,
+				ce.MsgInvalidSubdomain,
+				nil,
+				logger.NewField("subdomain", subdomain),
+			).Bind(
+				ctx,
 			)
+
+			ctx.Abort()
 			return
 		}
 

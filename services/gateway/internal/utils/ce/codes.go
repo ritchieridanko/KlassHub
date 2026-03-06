@@ -5,6 +5,7 @@ const (
 	CodeInternal               errCode = "ERR_INTERNAL"
 	CodeInvalidPayload         errCode = "ERR_INVALID_PAYLOAD"
 	CodeInvalidRequestMetadata errCode = "ERR_INVALID_REQUEST_METADATA"
+	CodeInvalidSubdomain       errCode = "ERR_INVALID_SUBDOMAIN"
 	CodeNotFound               errCode = "ERR_NOT_FOUND"
 	CodeUnauthenticated        errCode = "ERR_UNAUTHENTICATED"
 	CodeUnknown                errCode = "ERR_UNKNOWN"

@@ -1,6 +1,8 @@
 package ce
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/infra/logger"
 )
@@ -53,4 +55,20 @@ func (e *Error) Append(fields ...logger.Field) *Error {
 
 func (e *Error) Bind(ctx *gin.Context) {
 	ctx.Error(e)
+}
+
+func (e *Error) ToHTTPStatus() int {
+	switch e.code {
+	case CodeInvalidPayload, CodeInvalidRequestMetadata,
+		CodeInvalidSubdomain:
+		return http.StatusBadRequest
+	case CodeUnauthenticated:
+		return http.StatusUnauthorized
+	case CodeNotFound:
+		return http.StatusNotFound
+	case CodeInternal, CodeUnknown, CodeUUIDGenerationFailed:
+		return http.StatusInternalServerError
+	default:
+		return http.StatusInternalServerError
+	}
 }
