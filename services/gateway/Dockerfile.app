@@ -17,7 +17,7 @@ COPY services/gateway/cmd/app ./cmd/app
 COPY services/gateway/configs ./configs
 COPY services/gateway/internal ./internal
 
-# Build app
+# Build binary
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/app cmd/app/main.go
 
 # ---------- Runtime Stage ----------

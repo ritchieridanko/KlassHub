@@ -2,8 +2,8 @@ app:
   name: "gateway-service"
 
 client:
-  hostname: "klasshub"
-  tld: "com"
+  hostname: ""
+  tld: ""
 
 server:
   host: "localhost"

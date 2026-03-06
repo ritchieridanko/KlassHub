@@ -41,7 +41,6 @@ func Request(l *logger.Logger) gin.HandlerFunc {
 				requestID,
 			),
 		)
-
 		ctx.Next()
 	}
 }

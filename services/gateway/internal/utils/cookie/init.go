@@ -1,9 +1,6 @@
 package cookie
 
-import (
-	"github.com/gin-gonic/gin"
-	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils"
-)
+import "github.com/gin-gonic/gin"
 
 type Cookie struct {
 	domain   string
@@ -11,7 +8,7 @@ type Cookie struct {
 }
 
 func Init(env, domain string) *Cookie {
-	isProd := utils.NormalizeString(env) == "prod"
+	isProd := env == "prod"
 	if !isProd {
 		domain = ""
 	}

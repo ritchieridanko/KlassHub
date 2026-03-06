@@ -41,17 +41,22 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
-	stopped := make(chan struct{})
+	stopped := make(chan error, 1)
 	go func() {
-		s.server.Shutdown(ctx)
-		close(stopped)
+		stopped <- s.server.Shutdown(ctx)
 	}()
 
 	select {
 	case <-ctx.Done():
 		err := s.server.Close()
-		return fmt.Errorf("failed to shutdown server: %w", err)
-	case <-stopped:
+		if err != nil {
+			return fmt.Errorf("failed to shutdown server: %v: %w", err, ctx.Err())
+		}
+		return fmt.Errorf("failed to shutdown server: %w", ctx.Err())
+	case err := <-stopped:
+		if err != nil {
+			return fmt.Errorf("failed to shutdown server: %w", err)
+		}
 		return nil
 	}
 }

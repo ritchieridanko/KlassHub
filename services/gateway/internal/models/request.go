@@ -1,7 +1,6 @@
 package models
 
-type LoginRequest struct {
+type LoginReq struct {
 	Identifier string
 	Password   string
-	Subdomain  string
 }

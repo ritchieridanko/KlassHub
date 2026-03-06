@@ -2,19 +2,13 @@ package utils
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"net"
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang/protobuf/ptypes/timestamp"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/google/uuid"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/constants"
 	"go.opentelemetry.io/otel/trace"
-	"google.golang.org/grpc/metadata"
 )
 
 // Get Request ID from Context
@@ -26,15 +20,11 @@ func CtxRequestID(ctx context.Context) string {
 }
 
 // Get Subdomain from Context
-func CtxSubdomain(ctx *gin.Context, hostname, tld string) (string, error) {
-	host, _, err := net.SplitHostPort(ctx.Request.Host)
-	if err != nil {
-		return "", err
+func CtxSubdomain(ctx context.Context) string {
+	if v, ok := ctx.Value(constants.CtxKeySubdomain).(string); ok {
+		return v
 	}
-	if suffix := fmt.Sprintf(".%s.%s", hostname, tld); strings.HasSuffix(host, suffix) {
-		return strings.TrimSuffix(host, suffix), nil
-	}
-	return "", errors.New("invalid hostname")
+	return ""
 }
 
 // Get Trace ID from Context
@@ -56,31 +46,8 @@ func NormalizeString(s string) string {
 	return strings.ToLower(strings.TrimSpace(s))
 }
 
-// Insert metadata into outgoing context.
-// Transport details include User Agent and IP Address
-func ToOutgoingCtx(ctx *gin.Context, includeTransportDetails bool) context.Context {
-	c := ctx.Request.Context()
-
-	pairs := make([]string, 0, 6)
-	pairs = append(pairs, constants.MDKeyRequestID, CtxRequestID(c))
-
-	if includeTransportDetails {
-		pairs = append(pairs, constants.MDKeyUserAgent, ctx.Request.UserAgent())
-		pairs = append(pairs, constants.MDKeyIPAddress, ctx.ClientIP())
-	}
-	return metadata.AppendToOutgoingContext(c, pairs...)
-}
-
-// Unwrap string value
-func UnwrapString(sv *wrappers.StringValue) *string {
-	if sv == nil {
-		return nil
-	}
-	return &sv.Value
-}
-
-// Unwrap timestamp value
-func UnwrapTimestamp(ts *timestamp.Timestamp) *time.Time {
+// Convert timestamp value to time
+func ToTime(ts *timestamp.Timestamp) *time.Time {
 	if ts == nil {
 		return nil
 	}

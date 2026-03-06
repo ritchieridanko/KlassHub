@@ -11,17 +11,26 @@ import (
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils/ce"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils/cookie"
+	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils/metadata"
+	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils/validator"
 )
 
 type AuthHandler struct {
-	hostname string
-	tld      string
-	ac       clients.AuthClient
-	cookie   *cookie.Cookie
+	hostname  string
+	tld       string
+	ac        clients.AuthClient
+	validator *validator.Validator
+	cookie    *cookie.Cookie
 }
 
-func NewAuthHandler(hostname, tld string, ac clients.AuthClient, c *cookie.Cookie) *AuthHandler {
-	return &AuthHandler{hostname: hostname, tld: tld, ac: ac, cookie: c}
+func NewAuthHandler(hostname, tld string, ac clients.AuthClient, v *validator.Validator, c *cookie.Cookie) *AuthHandler {
+	return &AuthHandler{
+		hostname:  hostname,
+		tld:       tld,
+		ac:        ac,
+		validator: v,
+		cookie:    c,
+	}
 }
 
 func (h *AuthHandler) Login(ctx *gin.Context) {
@@ -31,39 +40,56 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	subdomain, err := utils.CtxSubdomain(ctx, h.hostname, h.tld)
-	if err != nil {
-		ce.NewError(ce.CodeInvalidSubdomain, ce.MsgInvalidSubdomain, err).Bind(ctx)
+	ua, ip := ctx.Request.UserAgent(), ctx.ClientIP()
+	if ok, why := h.validator.UserAgent(ua); !ok {
+		ce.NewError(ce.CodeInvalidRequestMetadata, why, nil).Bind(ctx)
+		return
+	}
+	if ok, why := h.validator.IPAddress(ip); !ok {
+		ce.NewError(ce.CodeInvalidRequestMetadata, why, nil).Bind(ctx)
 		return
 	}
 
-	a, at, se := h.ac.Login(
-		utils.ToOutgoingCtx(ctx, true),
-		&models.LoginRequest{
+	a, at, err := h.ac.Login(
+		metadata.ToOutgoingCtx(
+			ctx.Request.Context(),
+			metadata.NewPair(
+				constants.MDKeyUserAgent,
+				ua,
+			),
+			metadata.NewPair(
+				constants.MDKeyIPAddress,
+				ip,
+			),
+			metadata.NewPair(
+				constants.MDKeySubdomain,
+				utils.CtxSubdomain(ctx.Request.Context()),
+			),
+		),
+		&models.LoginReq{
 			Identifier: payload.Identifier,
 			Password:   payload.Password,
-			Subdomain:  subdomain,
 		},
 	)
-	if se != nil {
-		se.Bind(ctx)
+	if err != nil {
+		err.Bind(ctx)
 		return
 	}
 
 	h.cookie.Set(
 		ctx,
 		constants.CookieKeyRefreshToken,
-		at.RefreshToken,
+		at.RefreshToken.Token,
 		"/",
-		int(at.RefreshTokenExpiresIn),
+		int(at.RefreshToken.ExpiresIn),
 	)
 	utils.SetResponse(
 		ctx,
 		http.StatusOK,
 		"Logged in successfully",
 		dtos.LoginResponse{
-			Auth:      h.toAuth(a),
-			AuthToken: h.toAuthToken(at),
+			Auth:        h.toAuth(a),
+			AccessToken: h.toAccessToken(at.AccessToken),
 		},
 	)
 }
@@ -73,20 +99,20 @@ func (h *AuthHandler) toAuth(a *models.Auth) *dtos.Auth {
 		return nil
 	}
 	return &dtos.Auth{
-		Role:              a.Role,
 		Email:             a.Email,
 		Username:          a.Username,
-		EmailVerifiedAt:   a.EmailVerifiedAt,
+		Role:              a.Role,
+		IsVerified:        a.IsVerified,
 		PasswordChangedAt: a.PasswordChangedAt,
 	}
 }
 
-func (h *AuthHandler) toAuthToken(at *models.AuthToken) *dtos.AuthToken {
+func (h *AuthHandler) toAccessToken(at *models.AccessToken) *dtos.AccessToken {
 	if at == nil {
 		return nil
 	}
-	return &dtos.AuthToken{
-		AccessToken: at.AccessToken,
-		ExpiresIn:   at.AccessTokenExpiresIn,
+	return &dtos.AccessToken{
+		Token:     at.Token,
+		ExpiresIn: at.ExpiresIn,
 	}
 }

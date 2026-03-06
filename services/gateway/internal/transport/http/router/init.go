@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ritchieridanko/klasshub/services/gateway/configs"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/transport/http/handlers"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/transport/http/middlewares"
@@ -13,7 +14,7 @@ type Router struct {
 	router *gin.Engine
 }
 
-func Init(appName string, l *logger.Logger, ah *handlers.AuthHandler) *Router {
+func Init(cfg *configs.Client, appName string, l *logger.Logger, ah *handlers.AuthHandler) *Router {
 	r := gin.New()
 	r.ContextWithFallback = true
 
@@ -33,7 +34,7 @@ func Init(appName string, l *logger.Logger, ah *handlers.AuthHandler) *Router {
 	// Auth Endpoints
 	auth := v1.Group("/auth")
 	{
-		auth.POST("/login", ah.Login)
+		auth.POST("/login", middlewares.Subdomain(cfg.Hostname, cfg.TLD), ah.Login)
 	}
 
 	return &Router{router: r}

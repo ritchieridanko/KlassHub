@@ -33,7 +33,8 @@ func (l *Logger) Error(ctx context.Context, message string, fields ...Field) {
 }
 
 func (l *Logger) toFields(ctx context.Context, fields ...Field) []zap.Field {
-	zf := make([]zap.Field, 0, len(fields)+3)
+	defaultSize := 3
+	zf := make([]zap.Field, 0, len(fields)+defaultSize)
 	zf = append(
 		zf,
 		zap.Time("timestamp", time.Now().UTC()),

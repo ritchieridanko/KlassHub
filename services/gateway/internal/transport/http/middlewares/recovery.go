@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 	"net/http"
 	"runtime/debug"
 
@@ -20,7 +21,7 @@ func Recovery(l *logger.Logger) gin.HandlerFunc {
 					logger.NewField("request_id", utils.CtxRequestID(ctx.Request.Context())),
 					logger.NewField("method", ctx.Request.Method),
 					logger.NewField("path", ctx.Request.URL.Path),
-					logger.NewField("panic", r),
+					logger.NewField("panic", fmt.Sprintf("%v", r)),
 					logger.NewField("stack_trace", debug.Stack()),
 				)
 

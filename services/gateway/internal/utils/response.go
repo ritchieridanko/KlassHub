@@ -14,7 +14,7 @@ func SetResponse[T any](ctx *gin.Context, status int, message string, data T) {
 			Status:  status,
 			Message: message,
 			Data:    data,
-			Metadata: &dtos.ResponseMeta{
+			Metadata: &dtos.ResponseMetadata{
 				RequestID: CtxRequestID(ctx.Request.Context()),
 				Timestamp: time.Now().UTC(),
 			},

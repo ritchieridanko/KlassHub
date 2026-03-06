@@ -3,9 +3,9 @@ package models
 import "time"
 
 type Auth struct {
-	Role              *string
 	Email             *string
 	Username          *string
-	EmailVerifiedAt   *time.Time
+	Role              string
+	IsVerified        bool
 	PasswordChangedAt *time.Time
 }

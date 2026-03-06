@@ -1,8 +1,16 @@
 package models
 
+type AccessToken struct {
+	Token     string
+	ExpiresIn int64 // seconds
+}
+
+type RefreshToken struct {
+	Token     string
+	ExpiresIn int64 // seconds
+}
+
 type AuthToken struct {
-	AccessToken           string
-	RefreshToken          string
-	AccessTokenExpiresIn  int64
-	RefreshTokenExpiresIn int64
+	AccessToken  *AccessToken
+	RefreshToken *RefreshToken
 }

@@ -9,16 +9,18 @@ import (
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/transport/http/router"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/transport/http/server"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils/cookie"
+	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils/validator"
 )
 
 type Container struct {
-	config *configs.Config
-	logger *logger.Logger
-	ac     clients.AuthClient
-	cookie *cookie.Cookie
-	ah     *handlers.AuthHandler
-	router *router.Router
-	server *server.Server
+	config    *configs.Config
+	logger    *logger.Logger
+	ac        clients.AuthClient
+	cookie    *cookie.Cookie
+	validator *validator.Validator
+	ah        *handlers.AuthHandler
+	router    *router.Router
+	server    *server.Server
 }
 
 func Init(cfg *configs.Config, inf *infra.Infra) *Container {
@@ -30,24 +32,26 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 
 	// Utils
 	c := cookie.Init(cfg.App.Env, "")
+	v := validator.Init()
 
 	// Handlers
-	ah := handlers.NewAuthHandler(cfg.Client.Hostname, cfg.Client.TLD, ac, c)
+	ah := handlers.NewAuthHandler(cfg.Client.Hostname, cfg.Client.TLD, ac, v, c)
 
 	// Router
-	r := router.Init(cfg.App.Name, l, ah)
+	r := router.Init(&cfg.Client, cfg.App.Name, l, ah)
 
 	// Server
 	srv := server.Init(&cfg.Server, r, l)
 
 	return &Container{
-		config: cfg,
-		logger: l,
-		ac:     ac,
-		cookie: c,
-		ah:     ah,
-		router: r,
-		server: srv,
+		config:    cfg,
+		logger:    l,
+		ac:        ac,
+		cookie:    c,
+		validator: v,
+		ah:        ah,
+		router:    r,
+		server:    srv,
 	}
 }
 

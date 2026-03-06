@@ -11,7 +11,7 @@ import (
 )
 
 type AuthClient interface {
-	Login(ctx context.Context, req *models.LoginRequest) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	Login(ctx context.Context, req *models.LoginReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 }
 
 type authClient struct {
@@ -22,21 +22,19 @@ func NewAuthClient(c apis.AuthServiceClient) AuthClient {
 	return &authClient{client: c}
 }
 
-func (c *authClient) Login(ctx context.Context, req *models.LoginRequest) (*models.Auth, *models.AuthToken, *ce.Error) {
+func (c *authClient) Login(ctx context.Context, req *models.LoginReq) (*models.Auth, *models.AuthToken, *ce.Error) {
 	resp, err := c.client.Login(
 		ctx,
 		&apis.LoginRequest{
 			Identifier: req.Identifier,
 			Password:   req.Password,
-			Subdomain:  req.Subdomain,
 		},
 	)
 	if err != nil {
 		return nil, nil, ce.FromGRPCErr(
 			err,
-		).AppendFields(
+		).Append(
 			logger.NewField("service", "auth"),
-			logger.NewField("subdomain", req.Subdomain),
 		)
 	}
 	return c.toAuth(resp.GetAuth()), c.toAuthToken(resp.GetAuthToken()), nil
@@ -47,11 +45,11 @@ func (c *authClient) toAuth(a *apis.Auth) *models.Auth {
 		return nil
 	}
 	return &models.Auth{
-		Role:              utils.UnwrapString(a.GetRole()),
-		Email:             utils.UnwrapString(a.GetEmail()),
-		Username:          utils.UnwrapString(a.GetUsername()),
-		EmailVerifiedAt:   utils.UnwrapTimestamp(a.GetEmailVerifiedAt()),
-		PasswordChangedAt: utils.UnwrapTimestamp(a.GetPasswordChangedAt()),
+		Email:             a.Email,
+		Username:          a.Username,
+		Role:              a.GetRole(),
+		IsVerified:        a.GetIsVerified(),
+		PasswordChangedAt: utils.ToTime(a.GetPasswordChangedAt()),
 	}
 }
 
@@ -60,9 +58,27 @@ func (c *authClient) toAuthToken(at *apis.AuthToken) *models.AuthToken {
 		return nil
 	}
 	return &models.AuthToken{
-		AccessToken:           at.GetAccessToken(),
-		RefreshToken:          at.GetRefreshToken(),
-		AccessTokenExpiresIn:  at.GetAccessTokenExpiresIn(),
-		RefreshTokenExpiresIn: at.GetRefreshTokenExpiresIn(),
+		AccessToken:  c.toAccessToken(at.GetAccessToken()),
+		RefreshToken: c.toRefreshToken(at.GetRefreshToken()),
+	}
+}
+
+func (c *authClient) toAccessToken(at *apis.AccessToken) *models.AccessToken {
+	if at == nil {
+		return nil
+	}
+	return &models.AccessToken{
+		Token:     at.GetToken(),
+		ExpiresIn: at.GetExpiresIn(),
+	}
+}
+
+func (c *authClient) toRefreshToken(rt *apis.RefreshToken) *models.RefreshToken {
+	if rt == nil {
+		return nil
+	}
+	return &models.RefreshToken{
+		Token:     rt.GetToken(),
+		ExpiresIn: rt.GetExpiresIn(),
 	}
 }

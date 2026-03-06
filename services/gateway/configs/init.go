@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils"
 	"github.com/spf13/viper"
 )
 
@@ -49,14 +50,14 @@ type Service struct {
 }
 
 type Tracer struct {
-	Endpoint string
-	Host     string `mapstructure:"host"`
-	Port     int    `mapstructure:"port"`
+	Addr string
+	Host string `mapstructure:"host"`
+	Port int    `mapstructure:"port"`
 }
 
 func Init(path string) (*Config, error) {
-	env := os.Getenv("APP_ENV")
-	if env == "" {
+	env := utils.NormalizeString(os.Getenv("APP_ENV"))
+	if env == "" || (env != "dev" && env != "prod") {
 		env = "dev"
 	}
 	if path == "" {
@@ -82,7 +83,7 @@ func Init(path string) (*Config, error) {
 	cfg.App.Env = env
 	cfg.Server.Addr = fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	cfg.Service.Auth.Addr = fmt.Sprintf("%s:%d", cfg.Service.Auth.Host, cfg.Service.Auth.Port)
-	cfg.Tracer.Endpoint = fmt.Sprintf("%s:%d", cfg.Tracer.Host, cfg.Tracer.Port)
+	cfg.Tracer.Addr = fmt.Sprintf("%s:%d", cfg.Tracer.Host, cfg.Tracer.Port)
 
 	return &cfg, nil
 }
