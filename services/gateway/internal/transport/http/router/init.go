@@ -8,6 +8,7 @@ import (
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/transport/http/handlers"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/transport/http/middlewares"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
 type Router struct {
@@ -29,6 +30,7 @@ func Init(cfg *configs.Client, appName string, l *logger.Logger, ah *handlers.Au
 		"/api/v1",
 		middlewares.Request(l),
 		middlewares.Recovery(l),
+		otelgin.Middleware(appName),
 		middlewares.Logging(l),
 	)
 
