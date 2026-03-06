@@ -3,8 +3,6 @@ package usecases
 import (
 	"context"
 
-	"github.com/ritchieridanko/klasshub/services/auth/internal/clients"
-	"github.com/ritchieridanko/klasshub/services/auth/internal/constants"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/database"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/models"
@@ -17,50 +15,39 @@ import (
 )
 
 type AuthUsecase interface {
-	Login(ctx context.Context, req *models.LoginRequest) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	Login(ctx context.Context, req *models.LoginReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 }
 
 type authUsecase struct {
 	appName    string
 	su         SessionUsecase
 	ar         repositories.AuthRepository
-	us         clients.UserService
-	ss         clients.SchoolService
 	transactor *database.Transactor
 	validator  *validator.Validator
 	bcrypt     *bcrypt.BCrypt
 }
 
-func NewAuthUsecase(appName string, su SessionUsecase, ar repositories.AuthRepository, us clients.UserService, ss clients.SchoolService, tx *database.Transactor, v *validator.Validator, bcrypt *bcrypt.BCrypt) AuthUsecase {
+func NewAuthUsecase(appName string, su SessionUsecase, ar repositories.AuthRepository, tx *database.Transactor, v *validator.Validator, bcrypt *bcrypt.BCrypt) AuthUsecase {
 	return &authUsecase{
 		appName:    appName,
 		su:         su,
 		ar:         ar,
-		us:         us,
-		ss:         ss,
 		transactor: tx,
 		validator:  v,
 		bcrypt:     bcrypt,
 	}
 }
 
-func (u *authUsecase) Login(ctx context.Context, req *models.LoginRequest) (*models.Auth, *models.AuthToken, *ce.Error) {
+func (u *authUsecase) Login(ctx context.Context, req *models.LoginReq) (*models.Auth, *models.AuthToken, *ce.Error) {
 	ctx, span := otel.Tracer(u.appName).Start(ctx, "auth.usecase.Login")
 	defer span.End()
-
-	subdomainField := logger.NewField("subdomain", req.Subdomain)
 
 	// Data Normalization
 	identifier := utils.NormalizeString(req.Identifier)
 
 	// Data Validation
 	if ok, why := u.validator.Identifier(identifier); !ok {
-		return nil, nil, ce.NewError(
-			ce.CodeInvalidIdentifier,
-			why,
-			nil,
-			subdomainField,
-		)
+		return nil, nil, ce.NewError(ce.CodeInvalidPayload, why, nil)
 	}
 
 	// Auth Fetching
@@ -70,12 +57,14 @@ func (u *authUsecase) Login(ctx context.Context, req *models.LoginRequest) (*mod
 			ce.CodeIdentifierNotRegistered,
 			ce.MsgInvalidCredentials,
 			err.Unwrap(),
-			subdomainField,
+			err.Fields()...,
 		)
 	}
 	if err != nil {
-		return nil, nil, err.AppendFields(subdomainField)
+		return nil, nil, err
 	}
+
+	authIDField := logger.NewField("auth_id", a.ID)
 
 	// Password Validation
 	if err := u.bcrypt.Validate(a.Password, req.Password); err != nil {
@@ -83,43 +72,36 @@ func (u *authUsecase) Login(ctx context.Context, req *models.LoginRequest) (*mod
 			ce.CodeWrongPassword,
 			ce.MsgInvalidCredentials,
 			err,
-			logger.NewField("auth_id", a.ID),
-			subdomainField,
+			authIDField,
 		)
 	}
 
-	// External School ID and Role Fetching
-	if !a.IsSchool {
-		schoolID, role, err := u.us.GetSchoolAndRole(ctx, a.ID)
-		if err != nil {
-			return nil, nil, err.AppendFields(subdomainField)
-		}
-
-		a.SchoolID = schoolID
-		a.Role = role
-	} else {
-		schoolID, err := u.ss.GetID(ctx, a.ID)
-		if err != nil {
-			return nil, nil, err.AppendFields(subdomainField)
-		}
-
-		a.SchoolID = schoolID
-		a.Role = constants.RoleSchool
+	/* Role and Subdomain Validation
+	 * Note:
+	 * - Students and Instructors can only login from LMS
+	 * - Administrators and Schools can only login from Admin
+	 */
+	if !u.validator.RoleAllowedSubdomain(a.Role, utils.CtxSubdomain(ctx)) {
+		return nil, nil, ce.NewError(
+			ce.CodeWrongSubdomain,
+			ce.MsgInvalidCredentials,
+			ce.ErrWrongSubdomain,
+			authIDField,
+		)
 	}
 
 	// Session Creation
 	at, err := u.su.CreateSession(
 		ctx,
-		&models.CreateSessionRequest{
-			AuthID:          a.ID,
-			SchoolID:        a.SchoolID,
-			Role:            a.Role,
-			IsEmailVerified: a.IsEmailVerified(),
-			RequestMeta:     req.RequestMeta,
+		&models.CreateSessionReq{
+			AuthID:     a.ID,
+			SchoolID:   a.SchoolID,
+			Role:       a.Role,
+			IsVerified: a.IsVerified(),
 		},
 	)
 	if err != nil {
-		return nil, nil, err.AppendFields(subdomainField)
+		return nil, nil, err
 	}
 
 	return a, at, nil

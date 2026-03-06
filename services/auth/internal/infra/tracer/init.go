@@ -13,7 +13,7 @@ import (
 )
 
 type Tracer struct {
-	Cleanup func()
+	Shutdown func() error
 }
 
 func Init(appName, endpoint string, l *zap.Logger) (*Tracer, error) {
@@ -39,5 +39,7 @@ func Init(appName, endpoint string, l *zap.Logger) (*Tracer, error) {
 	otel.SetTracerProvider(tp)
 
 	l.Sugar().Infof("[TRACER] initialized (app_name=%s, endpoint=%s)", appName, endpoint)
-	return &Tracer{Cleanup: func() { _ = tp.Shutdown(ctx) }}, nil
+	return &Tracer{
+		Shutdown: func() error { return tp.Shutdown(ctx) },
+	}, nil
 }

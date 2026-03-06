@@ -9,8 +9,8 @@ import (
 )
 
 type SessionRepository interface {
-	Create(ctx context.Context, data *models.CreateSession) (err *ce.Error)
-	RevokeActive(ctx context.Context, data *models.RevokeSession) (sessionID int64, err *ce.Error)
+	Create(ctx context.Context, data *models.CreateSessionData) (err *ce.Error)
+	RevokeActive(ctx context.Context, params *models.RevokeSessionParams) (sessionID int64, err *ce.Error)
 }
 
 type sessionRepository struct {
@@ -21,10 +21,10 @@ func NewSessionRepository(db databases.SessionDatabase) SessionRepository {
 	return &sessionRepository{database: db}
 }
 
-func (r *sessionRepository) Create(ctx context.Context, data *models.CreateSession) *ce.Error {
+func (r *sessionRepository) Create(ctx context.Context, data *models.CreateSessionData) *ce.Error {
 	return r.database.Create(ctx, data)
 }
 
-func (r *sessionRepository) RevokeActive(ctx context.Context, data *models.RevokeSession) (int64, *ce.Error) {
-	return r.database.RevokeActive(ctx, data)
+func (r *sessionRepository) RevokeActive(ctx context.Context, params *models.RevokeSessionParams) (int64, *ce.Error) {
+	return r.database.RevokeActive(ctx, params)
 }

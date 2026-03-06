@@ -12,14 +12,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func LoggingInterceptor(l *logger.Logger) grpc.UnaryServerInterceptor {
+func Logging(l *logger.Logger) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req any,
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (any, error) {
-		start := time.Now().UTC()
+		start := time.Now()
 		resp, err := handler(ctx, req)
 
 		fields := []logger.Field{
@@ -34,11 +34,11 @@ func LoggingInterceptor(l *logger.Logger) grpc.UnaryServerInterceptor {
 
 		var e *ce.Error
 		if errors.As(err, &e) {
-			ge := e.ToGRPCStatus()
-			st, _ := status.FromError(ge)
-			status := st.Code()
+			grpcErr := e.ToGRPCStatus()
+			st, _ := status.FromError(grpcErr)
+			code := st.Code()
 
-			fields = append(fields, logger.NewField("status", status.String()))
+			fields = append(fields, logger.NewField("status", code.String()))
 			fields = append(fields, e.Fields()...)
 			fields = append(
 				fields,
@@ -46,7 +46,7 @@ func LoggingInterceptor(l *logger.Logger) grpc.UnaryServerInterceptor {
 				logger.NewField("error", e.Error()),
 			)
 
-			switch status {
+			switch code {
 			case codes.Aborted, codes.AlreadyExists, codes.Canceled,
 				codes.FailedPrecondition, codes.InvalidArgument, codes.NotFound,
 				codes.OutOfRange, codes.PermissionDenied, codes.Unauthenticated:
@@ -54,7 +54,7 @@ func LoggingInterceptor(l *logger.Logger) grpc.UnaryServerInterceptor {
 			case codes.DataLoss, codes.Internal, codes.Unavailable, codes.Unknown:
 				l.Error(ctx, "SYSTEM ERROR", fields...)
 			}
-			return nil, ge
+			return nil, grpcErr
 		}
 
 		// Fallback

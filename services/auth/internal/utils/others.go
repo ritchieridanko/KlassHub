@@ -5,13 +5,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/google/uuid"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/constants"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
+
+func CtxIPAddress(ctx context.Context) string {
+	if v, ok := ctx.Value(constants.CtxKeyIPAddress).(string); ok {
+		return v
+	}
+	return ""
+}
 
 // Get Request ID from Context
 func CtxRequestID(ctx context.Context) string {
@@ -21,17 +26,26 @@ func CtxRequestID(ctx context.Context) string {
 	return ""
 }
 
-// Get Request Meta (User Agent and IP Address) from Context
-func CtxRequestMeta(ctx context.Context) (userAgent, ipAddress string) {
-	userAgent, _ = ctx.Value(constants.CtxKeyUserAgent).(string)
-	ipAddress, _ = ctx.Value(constants.CtxKeyIPAddress).(string)
-	return
+// Get Subdomain from Context
+func CtxSubdomain(ctx context.Context) string {
+	if v, ok := ctx.Value(constants.CtxKeySubdomain).(string); ok {
+		return v
+	}
+	return ""
 }
 
 // Get Trace ID from Context
 func CtxTraceID(ctx context.Context) string {
 	if sp := trace.SpanFromContext(ctx); sp.SpanContext().HasTraceID() {
 		return sp.SpanContext().TraceID().String()
+	}
+	return ""
+}
+
+// Get User Agent from Context
+func CtxUserAgent(ctx context.Context) string {
+	if v, ok := ctx.Value(constants.CtxKeyUserAgent).(string); ok {
+		return v
 	}
 	return ""
 }
@@ -47,16 +61,8 @@ func NormalizeString(s string) string {
 	return strings.ToLower(strings.TrimSpace(s))
 }
 
-// Wrap string value
-func WrapString(s *string) *wrappers.StringValue {
-	if s == nil {
-		return nil
-	}
-	return wrapperspb.String(*s)
-}
-
-// Wrap time value
-func WrapTime(t *time.Time) *timestamppb.Timestamp {
+// Convert time value to timestamp
+func ToTimestamp(t *time.Time) *timestamppb.Timestamp {
 	if t == nil {
 		return nil
 	}

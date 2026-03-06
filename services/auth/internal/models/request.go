@@ -1,21 +1,13 @@
 package models
 
-type RequestMeta struct {
-	UserAgent string
-	IPAddress string
+type CreateSessionReq struct {
+	AuthID     int64
+	SchoolID   int64
+	Role       string
+	IsVerified bool
 }
 
-type CreateSessionRequest struct {
-	AuthID          int64
-	SchoolID        int64
-	Role            string
-	IsEmailVerified bool
-	RequestMeta
-}
-
-type LoginRequest struct {
+type LoginReq struct {
 	Identifier string
 	Password   string
-	Subdomain  string
-	RequestMeta
 }

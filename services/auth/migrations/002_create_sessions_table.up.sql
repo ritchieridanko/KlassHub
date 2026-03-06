@@ -1,4 +1,4 @@
-CREATE TABLE auth_sessions(
+CREATE TABLE sessions(
   id BIGSERIAL PRIMARY KEY,
   parent_id BIGINT,
   auth_id BIGINT NOT NULL,
@@ -11,9 +11,9 @@ CREATE TABLE auth_sessions(
   expires_at TIMESTAMPTZ NOT NULL,
   revoked_at TIMESTAMPTZ,
 
-  FOREIGN KEY(auth_id) REFERENCES auth(id) ON DELETE CASCADE,
-  FOREIGN KEY(parent_id) REFERENCES auth_sessions(id) ON DELETE CASCADE
+  FOREIGN KEY(parent_id) REFERENCES sessions(id) ON DELETE CASCADE,
+  FOREIGN KEY(auth_id) REFERENCES auth(id) ON DELETE CASCADE
 );
 
 -- Index records by refresh token if active (not revoked)
-CREATE INDEX idx_auth_sessions_refresh_token ON auth_sessions(refresh_token) WHERE revoked_at IS NULL;
+CREATE INDEX idx_sessions_refresh_token ON sessions(refresh_token) WHERE revoked_at IS NULL;

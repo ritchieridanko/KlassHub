@@ -1,9 +1,6 @@
 package validator
 
-import (
-	"fmt"
-	"net"
-)
+import "fmt"
 
 type Validator struct{}
 
@@ -23,14 +20,6 @@ func (v *Validator) Identifier(value string) (bool, string) {
 	isUsername, _ := v.Username(value)
 	if !isEmail && !isUsername {
 		return false, fmt.Sprintf("Email/Username is invalid: %s", value)
-	}
-
-	return true, ""
-}
-
-func (v *Validator) IPAddress(value string) (bool, string) {
-	if ip := net.ParseIP(value); ip == nil {
-		return false, fmt.Sprintf("IP Address is invalid: %s", value)
 	}
 	return true, ""
 }
@@ -61,16 +50,17 @@ func (v *Validator) Password(value string) (bool, string) {
 	return true, ""
 }
 
-func (v *Validator) UserAgent(value string) (bool, string) {
-	if len(value) > userAgentMaxLength {
-		return false, fmt.Sprintf("User Agent must not exceed %d characters", userAgentMaxLength)
-	}
-	return true, ""
-}
-
 func (v *Validator) Username(value string) (bool, string) {
 	if !rgxUsername.MatchString(value) {
 		return false, fmt.Sprintf("Username is invalid: %s", value)
 	}
 	return true, ""
+}
+
+func (v *Validator) RoleAllowedSubdomain(role, subdomain string) bool {
+	sd, ok := roleAllowedSubdomains[role]
+	if !ok || subdomain != sd {
+		return false
+	}
+	return true
 }

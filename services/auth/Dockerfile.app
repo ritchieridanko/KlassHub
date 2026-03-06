@@ -17,7 +17,7 @@ COPY services/auth/cmd/app ./cmd/app
 COPY services/auth/configs ./configs
 COPY services/auth/internal ./internal
 
-# Build app
+# Build binary
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/app cmd/app/main.go
 
 # ---------- Runtime Stage ----------

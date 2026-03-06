@@ -1,20 +1,30 @@
 package validator
 
-import "regexp"
+import (
+	"regexp"
+
+	"github.com/ritchieridanko/klasshub/services/auth/internal/constants"
+)
 
 var (
-	rgxEmail        = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	rgxLowercase    = regexp.MustCompile(`[a-z]`)
-	rgxNumber       = regexp.MustCompile(`[0-9]`)
-	rgxSpecialChars = regexp.MustCompile(`[!@#$%^&*(),.?":{}|<>]`)
-	rgxUppercase    = regexp.MustCompile(`[A-Z]`)
-	rgxUsername     = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9]|(?:[._][a-z0-9])){7,24}$`)
+	rgxEmail        *regexp.Regexp = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
+	rgxLowercase    *regexp.Regexp = regexp.MustCompile(`[a-z]`)
+	rgxNumber       *regexp.Regexp = regexp.MustCompile(`[0-9]`)
+	rgxSpecialChars *regexp.Regexp = regexp.MustCompile(`[!@#$%^&*(),.?":{}|<>]`)
+	rgxUppercase    *regexp.Regexp = regexp.MustCompile(`[A-Z]`)
+	rgxUsername     *regexp.Regexp = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9]|(?:[._][a-z0-9])){7,24}$`)
+
+	roleAllowedSubdomains = map[string]string{
+		constants.RoleAdministrator: constants.SubdomainAdmin,
+		constants.RoleSchool:        constants.SubdomainAdmin,
+		constants.RoleStudent:       constants.SubdomainLMS,
+		constants.RoleInstructor:    constants.SubdomainLMS,
+	}
 )
 
 const (
-	passwordMaxLength  int = 50
-	passwordMinLength  int = 8
-	userAgentMaxLength int = 512
+	passwordMaxLength int = 50
+	passwordMinLength int = 8
 
 	specialChars string = `!@#$%^&*(),.?":{}|<>`
 )

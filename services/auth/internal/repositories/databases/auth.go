@@ -24,9 +24,10 @@ func NewAuthDatabase(db *database.Database) AuthDatabase {
 func (d *authDatabase) GetByIdentifier(ctx context.Context, identifier string) (*models.Auth, *ce.Error) {
 	query := `
 		SELECT
-			id, email, username, password, is_school,
-			email_verified_at, password_changed_at
-		FROM auth
+			id, school_id, email, username, password,
+			role, verified_at, password_changed_at
+		FROM
+			auth
 		WHERE
 			(
 				email = $1
@@ -43,8 +44,8 @@ func (d *authDatabase) GetByIdentifier(ctx context.Context, identifier string) (
 		ctx, query,
 		identifier,
 	).Scan(
-		&a.ID, &a.Email, &a.Username, &a.Password,
-		&a.IsSchool, &a.EmailVerifiedAt, &a.PasswordChangedAt,
+		&a.ID, &a.SchoolID, &a.Email, &a.Username, &a.Password,
+		&a.Role, &a.VerifiedAt, &a.PasswordChangedAt,
 	)
 	if err != nil {
 		if errors.Is(err, ce.ErrDBQueryNoRows) {

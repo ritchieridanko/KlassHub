@@ -10,6 +10,7 @@ import (
 var (
 	ErrDBAffectNoRows error = errors.New("no rows affected")
 	ErrDBQueryNoRows  error = pgx.ErrNoRows
+	ErrWrongSubdomain error = errors.New("wrong subdomain")
 )
 
 // Internal Error Codes
@@ -19,14 +20,12 @@ const (
 	CodeDBTransaction           errCode = "ERR_DB_TRANSACTION"
 	CodeIdentifierNotRegistered errCode = "ERR_IDENTIFIER_NOT_REGISTERED"
 	CodeInternal                errCode = "ERR_INTERNAL"
-	CodeInvalidIdentifier       errCode = "ERR_INVALID_IDENTIFIER"
-	CodeInvalidPassword         errCode = "ERR_INVALID_PASSWORD"
-	CodeInvalidRequestMeta      errCode = "ERR_INVALID_REQUEST_META"
-	CodeInvariantViolation      errCode = "ERR_INVARIANT_VIOLATION"
+	CodeInvalidPayload          errCode = "ERR_INVALID_PAYLOAD"
 	CodeJWTGenerationFailed     errCode = "ERR_JWT_GENERATION_FAILED"
 	CodeUnknown                 errCode = "ERR_UNKNOWN"
 	CodeUUIDGenerationFailed    errCode = "ERR_UUID_GENERATION_FAILED"
 	CodeWrongPassword           errCode = "ERR_WRONG_PASSWORD"
+	CodeWrongSubdomain          errCode = "ERR_WRONG_SUBDOMAIN"
 )
 
 // External Error Messages

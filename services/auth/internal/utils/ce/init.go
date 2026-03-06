@@ -47,20 +47,20 @@ func (e *Error) Unwrap() error {
 	return e.err
 }
 
-func (e *Error) AppendFields(fields ...logger.Field) *Error {
+func (e *Error) Append(fields ...logger.Field) *Error {
 	e.fields = append(e.fields, fields...)
 	return e
 }
 
 func (e *Error) ToGRPCStatus() error {
 	switch e.code {
-	case CodeInvalidIdentifier, CodeInvalidPassword, CodeInvalidRequestMeta:
+	case CodeInvalidPayload:
 		return status.Error(codes.InvalidArgument, e.message)
-	case CodeIdentifierNotRegistered, CodeWrongPassword:
+	case CodeIdentifierNotRegistered, CodeWrongPassword, CodeWrongSubdomain:
 		return status.Error(codes.Unauthenticated, e.message)
 	case CodeAuthNotFound:
 		return status.Error(codes.NotFound, e.message)
-	case CodeDBQueryExec, CodeDBTransaction, CodeInternal, CodeInvariantViolation,
+	case CodeDBQueryExec, CodeDBTransaction, CodeInternal,
 		CodeJWTGenerationFailed, CodeUnknown, CodeUUIDGenerationFailed:
 		return status.Error(codes.Internal, e.message)
 	default:

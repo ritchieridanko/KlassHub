@@ -3,42 +3,42 @@ syntax = "proto3";
 package auth.v1;
 
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/wrappers.proto";
 
 option go_package = "github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apis";
 
 service AuthService {
-  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Login (LoginRequest) returns (LoginResponse);
 }
 
 message Auth {
-  google.protobuf.StringValue role = 1;
-  google.protobuf.StringValue email = 2;
-  google.protobuf.StringValue username = 3;
-  google.protobuf.Timestamp last_login_at = 4;
-  google.protobuf.Timestamp email_verified_at = 5;
-  google.protobuf.Timestamp email_changed_at = 6;
-  google.protobuf.Timestamp username_changed_at = 7;
-  google.protobuf.Timestamp password_changed_at = 8;
-  google.protobuf.Timestamp created_at = 9;
-  google.protobuf.Timestamp updated_at = 10;
-  google.protobuf.Timestamp deleted_at = 11;
+  optional string email = 1;
+  optional string username = 2;
+  string role = 3;
+  bool is_verified = 4;
+  google.protobuf.Timestamp password_changed_at = 5;
+}
+
+message AccessToken {
+  string token = 1;
+  int64 expires_in = 2; // seconds
+}
+
+message RefreshToken {
+  string token = 1;
+  int64 expires_in = 2; // seconds
 }
 
 message AuthToken {
-  string access_token = 1;
-  string refresh_token = 2;
-  int64 access_token_expires_in = 3; // seconds
-  int64 refresh_token_expires_in = 4; // seconds
+  AccessToken access_token = 1;
+  RefreshToken refresh_token = 2;
 }
 
 message LoginRequest {
   string identifier = 1;
   string password = 2;
-  string subdomain = 3;
 }
 
 message LoginResponse {
-  AuthToken auth_token = 1;
-  Auth auth = 2;
+  Auth auth = 1;
+  AuthToken auth_token = 2;
 }

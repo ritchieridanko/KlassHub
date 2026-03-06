@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ritchieridanko/klasshub/services/auth/internal/utils"
 	"github.com/spf13/viper"
 )
 
@@ -13,7 +14,6 @@ type Config struct {
 	App      App      `mapstructure:"app"`
 	Auth     Auth     `mapstructure:"auth"`
 	Server   Server   `mapstructure:"server"`
-	Service  Service  `mapstructure:"service"`
 	Database Database `mapstructure:"database"`
 	Tracer   Tracer   `mapstructure:"tracer"`
 }
@@ -49,22 +49,6 @@ type Server struct {
 	} `mapstructure:"timeout"`
 }
 
-type Service struct {
-	User struct {
-		Name string `mapstructure:"name"`
-		Addr string
-		Host string `mapstructure:"host"`
-		Port int    `mapstructure:"port"`
-	} `mapstructure:"user"`
-
-	School struct {
-		Name string `mapstructure:"name"`
-		Addr string
-		Host string `mapstructure:"host"`
-		Port int    `mapstructure:"port"`
-	} `mapstructure:"school"`
-}
-
 type Database struct {
 	DSN             string
 	Host            string        `mapstructure:"host"`
@@ -80,14 +64,14 @@ type Database struct {
 }
 
 type Tracer struct {
-	Endpoint string
-	Host     string `mapstructure:"host"`
-	Port     int    `mapstructure:"port"`
+	Addr string
+	Host string `mapstructure:"host"`
+	Port int    `mapstructure:"port"`
 }
 
 func Init(path string) (*Config, error) {
-	env := os.Getenv("APP_ENV")
-	if env == "" {
+	env := utils.NormalizeString(os.Getenv("APP_ENV"))
+	if env == "" || (env != "dev" && env != "prod") {
 		env = "dev"
 	}
 	if path == "" {
@@ -112,9 +96,7 @@ func Init(path string) (*Config, error) {
 
 	cfg.App.Env = env
 	cfg.Server.Addr = fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
-	cfg.Service.User.Addr = fmt.Sprintf("%s:%d", cfg.Service.User.Host, cfg.Service.User.Port)
-	cfg.Service.School.Addr = fmt.Sprintf("%s:%d", cfg.Service.School.Host, cfg.Service.School.Port)
-	cfg.Tracer.Endpoint = fmt.Sprintf("%s:%d", cfg.Tracer.Host, cfg.Tracer.Port)
+	cfg.Tracer.Addr = fmt.Sprintf("%s:%d", cfg.Tracer.Host, cfg.Tracer.Port)
 	cfg.Database.DSN = fmt.Sprintf(
 		"postgresql://%s:%s@%s:%d/%s?sslmode=%s",
 		cfg.Database.User,

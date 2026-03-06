@@ -16,7 +16,7 @@ import (
 )
 
 type SessionUsecase interface {
-	CreateSession(ctx context.Context, req *models.CreateSessionRequest) (at *models.AuthToken, err *ce.Error)
+	CreateSession(ctx context.Context, req *models.CreateSessionReq) (at *models.AuthToken, err *ce.Error)
 }
 
 type sessionUsecase struct {
@@ -41,36 +41,12 @@ func NewSessionUsecase(appName string, accessTokenExpiry, refreshTokenExpiry tim
 	}
 }
 
-func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSessionRequest) (*models.AuthToken, *ce.Error) {
+func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSessionReq) (*models.AuthToken, *ce.Error) {
 	ctx, span := otel.Tracer(u.appName).Start(ctx, "session.usecase.CreateSession")
 	defer span.End()
 
 	authIDField := logger.NewField("auth_id", req.AuthID)
 	schoolIDField := logger.NewField("school_id", req.SchoolID)
-
-	// Data Normalization
-	ua := utils.NormalizeString(req.RequestMeta.UserAgent)
-	ip := utils.NormalizeString(req.RequestMeta.IPAddress)
-
-	// Data Validation
-	if ok, why := u.validator.UserAgent(ua); !ok {
-		return nil, ce.NewError(
-			ce.CodeInvalidRequestMeta,
-			why,
-			nil,
-			authIDField,
-			schoolIDField,
-		)
-	}
-	if ok, why := u.validator.IPAddress(ip); !ok {
-		return nil, ce.NewError(
-			ce.CodeInvalidRequestMeta,
-			why,
-			nil,
-			authIDField,
-			schoolIDField,
-		)
-	}
 
 	// UUID Creation
 	uuid, err := utils.GenerateUUIDv7()
@@ -86,7 +62,7 @@ func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSe
 
 	// JWT Creation
 	now := time.Now().UTC()
-	jwt, err := u.jwt.Generate(req.AuthID, req.SchoolID, req.Role, req.IsEmailVerified, &now)
+	jwt, err := u.jwt.Generate(req.AuthID, req.SchoolID, req.Role, req.IsVerified, &now)
 	if err != nil {
 		return nil, ce.NewError(
 			ce.CodeJWTGenerationFailed,
@@ -97,24 +73,28 @@ func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSe
 		)
 	}
 
-	te := u.transactor.WithTx(ctx, func(ctx context.Context) *ce.Error {
+	txErr := u.transactor.WithTx(ctx, func(ctx context.Context) *ce.Error {
+		ua := utils.CtxUserAgent(ctx)
+		ip := utils.CtxIPAddress(ctx)
+
 		// Active Session Revocation
 		sessionID, err := u.sr.RevokeActive(
 			ctx,
-			&models.RevokeSession{
+			&models.RevokeSessionParams{
 				AuthID:    req.AuthID,
 				UserAgent: ua,
 				IPAddress: ip,
+				ExpiresAt: now,
 			},
 		)
 		if err != nil {
-			return err.AppendFields(schoolIDField)
+			return err.Append(schoolIDField)
 		}
 
 		/* Session Creation
 		 * Note: Set revoked session (if any) as parent session
 		 */
-		data := models.CreateSession{
+		data := models.CreateSessionData{
 			AuthID:       req.AuthID,
 			RefreshToken: uuid.String(),
 			UserAgent:    ua,
@@ -125,15 +105,19 @@ func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSe
 			data.ParentID = &sessionID
 		}
 		if err := u.sr.Create(ctx, &data); err != nil {
-			return err.AppendFields(schoolIDField)
+			return err.Append(schoolIDField)
 		}
 		return nil
 	})
 
 	return &models.AuthToken{
-		AccessToken:           jwt,
-		RefreshToken:          uuid.String(),
-		AccessTokenExpiresIn:  int64(u.accessTokenExpiry.Seconds()),
-		RefreshTokenExpiresIn: int64(u.refreshTokenExpiry.Seconds()),
-	}, te
+		AccessToken: &models.AccessToken{
+			Token:     jwt,
+			ExpiresIn: int64(u.accessTokenExpiry.Seconds()),
+		},
+		RefreshToken: &models.RefreshToken{
+			Token:     uuid.String(),
+			ExpiresIn: int64(u.refreshTokenExpiry.Seconds()),
+		},
+	}, txErr
 }

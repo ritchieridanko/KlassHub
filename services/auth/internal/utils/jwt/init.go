@@ -14,10 +14,14 @@ type JWT struct {
 }
 
 func Init(issuer, secret string, dn time.Duration) *JWT {
-	return &JWT{issuer: issuer, secret: secret, duration: dn}
+	return &JWT{
+		issuer:   issuer,
+		secret:   secret,
+		duration: dn,
+	}
 }
 
-func (j *JWT) Generate(authID, schoolID int64, role string, isEmailVerified bool, now *time.Time) (string, error) {
+func (j *JWT) Generate(authID, schoolID int64, role string, isVerified bool, now *time.Time) (string, error) {
 	if now == nil {
 		t := time.Now().UTC()
 		now = &t
@@ -25,10 +29,10 @@ func (j *JWT) Generate(authID, schoolID int64, role string, isEmailVerified bool
 	return jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		claim{
-			AuthID:          authID,
-			SchoolID:        schoolID,
-			Role:            role,
-			IsEmailVerified: isEmailVerified,
+			AuthID:     authID,
+			SchoolID:   schoolID,
+			Role:       role,
+			IsVerified: isVerified,
 			RegisteredClaims: jwt.RegisteredClaims{
 				Issuer:    j.issuer,
 				Subject:   fmt.Sprintf("auth_%d", authID),
@@ -36,5 +40,7 @@ func (j *JWT) Generate(authID, schoolID int64, role string, isEmailVerified bool
 				ExpiresAt: &jwt.NumericDate{Time: now.Add(j.duration)},
 			},
 		},
-	).SignedString([]byte(j.secret))
+	).SignedString(
+		[]byte(j.secret),
+	)
 }

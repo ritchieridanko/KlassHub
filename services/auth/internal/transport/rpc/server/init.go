@@ -14,27 +14,25 @@ import (
 )
 
 type Server struct {
-	name   string
 	config *configs.Server
 	server *grpc.Server
 	logger *logger.Logger
 	ah     *handlers.AuthHandler
 }
 
-func Init(name string, cfg *configs.Server, l *logger.Logger, ah *handlers.AuthHandler) *Server {
+func Init(cfg *configs.Server, name string, l *logger.Logger, ah *handlers.AuthHandler) *Server {
 	srv := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			interceptors.RequestInterceptor(),
-			interceptors.RecoveryInterceptor(l),
-			interceptors.TracingInterceptor(name),
-			interceptors.LoggingInterceptor(l),
+			interceptors.Request(),
+			interceptors.Recovery(l),
+			interceptors.Tracing(name),
+			interceptors.Logging(l),
 		),
 	)
 
 	apis.RegisterAuthServiceServer(srv, ah)
 
 	return &Server{
-		name:   name,
 		config: cfg,
 		server: srv,
 		logger: l,

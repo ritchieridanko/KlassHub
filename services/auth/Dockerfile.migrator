@@ -21,7 +21,7 @@ COPY services/auth/internal/infra/logger ./internal/infra/logger
 COPY services/auth/internal/utils ./internal/utils
 COPY services/auth/migrations ./migrations
 
-# Build app
+# Build binary
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/migrator cmd/migrator/main.go
 
 # ---------- Runtime Stage ----------

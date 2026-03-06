@@ -1,5 +1,8 @@
 package constants
 
 const (
-	RoleSchool string = "school"
+	RoleAdministrator string = "administrator"
+	RoleInstructor    string = "instructor"
+	RoleSchool        string = "school"
+	RoleStudent       string = "student"
 )

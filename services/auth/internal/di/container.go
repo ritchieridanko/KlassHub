@@ -2,7 +2,6 @@ package di
 
 import (
 	"github.com/ritchieridanko/klasshub/services/auth/configs"
-	"github.com/ritchieridanko/klasshub/services/auth/internal/clients"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/database"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
@@ -22,9 +21,6 @@ type Container struct {
 	transactor *database.Transactor
 	logger     *logger.Logger
 
-	us clients.UserService
-	ss clients.SchoolService
-
 	adb databases.AuthDatabase
 	sdb databases.SessionDatabase
 
@@ -35,22 +31,18 @@ type Container struct {
 	jwt       *jwt.JWT
 	validator *validator.Validator
 
-	au usecases.AuthUsecase
 	su usecases.SessionUsecase
+	au usecases.AuthUsecase
 
 	ah     *handlers.AuthHandler
 	server *server.Server
 }
 
-func Init(cfg *configs.Config, i *infra.Infra) *Container {
+func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	// Infra
-	db := database.NewDatabase(i.Database())
-	tx := database.NewTransactor(i.Database())
-	l := logger.NewLogger(i.Logger())
-
-	// Services
-	us := clients.NewUserService(i.UserServiceClient())
-	ss := clients.NewSchoolService(i.SchoolServiceClient())
+	db := database.NewDatabase(inf.Database())
+	tx := database.NewTransactor(inf.Database())
+	l := logger.NewLogger(inf.Logger())
 
 	// Databases
 	adb := databases.NewAuthDatabase(db)
@@ -67,21 +59,19 @@ func Init(cfg *configs.Config, i *infra.Infra) *Container {
 
 	// Usecases
 	su := usecases.NewSessionUsecase(cfg.App.Name, cfg.Auth.JWT.Duration, cfg.Auth.Duration.Session, sr, tx, v, j)
-	au := usecases.NewAuthUsecase(cfg.App.Name, su, ar, us, ss, tx, v, b)
+	au := usecases.NewAuthUsecase(cfg.App.Name, su, ar, tx, v, b)
 
 	// Handlers
-	ah := handlers.NewAuthHandler(au, l)
+	ah := handlers.NewAuthHandler(au)
 
 	// Server
-	srv := server.Init(cfg.App.Name, &cfg.Server, l, ah)
+	srv := server.Init(&cfg.Server, cfg.App.Name, l, ah)
 
 	return &Container{
 		config:     cfg,
 		database:   db,
 		transactor: tx,
 		logger:     l,
-		us:         us,
-		ss:         ss,
 		adb:        adb,
 		sdb:        sdb,
 		ar:         ar,
@@ -89,8 +79,8 @@ func Init(cfg *configs.Config, i *infra.Infra) *Container {
 		bcrypt:     b,
 		jwt:        j,
 		validator:  v,
-		au:         au,
 		su:         su,
+		au:         au,
 		ah:         ah,
 		server:     srv,
 	}
