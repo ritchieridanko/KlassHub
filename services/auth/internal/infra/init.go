@@ -29,7 +29,7 @@ func Init(cfg *configs.Config) (*Infra, error) {
 		return nil, err
 	}
 
-	t, err := tracer.Init(cfg.App.Name, cfg.Tracer.Addr, l)
+	t, err := tracer.Init(cfg.App.Env, cfg.App.Name, cfg.Tracer.Addr, l)
 	if err != nil {
 		return nil, err
 	}

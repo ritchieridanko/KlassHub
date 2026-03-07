@@ -10,6 +10,7 @@ import (
 	"github.com/ritchieridanko/klasshub/services/auth/internal/transport/rpc/handlers"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/transport/rpc/interceptors"
 	"github.com/ritchieridanko/klasshub/shared/contract/apis/v1"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 )
 
@@ -22,10 +23,12 @@ type Server struct {
 
 func Init(cfg *configs.Server, name string, l *logger.Logger, ah *handlers.AuthHandler) *Server {
 	srv := grpc.NewServer(
+		grpc.StatsHandler(
+			otelgrpc.NewServerHandler(),
+		),
 		grpc.ChainUnaryInterceptor(
 			interceptors.Request(),
 			interceptors.Recovery(l),
-			interceptors.Tracing(name),
 			interceptors.Logging(l),
 		),
 	)
