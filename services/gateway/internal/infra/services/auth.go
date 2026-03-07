@@ -6,6 +6,7 @@ import (
 
 	"github.com/ritchieridanko/klasshub/services/gateway/configs"
 	"github.com/ritchieridanko/klasshub/shared/contract/apis/v1"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -19,6 +20,9 @@ type AuthService struct {
 func NewAuthService(cfg *configs.Service, l *zap.Logger) (*AuthService, error) {
 	conn, err := grpc.NewClient(
 		cfg.Auth.Addr,
+		grpc.WithStatsHandler(
+			otelgrpc.NewClientHandler(),
+		),
 		grpc.WithTransportCredentials(
 			insecure.NewCredentials(),
 		),
