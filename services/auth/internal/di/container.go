@@ -3,9 +3,11 @@ package di
 import (
 	"github.com/ritchieridanko/klasshub/services/auth/configs"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/cache"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/database"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/repositories"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/repositories/caches"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/repositories/databases"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/transport/rpc/handlers"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/transport/rpc/server"
@@ -17,12 +19,15 @@ import (
 
 type Container struct {
 	config     *configs.Config
+	cache      *cache.Cache
 	database   *database.Database
 	transactor *database.Transactor
 	logger     *logger.Logger
 
 	adb databases.AuthDatabase
 	sdb databases.SessionDatabase
+
+	acc caches.AuthCache
 
 	ar repositories.AuthRepository
 	sr repositories.SessionRepository
@@ -40,6 +45,7 @@ type Container struct {
 
 func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	// Infra
+	cc := cache.NewCache(inf.Cache())
 	db := database.NewDatabase(inf.Database())
 	tx := database.NewTransactor(inf.Database())
 	l := logger.NewLogger(inf.Logger())
@@ -48,8 +54,11 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	adb := databases.NewAuthDatabase(db)
 	sdb := databases.NewSessionDatabase(db)
 
+	// Caches
+	acc := caches.NewAuthCache(cc)
+
 	// Repositories
-	ar := repositories.NewAuthRepository(adb)
+	ar := repositories.NewAuthRepository(adb, acc)
 	sr := repositories.NewSessionRepository(sdb)
 
 	// Utils
@@ -69,11 +78,13 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 
 	return &Container{
 		config:     cfg,
+		cache:      cc,
 		database:   db,
 		transactor: tx,
 		logger:     l,
 		adb:        adb,
 		sdb:        sdb,
+		acc:        acc,
 		ar:         ar,
 		sr:         sr,
 		bcrypt:     b,

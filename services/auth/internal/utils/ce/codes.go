@@ -16,8 +16,11 @@ var (
 // Internal Error Codes
 const (
 	CodeAuthNotFound            errCode = "ERR_AUTH_NOT_FOUND"
+	CodeBCryptHashingFailed     errCode = "ERR_BCRYPT_HASHING_FAILED"
+	CodeCacheCommandExec        errCode = "ERR_CACHE_COMMAND_EXECUTION"
 	CodeDBQueryExec             errCode = "ERR_DB_QUERY_EXECUTION"
 	CodeDBTransaction           errCode = "ERR_DB_TRANSACTION"
+	CodeEmailNotAvailable       errCode = "ERR_EMAIL_NOT_AVAILABLE"
 	CodeIdentifierNotRegistered errCode = "ERR_IDENTIFIER_NOT_REGISTERED"
 	CodeInternal                errCode = "ERR_INTERNAL"
 	CodeInvalidPayload          errCode = "ERR_INVALID_PAYLOAD"
@@ -31,6 +34,7 @@ const (
 // External Error Messages
 const (
 	MsgAuthNotFound       string = "Auth not found"
+	MsgEmailNotAvailable  string = "Email is already registered"
 	MsgInternalServer     string = "Internal server error"
 	MsgInvalidCredentials string = "Invalid credentials"
 )

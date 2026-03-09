@@ -358,6 +358,110 @@ func (x *LoginResponse) GetAuthToken() *AuthToken {
 	return nil
 }
 
+type CreateSchoolAuthRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SchoolId      int64                  `protobuf:"varint,1,opt,name=school_id,json=schoolId,proto3" json:"school_id,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSchoolAuthRequest) Reset() {
+	*x = CreateSchoolAuthRequest{}
+	mi := &file_v1_auth_api_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSchoolAuthRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSchoolAuthRequest) ProtoMessage() {}
+
+func (x *CreateSchoolAuthRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_api_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSchoolAuthRequest.ProtoReflect.Descriptor instead.
+func (*CreateSchoolAuthRequest) Descriptor() ([]byte, []int) {
+	return file_v1_auth_api_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CreateSchoolAuthRequest) GetSchoolId() int64 {
+	if x != nil {
+		return x.SchoolId
+	}
+	return 0
+}
+
+func (x *CreateSchoolAuthRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *CreateSchoolAuthRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type CreateSchoolAuthResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Auth          *Auth                  `protobuf:"bytes,1,opt,name=auth,proto3" json:"auth,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSchoolAuthResponse) Reset() {
+	*x = CreateSchoolAuthResponse{}
+	mi := &file_v1_auth_api_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSchoolAuthResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSchoolAuthResponse) ProtoMessage() {}
+
+func (x *CreateSchoolAuthResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_api_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSchoolAuthResponse.ProtoReflect.Descriptor instead.
+func (*CreateSchoolAuthResponse) Descriptor() ([]byte, []int) {
+	return file_v1_auth_api_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *CreateSchoolAuthResponse) GetAuth() *Auth {
+	if x != nil {
+		return x.Auth
+	}
+	return nil
+}
+
 var File_v1_auth_api_proto protoreflect.FileDescriptor
 
 const file_v1_auth_api_proto_rawDesc = "" +
@@ -391,9 +495,16 @@ const file_v1_auth_api_proto_rawDesc = "" +
 	"\rLoginResponse\x12!\n" +
 	"\x04auth\x18\x01 \x01(\v2\r.auth.v1.AuthR\x04auth\x121\n" +
 	"\n" +
-	"auth_token\x18\x02 \x01(\v2\x12.auth.v1.AuthTokenR\tauthToken2E\n" +
+	"auth_token\x18\x02 \x01(\v2\x12.auth.v1.AuthTokenR\tauthToken\"h\n" +
+	"\x17CreateSchoolAuthRequest\x12\x1b\n" +
+	"\tschool_id\x18\x01 \x01(\x03R\bschoolId\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
+	"\bpassword\x18\x03 \x01(\tR\bpassword\"=\n" +
+	"\x18CreateSchoolAuthResponse\x12!\n" +
+	"\x04auth\x18\x01 \x01(\v2\r.auth.v1.AuthR\x04auth2\x9e\x01\n" +
 	"\vAuthService\x126\n" +
-	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
+	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponse\x12W\n" +
+	"\x10CreateSchoolAuth\x12 .auth.v1.CreateSchoolAuthRequest\x1a!.auth.v1.CreateSchoolAuthResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
 
 var (
 	file_v1_auth_api_proto_rawDescOnce sync.Once
@@ -407,29 +518,34 @@ func file_v1_auth_api_proto_rawDescGZIP() []byte {
 	return file_v1_auth_api_proto_rawDescData
 }
 
-var file_v1_auth_api_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_v1_auth_api_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_v1_auth_api_proto_goTypes = []any{
-	(*Auth)(nil),                  // 0: auth.v1.Auth
-	(*AccessToken)(nil),           // 1: auth.v1.AccessToken
-	(*RefreshToken)(nil),          // 2: auth.v1.RefreshToken
-	(*AuthToken)(nil),             // 3: auth.v1.AuthToken
-	(*LoginRequest)(nil),          // 4: auth.v1.LoginRequest
-	(*LoginResponse)(nil),         // 5: auth.v1.LoginResponse
-	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
+	(*Auth)(nil),                     // 0: auth.v1.Auth
+	(*AccessToken)(nil),              // 1: auth.v1.AccessToken
+	(*RefreshToken)(nil),             // 2: auth.v1.RefreshToken
+	(*AuthToken)(nil),                // 3: auth.v1.AuthToken
+	(*LoginRequest)(nil),             // 4: auth.v1.LoginRequest
+	(*LoginResponse)(nil),            // 5: auth.v1.LoginResponse
+	(*CreateSchoolAuthRequest)(nil),  // 6: auth.v1.CreateSchoolAuthRequest
+	(*CreateSchoolAuthResponse)(nil), // 7: auth.v1.CreateSchoolAuthResponse
+	(*timestamppb.Timestamp)(nil),    // 8: google.protobuf.Timestamp
 }
 var file_v1_auth_api_proto_depIdxs = []int32{
-	6, // 0: auth.v1.Auth.password_changed_at:type_name -> google.protobuf.Timestamp
+	8, // 0: auth.v1.Auth.password_changed_at:type_name -> google.protobuf.Timestamp
 	1, // 1: auth.v1.AuthToken.access_token:type_name -> auth.v1.AccessToken
 	2, // 2: auth.v1.AuthToken.refresh_token:type_name -> auth.v1.RefreshToken
 	0, // 3: auth.v1.LoginResponse.auth:type_name -> auth.v1.Auth
 	3, // 4: auth.v1.LoginResponse.auth_token:type_name -> auth.v1.AuthToken
-	4, // 5: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
-	5, // 6: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
-	6, // [6:7] is the sub-list for method output_type
-	5, // [5:6] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	0, // 5: auth.v1.CreateSchoolAuthResponse.auth:type_name -> auth.v1.Auth
+	4, // 6: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
+	6, // 7: auth.v1.AuthService.CreateSchoolAuth:input_type -> auth.v1.CreateSchoolAuthRequest
+	5, // 8: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
+	7, // 9: auth.v1.AuthService.CreateSchoolAuth:output_type -> auth.v1.CreateSchoolAuthResponse
+	8, // [8:10] is the sub-list for method output_type
+	6, // [6:8] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_v1_auth_api_proto_init() }
@@ -444,7 +560,7 @@ func file_v1_auth_api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_auth_api_proto_rawDesc), len(file_v1_auth_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

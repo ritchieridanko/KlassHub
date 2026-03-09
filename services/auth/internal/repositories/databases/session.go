@@ -3,6 +3,7 @@ package databases
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/database"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
@@ -41,7 +42,7 @@ func (d *sessionDatabase) Create(ctx context.Context, data *models.CreateSession
 		return ce.NewError(
 			ce.CodeDBQueryExec,
 			ce.MsgInternalServer,
-			err,
+			fmt.Errorf("failed to create session: %w", err),
 			logger.NewField("auth_id", data.AuthID),
 		)
 	}
@@ -77,7 +78,7 @@ func (d *sessionDatabase) RevokeActive(ctx context.Context, params *models.Revok
 		return 0, ce.NewError(
 			ce.CodeDBQueryExec,
 			ce.MsgInternalServer,
-			err,
+			fmt.Errorf("failed to revoke active session: %w", err),
 			logger.NewField("auth_id", params.AuthID),
 		)
 	}

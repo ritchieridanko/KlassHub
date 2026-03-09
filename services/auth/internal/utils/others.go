@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+// Get IP Address from Context
 func CtxIPAddress(ctx context.Context) string {
 	if v, ok := ctx.Value(constants.CtxKeyIPAddress).(string); ok {
 		return v

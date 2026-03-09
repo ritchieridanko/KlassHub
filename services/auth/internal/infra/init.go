@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 	"github.com/ritchieridanko/klasshub/services/auth/configs"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/cache"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/database"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/tracer"
@@ -13,6 +15,7 @@ import (
 
 type Infra struct {
 	config   *configs.Config
+	cache    *redis.Client
 	database *pgxpool.Pool
 	logger   *zap.Logger
 	tracer   *tracer.Tracer
@@ -20,6 +23,11 @@ type Infra struct {
 
 func Init(cfg *configs.Config) (*Infra, error) {
 	l, err := logger.Init(cfg.App.Env)
+	if err != nil {
+		return nil, err
+	}
+
+	cc, err := cache.Init(&cfg.Cache, l)
 	if err != nil {
 		return nil, err
 	}
@@ -36,10 +44,15 @@ func Init(cfg *configs.Config) (*Infra, error) {
 
 	return &Infra{
 		config:   cfg,
+		cache:    cc,
 		database: db,
 		logger:   l,
 		tracer:   t,
 	}, nil
+}
+
+func (i *Infra) Cache() *redis.Client {
+	return i.cache
 }
 
 func (i *Infra) Database() *pgxpool.Pool {
@@ -51,6 +64,9 @@ func (i *Infra) Logger() *zap.Logger {
 }
 
 func (i *Infra) Close() error {
+	if err := i.cache.Close(); err != nil {
+		return fmt.Errorf("failed to close cache: %w", err)
+	}
 	if err := i.logger.Sync(); err != nil {
 		return fmt.Errorf("failed to close logger: %w", err)
 	}

@@ -15,6 +15,7 @@ type Config struct {
 	Auth     Auth     `mapstructure:"auth"`
 	Server   Server   `mapstructure:"server"`
 	Database Database `mapstructure:"database"`
+	Cache    Cache    `mapstructure:"cache"`
 	Tracer   Tracer   `mapstructure:"tracer"`
 }
 
@@ -63,6 +64,24 @@ type Database struct {
 	MaxConnIdleTime time.Duration `mapstructure:"max_conn_idle_time"`
 }
 
+type Cache struct {
+	Addr            string
+	Host            string        `mapstructure:"host"`
+	Port            int           `mapstructure:"port"`
+	Pass            string        `mapstructure:"pass"`
+	PoolSize        int           `mapstructure:"pool_size"`
+	MinIdleConns    int           `mapstructure:"min_idle_conns"`
+	MaxActiveConns  int           `mapstructure:"max_active_conns"`
+	ConnMaxLifetime time.Duration `mapstructure:"conn_max_lifetime"`
+	ConnMaxIdleTime time.Duration `mapstructure:"conn_max_idle_time"`
+
+	Timeout struct {
+		Dial  time.Duration `mapstructure:"dial"`
+		Read  time.Duration `mapstructure:"read"`
+		Write time.Duration `mapstructure:"write"`
+	} `mapstructure:"timeout"`
+}
+
 type Tracer struct {
 	Addr string
 	Host string `mapstructure:"host"`
@@ -96,6 +115,7 @@ func Init(path string) (*Config, error) {
 
 	cfg.App.Env = env
 	cfg.Server.Addr = fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
+	cfg.Cache.Addr = fmt.Sprintf("%s:%d", cfg.Cache.Host, cfg.Cache.Port)
 	cfg.Tracer.Addr = fmt.Sprintf("%s:%d", cfg.Tracer.Host, cfg.Tracer.Port)
 	cfg.Database.DSN = fmt.Sprintf(
 		"postgresql://%s:%s@%s:%d/%s?sslmode=%s",

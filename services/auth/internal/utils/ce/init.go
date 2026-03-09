@@ -60,8 +60,11 @@ func (e *Error) ToGRPCStatus() error {
 		return status.Error(codes.Unauthenticated, e.message)
 	case CodeAuthNotFound:
 		return status.Error(codes.NotFound, e.message)
-	case CodeDBQueryExec, CodeDBTransaction, CodeInternal,
-		CodeJWTGenerationFailed, CodeUnknown, CodeUUIDGenerationFailed:
+	case CodeEmailNotAvailable:
+		return status.Error(codes.AlreadyExists, e.message)
+	case CodeBCryptHashingFailed, CodeCacheCommandExec, CodeDBQueryExec,
+		CodeDBTransaction, CodeInternal, CodeJWTGenerationFailed,
+		CodeUnknown, CodeUUIDGenerationFailed:
 		return status.Error(codes.Internal, e.message)
 	default:
 		return status.Error(codes.Internal, e.message)

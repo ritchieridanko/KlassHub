@@ -57,6 +57,17 @@ services:
       - DATABASE_MIN_CONNS=${AUTH_DATABASE_MIN_CONNS}
       - DATABASE_MAX_CONN_LIFETIME=${AUTH_DATABASE_MAX_CONN_LIFETIME}
       - DATABASE_MAX_CONN_IDLE_TIME=${AUTH_DATABASE_MAX_CONN_IDLE_TIME}
+      - CACHE_HOST=${AUTH_CACHE_HOST}
+      - CACHE_PORT=${AUTH_CACHE_PORT}
+      - CACHE_PASS=${AUTH_CACHE_PASS}
+      - CACHE_POOL_SIZE=${AUTH_CACHE_POOL_SIZE}
+      - CACHE_MIN_IDLE_CONNS=${AUTH_CACHE_MIN_IDLE_CONNS}
+      - CACHE_MAX_ACTIVE_CONNS=${AUTH_CACHE_MAX_ACTIVE_CONNS}
+      - CACHE_CONN_MAX_LIFETIME=${AUTH_CACHE_CONN_MAX_LIFETIME}
+      - CACHE_CONN_MAX_IDLE_TIME=${AUTH_CACHE_CONN_MAX_IDLE_TIME}
+      - CACHE_TIMEOUT_DIAL=${AUTH_CACHE_TIMEOUT_DIAL}
+      - CACHE_TIMEOUT_READ=${AUTH_CACHE_TIMEOUT_READ}
+      - CACHE_TIMEOUT_WRITE=${AUTH_CACHE_TIMEOUT_WRITE}
       - TRACER_PORT=${TRACER_GRPC_PORT}
     depends_on:
       auth-database:
@@ -110,6 +121,22 @@ services:
       test: ["CMD", "pg_isready", "-h", "${AUTH_DATABASE_HOST}"]
       interval: 10s
       retries: 3
+
+  auth-cache:
+    image: redis:7.4-alpine
+    container_name: ${AUTH_CACHE_HOST}
+    networks:
+      - klasshub-net
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: redis-server --requirepass "${AUTH_CACHE_PASS}"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${AUTH_CACHE_PASS}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
   user-service:
     image: klasshub-user-service

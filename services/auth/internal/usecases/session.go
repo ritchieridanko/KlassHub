@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/database"
@@ -91,9 +92,8 @@ func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSe
 			return err.Append(schoolIDField)
 		}
 
-		/* Session Creation
-		 * Note: Set revoked session (if any) as parent session
-		 */
+		// Session Creation
+		// NOTE: Set revoked session (if any) as parent session to maintain session lineage
 		data := models.CreateSessionData{
 			AuthID:       req.AuthID,
 			RefreshToken: uuid.String(),
@@ -109,6 +109,18 @@ func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSe
 		}
 		return nil
 	})
+	if txErr != nil && txErr.Code() == ce.CodeDBTransaction {
+		return nil, ce.NewError(
+			txErr.Code(),
+			txErr.Message(),
+			fmt.Errorf("failed to create session: %w", txErr.Unwrap()),
+			authIDField,
+			schoolIDField,
+		)
+	}
+	if txErr != nil {
+		return nil, txErr
+	}
 
 	return &models.AuthToken{
 		AccessToken: &models.AccessToken{
@@ -119,5 +131,5 @@ func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSe
 			Token:     uuid.String(),
 			ExpiresIn: int64(u.refreshTokenExpiry.Seconds()),
 		},
-	}, txErr
+	}, nil
 }

@@ -35,6 +35,21 @@ func (h *AuthHandler) Login(ctx context.Context, req *apis.LoginRequest) (*apis.
 	}, nil
 }
 
+func (h *AuthHandler) CreateSchoolAuth(ctx context.Context, req *apis.CreateSchoolAuthRequest) (*apis.CreateSchoolAuthResponse, error) {
+	a, err := h.au.CreateSchoolAuth(
+		ctx,
+		&models.CreateSchoolAuthReq{
+			SchoolID: req.GetSchoolId(),
+			Email:    req.GetEmail(),
+			Password: req.GetPassword(),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &apis.CreateSchoolAuthResponse{Auth: h.toAuth(a)}, nil
+}
+
 func (h *AuthHandler) toAuth(a *models.Auth) *apis.Auth {
 	if a == nil {
 		return nil

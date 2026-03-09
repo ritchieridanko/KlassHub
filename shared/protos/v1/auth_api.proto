@@ -8,6 +8,7 @@ option go_package = "github.com/ritchieridanko/klasshub/shared/contract/apis/v1;
 
 service AuthService {
   rpc Login (LoginRequest) returns (LoginResponse);
+  rpc CreateSchoolAuth (CreateSchoolAuthRequest) returns (CreateSchoolAuthResponse);
 }
 
 message Auth {
@@ -41,4 +42,14 @@ message LoginRequest {
 message LoginResponse {
   Auth auth = 1;
   AuthToken auth_token = 2;
+}
+
+message CreateSchoolAuthRequest {
+  int64 school_id = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message CreateSchoolAuthResponse {
+  Auth auth = 1;
 }

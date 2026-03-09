@@ -2,7 +2,9 @@ package usecases
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/ritchieridanko/klasshub/services/auth/internal/constants"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/database"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/models"
@@ -16,6 +18,7 @@ import (
 
 type AuthUsecase interface {
 	Login(ctx context.Context, req *models.LoginReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, err *ce.Error)
 }
 
 type authUsecase struct {
@@ -65,6 +68,8 @@ func (u *authUsecase) Login(ctx context.Context, req *models.LoginReq) (*models.
 	}
 
 	authIDField := logger.NewField("auth_id", a.ID)
+	schoolIDField := logger.NewField("school_id", a.SchoolID)
+	roleField := logger.NewField("role", a.Role)
 
 	// Password Validation
 	if err := u.bcrypt.Validate(a.Password, req.Password); err != nil {
@@ -73,20 +78,23 @@ func (u *authUsecase) Login(ctx context.Context, req *models.LoginReq) (*models.
 			ce.MsgInvalidCredentials,
 			err,
 			authIDField,
+			schoolIDField,
 		)
 	}
 
-	/* Role and Subdomain Validation
-	 * Note:
-	 * - Students and Instructors can only login from LMS
-	 * - Administrators and Schools can only login from Admin
-	 */
-	if !u.validator.RoleAllowedSubdomain(a.Role, utils.CtxSubdomain(ctx)) {
+	// Role and Subdomain Validation
+	// NOTE:
+	// - Students and Instructors can only login from LMS
+	// - Administrators and Schools can only login from Admin
+	if subdomain := utils.CtxSubdomain(ctx); !u.validator.RoleAllowedSubdomain(a.Role, subdomain) {
 		return nil, nil, ce.NewError(
 			ce.CodeWrongSubdomain,
 			ce.MsgInvalidCredentials,
 			ce.ErrWrongSubdomain,
 			authIDField,
+			schoolIDField,
+			roleField,
+			logger.NewField("subdomain", subdomain),
 		)
 	}
 
@@ -100,9 +108,84 @@ func (u *authUsecase) Login(ctx context.Context, req *models.LoginReq) (*models.
 			IsVerified: a.IsVerified(),
 		},
 	)
-	if err != nil {
-		return nil, nil, err
+
+	return a, at, err
+}
+
+func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (*models.Auth, *ce.Error) {
+	ctx, span := otel.Tracer(u.appName).Start(ctx, "auth.usecase.CreateSchoolAuth")
+	defer span.End()
+
+	schoolIDField := logger.NewField("school_id", req.SchoolID)
+
+	// Data Normalization
+	email := utils.NormalizeString(req.Email)
+
+	// Data Validation
+	if ok, why := u.validator.Email(email); !ok {
+		return nil, ce.NewError(
+			ce.CodeInvalidPayload,
+			why,
+			nil,
+			schoolIDField,
+		)
+	}
+	if ok, why := u.validator.Password(req.Password); !ok {
+		return nil, ce.NewError(
+			ce.CodeInvalidPayload,
+			why,
+			nil,
+			schoolIDField,
+		)
 	}
 
-	return a, at, nil
+	var school *models.Auth
+	err := u.transactor.WithTx(ctx, func(ctx context.Context) *ce.Error {
+		// Email Availability Check
+		available, err := u.ar.IsEmailAvailable(ctx, email)
+		if err != nil {
+			return err.Append(schoolIDField)
+		}
+		if !available {
+			return ce.NewError(
+				ce.CodeEmailNotAvailable,
+				ce.MsgEmailNotAvailable,
+				nil,
+				schoolIDField,
+			)
+		}
+
+		// Password Hashing
+		hash, hashErr := u.bcrypt.Hash(req.Password)
+		if hashErr != nil {
+			return ce.NewError(
+				ce.CodeBCryptHashingFailed,
+				ce.MsgInternalServer,
+				hashErr,
+				schoolIDField,
+			)
+		}
+
+		// Auth Creation
+		school, err = u.ar.Create(
+			ctx,
+			&models.CreateAuthData{
+				SchoolID: req.SchoolID,
+				Email:    &email,
+				Password: hash,
+				Role:     constants.RoleSchool,
+			},
+		)
+		return err
+	})
+	if err != nil && err.Code() == ce.CodeDBTransaction {
+		return nil, ce.NewError(
+			err.Code(),
+			err.Message(),
+			fmt.Errorf("failed to create school auth: %w", err.Unwrap()),
+			schoolIDField,
+		)
+	}
+
+	return school, err
 }
