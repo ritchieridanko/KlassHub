@@ -2,24 +2,131 @@ package usecases
 
 import (
 	"context"
+	"strings"
 
+	"github.com/ritchieridanko/klasshub/services/school/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/school/internal/models"
 	"github.com/ritchieridanko/klasshub/services/school/internal/repositories"
+	"github.com/ritchieridanko/klasshub/services/school/internal/utils"
 	"github.com/ritchieridanko/klasshub/services/school/internal/utils/ce"
+	"github.com/ritchieridanko/klasshub/services/school/internal/utils/validator"
+	"go.opentelemetry.io/otel"
 )
 
 type SchoolUsecase interface {
-	GetSchoolID(ctx context.Context, req *models.GetSchoolIDRequest) (schoolID int64, err *ce.Error)
+	CreateSchool(ctx context.Context, req *models.CreateSchoolReq) (s *models.School, err *ce.Error)
 }
 
 type schoolUsecase struct {
-	sr repositories.SchoolRepository
+	appName   string
+	sr        repositories.SchoolRepository
+	validator *validator.Validator
 }
 
-func NewSchoolUsecase(sr repositories.SchoolRepository) SchoolUsecase {
-	return &schoolUsecase{sr: sr}
+func NewSchoolUsecase(appName string, sr repositories.SchoolRepository, v *validator.Validator) SchoolUsecase {
+	return &schoolUsecase{
+		appName:   appName,
+		sr:        sr,
+		validator: v,
+	}
 }
 
-func (u *schoolUsecase) GetSchoolID(ctx context.Context, req *models.GetSchoolIDRequest) (int64, *ce.Error) {
-	return u.sr.GetID(ctx, &models.GetSchoolID{AuthID: req.AuthID})
+func (u *schoolUsecase) CreateSchool(ctx context.Context, req *models.CreateSchoolReq) (*models.School, *ce.Error) {
+	ctx, span := otel.Tracer(u.appName).Start(ctx, "school.usecase.CreateSchool")
+	defer span.End()
+
+	auth := utils.CtxAuth(ctx)
+	authIDField := logger.NewField("auth_id", auth.AuthID)
+
+	// Data Normalization
+	npsn := utils.NormalizeStringPtr(req.NPSN)
+	name := strings.TrimSpace(req.Name)
+	level := utils.NormalizeString(req.Level)
+	ownership := utils.NormalizeString(req.Ownership)
+	accreditation := utils.NormalizeStringPtr(req.Accreditation)
+	province := utils.NormalizeString(req.Province)
+	cityRegency := utils.NormalizeString(req.CityRegency)
+	district := utils.NormalizeString(req.District)
+	subdistrict := utils.NormalizeString(req.Subdistrict)
+	street := strings.TrimSpace(req.Street)
+	postcode := utils.NormalizeString(req.Postcode)
+	phone := utils.NormalizeStringPtr(req.Phone)
+	email := utils.NormalizeStringPtr(req.Email)
+	website := utils.NormalizeStringPtr(req.Website)
+	timezone := utils.NormalizeString(req.Timezone)
+
+	// Data Validation
+	if npsn != nil {
+		if ok, why := u.validator.NPSN(*npsn); !ok {
+			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+		}
+	}
+	if ok, why := u.validator.SchoolName(name); !ok {
+		return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+	}
+	if ok, why := u.validator.SchoolLevel(level); !ok {
+		return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+	}
+	if ok, why := u.validator.SchoolOwnership(ownership); !ok {
+		return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+	}
+	if accreditation != nil {
+		if ok, why := u.validator.SchoolAccreditation(*accreditation); !ok {
+			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+		}
+	}
+	if req.EstablishedAt != nil {
+		if ok, why := u.validator.SchoolEstablishedAt(*req.EstablishedAt); !ok {
+			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+		}
+	}
+	if ok, why := u.validator.Street(street); !ok {
+		return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+	}
+	if ok, why := u.validator.Postcode(postcode); !ok {
+		return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+	}
+	if phone != nil {
+		if ok, why := u.validator.Phone(*phone); !ok {
+			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+		}
+	}
+	if email != nil {
+		if ok, why := u.validator.Email(*email); !ok {
+			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+		}
+	}
+	if website != nil {
+		if ok, why := u.validator.URL(*website); !ok {
+			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+		}
+	}
+
+	// School Creation
+	s, createErr := u.sr.Create(
+		ctx,
+		&models.CreateSchoolData{
+			NPSN:          npsn,
+			Name:          name,
+			Level:         level,
+			Ownership:     ownership,
+			Accreditation: accreditation,
+			EstablishedAt: req.EstablishedAt,
+			Province:      province,
+			CityRegency:   cityRegency,
+			District:      district,
+			Subdistrict:   subdistrict,
+			Street:        street,
+			Postcode:      postcode,
+			Phone:         phone,
+			Email:         email,
+			Website:       website,
+			Timezone:      timezone,
+		},
+	)
+	if createErr != nil {
+		return nil, createErr.Append(authIDField)
+	}
+
+	return s, nil
 }

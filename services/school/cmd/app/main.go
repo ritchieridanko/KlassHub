@@ -12,6 +12,7 @@ import (
 	"github.com/ritchieridanko/klasshub/services/school/internal/di"
 	"github.com/ritchieridanko/klasshub/services/school/internal/infra"
 	"github.com/ritchieridanko/klasshub/services/school/internal/transport/rpc/server"
+	"github.com/ritchieridanko/klasshub/shared/data"
 )
 
 func main() {
@@ -30,8 +31,13 @@ func main() {
 		}
 	}(inf)
 
+	sd, err := data.LoadSchool()
+	if err != nil {
+		log.Fatalln("[FATAL]:", err)
+	}
+
 	// Server Start
-	srv := di.Init(cfg, inf).Server()
+	srv := di.Init(cfg, inf, sd).Server()
 	go func(srv *server.Server) {
 		if err := srv.Start(); err != nil {
 			log.Fatalln("[FATAL]:", err)

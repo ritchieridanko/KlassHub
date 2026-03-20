@@ -33,9 +33,9 @@ func (l *Logger) Error(ctx context.Context, message string, fields ...Field) {
 }
 
 func (l *Logger) toFields(ctx context.Context, fields ...Field) []zap.Field {
-	zf := make([]zap.Field, 0, len(fields)+3)
-	zf = append(
-		zf,
+	defaultSize := 3
+	zf := append(
+		make([]zap.Field, 0, len(fields)+defaultSize),
 		zap.Time("timestamp", time.Now().UTC()),
 		zap.String("request_id", utils.CtxRequestID(ctx)),
 		zap.String("trace_id", utils.CtxTraceID(ctx)),

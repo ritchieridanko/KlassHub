@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SchoolService_GetSchoolID_FullMethodName = "/school.v1.SchoolService/GetSchoolID"
+	SchoolService_CreateSchool_FullMethodName = "/school.v1.SchoolService/CreateSchool"
 )
 
 // SchoolServiceClient is the client API for SchoolService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SchoolServiceClient interface {
-	GetSchoolID(ctx context.Context, in *GetSchoolIDRequest, opts ...grpc.CallOption) (*GetSchoolIDResponse, error)
+	CreateSchool(ctx context.Context, in *CreateSchoolRequest, opts ...grpc.CallOption) (*CreateSchoolResponse, error)
 }
 
 type schoolServiceClient struct {
@@ -37,10 +37,10 @@ func NewSchoolServiceClient(cc grpc.ClientConnInterface) SchoolServiceClient {
 	return &schoolServiceClient{cc}
 }
 
-func (c *schoolServiceClient) GetSchoolID(ctx context.Context, in *GetSchoolIDRequest, opts ...grpc.CallOption) (*GetSchoolIDResponse, error) {
+func (c *schoolServiceClient) CreateSchool(ctx context.Context, in *CreateSchoolRequest, opts ...grpc.CallOption) (*CreateSchoolResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetSchoolIDResponse)
-	err := c.cc.Invoke(ctx, SchoolService_GetSchoolID_FullMethodName, in, out, cOpts...)
+	out := new(CreateSchoolResponse)
+	err := c.cc.Invoke(ctx, SchoolService_CreateSchool_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *schoolServiceClient) GetSchoolID(ctx context.Context, in *GetSchoolIDRe
 // All implementations must embed UnimplementedSchoolServiceServer
 // for forward compatibility.
 type SchoolServiceServer interface {
-	GetSchoolID(context.Context, *GetSchoolIDRequest) (*GetSchoolIDResponse, error)
+	CreateSchool(context.Context, *CreateSchoolRequest) (*CreateSchoolResponse, error)
 	mustEmbedUnimplementedSchoolServiceServer()
 }
 
@@ -62,8 +62,8 @@ type SchoolServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedSchoolServiceServer struct{}
 
-func (UnimplementedSchoolServiceServer) GetSchoolID(context.Context, *GetSchoolIDRequest) (*GetSchoolIDResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetSchoolID not implemented")
+func (UnimplementedSchoolServiceServer) CreateSchool(context.Context, *CreateSchoolRequest) (*CreateSchoolResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateSchool not implemented")
 }
 func (UnimplementedSchoolServiceServer) mustEmbedUnimplementedSchoolServiceServer() {}
 func (UnimplementedSchoolServiceServer) testEmbeddedByValue()                       {}
@@ -86,20 +86,20 @@ func RegisterSchoolServiceServer(s grpc.ServiceRegistrar, srv SchoolServiceServe
 	s.RegisterService(&SchoolService_ServiceDesc, srv)
 }
 
-func _SchoolService_GetSchoolID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetSchoolIDRequest)
+func _SchoolService_CreateSchool_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSchoolRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SchoolServiceServer).GetSchoolID(ctx, in)
+		return srv.(SchoolServiceServer).CreateSchool(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SchoolService_GetSchoolID_FullMethodName,
+		FullMethod: SchoolService_CreateSchool_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SchoolServiceServer).GetSchoolID(ctx, req.(*GetSchoolIDRequest))
+		return srv.(SchoolServiceServer).CreateSchool(ctx, req.(*CreateSchoolRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -112,8 +112,8 @@ var SchoolService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*SchoolServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetSchoolID",
-			Handler:    _SchoolService_GetSchoolID_Handler,
+			MethodName: "CreateSchool",
+			Handler:    _SchoolService_CreateSchool_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

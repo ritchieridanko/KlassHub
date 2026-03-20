@@ -1,5 +1,5 @@
 # ---------- Build Stage ----------
-FROM golang:1.24.2-alpine3.20 AS builder
+FROM golang:1.25.0-alpine3.22 AS builder
 
 # Install build dependencies
 RUN apk add --no-cache git
@@ -17,11 +17,11 @@ COPY services/school/cmd/app ./cmd/app
 COPY services/school/configs ./configs
 COPY services/school/internal ./internal
 
-# Build app
+# Build binary
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/app cmd/app/main.go
 
 # ---------- Runtime Stage ----------
-FROM alpine:3.20
+FROM alpine:3.22
 
 # Install runtime dependencies
 RUN apk add --no-cache ca-certificates

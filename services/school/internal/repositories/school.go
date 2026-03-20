@@ -9,7 +9,7 @@ import (
 )
 
 type SchoolRepository interface {
-	GetID(ctx context.Context, params *models.GetSchoolID) (schoolID int64, err *ce.Error)
+	Create(ctx context.Context, data *models.CreateSchoolData) (s *models.School, err *ce.Error)
 }
 
 type schoolRepository struct {
@@ -20,6 +20,6 @@ func NewSchoolRepository(db databases.SchoolDatabase) SchoolRepository {
 	return &schoolRepository{database: db}
 }
 
-func (r *schoolRepository) GetID(ctx context.Context, params *models.GetSchoolID) (int64, *ce.Error) {
-	return r.database.GetID(ctx, params)
+func (r *schoolRepository) Create(ctx context.Context, data *models.CreateSchoolData) (*models.School, *ce.Error) {
+	return r.database.Create(ctx, data)
 }

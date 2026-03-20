@@ -2,16 +2,55 @@ syntax = "proto3";
 
 package school.v1;
 
+import "google/protobuf/timestamp.proto";
+
 option go_package = "github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apis";
 
 service SchoolService {
-  rpc GetSchoolID(GetSchoolIDRequest) returns (GetSchoolIDResponse);
+  rpc CreateSchool (CreateSchoolRequest) returns (CreateSchoolResponse);
 }
 
-message GetSchoolIDRequest {
-  int64 auth_id = 1;
+message School {
+  optional string n_p_s_n = 1;
+  google.protobuf.Timestamp n_p_s_n_verified_at = 2;
+	string name = 3;
+	string level = 4;
+	string ownership = 5;
+	optional string profile_picture = 6;
+	optional string profile_banner = 7;
+	optional string accreditation = 8;
+	google.protobuf.Timestamp established_at = 9;
+	string province = 10;
+	string city_regency = 11;
+	string district = 12;
+	string subdistrict = 13;
+	string street = 14;
+	string postcode = 15;
+	optional string phone = 16;
+	optional string email = 17;
+	optional string website = 18;
+	string timezone = 19;
 }
 
-message GetSchoolIDResponse {
-  int64 school_id = 1;
+message CreateSchoolRequest {
+  optional string n_p_s_n = 1;
+  string name = 2;
+  string level = 3;
+  string ownership = 4;
+  optional string accreditation = 5;
+  google.protobuf.Timestamp established_at = 6;
+  string province = 7;
+  string city_regency = 8;
+  string district = 9;
+  string subdistrict = 10;
+  string street = 11;
+  string postcode = 12;
+  optional string phone = 13;
+  optional string email = 14;
+  optional string website = 15;
+  string timezone = 16;
+}
+
+message CreateSchoolResponse {
+  School school = 1;
 }

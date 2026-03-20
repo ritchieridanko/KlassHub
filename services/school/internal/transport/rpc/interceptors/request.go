@@ -16,18 +16,9 @@ func Request() grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler,
 	) (any, error) {
 		md, _ := metadata.FromIncomingContext(ctx)
-
-		var requestID string
 		if values := md.Get(constants.MDKeyRequestID); len(values) > 0 {
-			requestID = values[0]
+			ctx = context.WithValue(ctx, constants.CtxKeyRequestID, values[0])
 		}
-		return handler(
-			context.WithValue(
-				ctx,
-				constants.CtxKeyRequestID,
-				requestID,
-			),
-			req,
-		)
+		return handler(ctx, req)
 	}
 }

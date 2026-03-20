@@ -54,9 +54,16 @@ func (e *Error) Append(fields ...logger.Field) *Error {
 
 func (e *Error) ToGRPCStatus() error {
 	switch e.code {
-	case CodeSchoolNotFound:
-		return status.Error(codes.NotFound, e.message)
-	case CodeDBQueryExec, CodeDBTransaction, CodeUnknown:
+	case CodeInvalidPayload:
+		return status.Error(codes.InvalidArgument, e.message)
+	case CodeUnauthenticated:
+		return status.Error(codes.Unauthenticated, e.message)
+	case CodeUnauthorizedRole, CodeUnauthorizedSubdomain:
+		return status.Error(codes.PermissionDenied, e.message)
+	case CodeAuthNotVerified:
+		return status.Error(codes.FailedPrecondition, e.message)
+	case CodeDBQueryExec, CodeDBTransaction, CodeInvalidContextValue,
+		CodeMissingMetadata, CodeTypeConversionFailed, CodeUnknown:
 		return status.Error(codes.Internal, e.message)
 	default:
 		return status.Error(codes.Internal, e.message)

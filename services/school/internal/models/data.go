@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-type CreateSchoolReq struct {
+type CreateSchoolData struct {
 	NPSN          *string
 	Name          string
 	Level         string

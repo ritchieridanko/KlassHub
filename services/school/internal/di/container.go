@@ -10,6 +10,8 @@ import (
 	"github.com/ritchieridanko/klasshub/services/school/internal/transport/rpc/handlers"
 	"github.com/ritchieridanko/klasshub/services/school/internal/transport/rpc/server"
 	"github.com/ritchieridanko/klasshub/services/school/internal/usecases"
+	"github.com/ritchieridanko/klasshub/services/school/internal/utils/validator"
+	"github.com/ritchieridanko/klasshub/shared/data"
 )
 
 type Container struct {
@@ -18,9 +20,13 @@ type Container struct {
 	transactor *database.Transactor
 	logger     *logger.Logger
 
+	sd *data.School
+
 	sdb databases.SchoolDatabase
 
 	sr repositories.SchoolRepository
+
+	validator *validator.Validator
 
 	su usecases.SchoolUsecase
 
@@ -28,7 +34,7 @@ type Container struct {
 	server *server.Server
 }
 
-func Init(cfg *configs.Config, inf *infra.Infra) *Container {
+func Init(cfg *configs.Config, inf *infra.Infra, sd *data.School) *Container {
 	// Infra
 	db := database.NewDatabase(inf.Database())
 	tx := database.NewTransactor(inf.Database())
@@ -40,8 +46,11 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	// Repositories
 	sr := repositories.NewSchoolRepository(sdb)
 
+	// Utils
+	v := validator.Init(sd)
+
 	// Usecases
-	su := usecases.NewSchoolUsecase(sr)
+	su := usecases.NewSchoolUsecase(cfg.App.Name, sr, v)
 
 	// Handlers
 	sh := handlers.NewSchoolHandler(su)
@@ -54,8 +63,10 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 		database:   db,
 		transactor: tx,
 		logger:     l,
+		sd:         sd,
 		sdb:        sdb,
 		sr:         sr,
+		validator:  v,
 		su:         su,
 		sh:         sh,
 		server:     srv,

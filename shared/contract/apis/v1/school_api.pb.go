@@ -9,6 +9,7 @@ package apis
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -21,27 +22,45 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type GetSchoolIDRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	AuthId        int64                  `protobuf:"varint,1,opt,name=auth_id,json=authId,proto3" json:"auth_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+type School struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	NPSN           *string                `protobuf:"bytes,1,opt,name=n_p_s_n,json=nPSN,proto3,oneof" json:"n_p_s_n,omitempty"`
+	NPSNVerifiedAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=n_p_s_n_verified_at,json=nPSNVerifiedAt,proto3" json:"n_p_s_n_verified_at,omitempty"`
+	Name           string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Level          string                 `protobuf:"bytes,4,opt,name=level,proto3" json:"level,omitempty"`
+	Ownership      string                 `protobuf:"bytes,5,opt,name=ownership,proto3" json:"ownership,omitempty"`
+	ProfilePicture *string                `protobuf:"bytes,6,opt,name=profile_picture,json=profilePicture,proto3,oneof" json:"profile_picture,omitempty"`
+	ProfileBanner  *string                `protobuf:"bytes,7,opt,name=profile_banner,json=profileBanner,proto3,oneof" json:"profile_banner,omitempty"`
+	Accreditation  *string                `protobuf:"bytes,8,opt,name=accreditation,proto3,oneof" json:"accreditation,omitempty"`
+	EstablishedAt  *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=established_at,json=establishedAt,proto3" json:"established_at,omitempty"`
+	Province       string                 `protobuf:"bytes,10,opt,name=province,proto3" json:"province,omitempty"`
+	CityRegency    string                 `protobuf:"bytes,11,opt,name=city_regency,json=cityRegency,proto3" json:"city_regency,omitempty"`
+	District       string                 `protobuf:"bytes,12,opt,name=district,proto3" json:"district,omitempty"`
+	Subdistrict    string                 `protobuf:"bytes,13,opt,name=subdistrict,proto3" json:"subdistrict,omitempty"`
+	Street         string                 `protobuf:"bytes,14,opt,name=street,proto3" json:"street,omitempty"`
+	Postcode       string                 `protobuf:"bytes,15,opt,name=postcode,proto3" json:"postcode,omitempty"`
+	Phone          *string                `protobuf:"bytes,16,opt,name=phone,proto3,oneof" json:"phone,omitempty"`
+	Email          *string                `protobuf:"bytes,17,opt,name=email,proto3,oneof" json:"email,omitempty"`
+	Website        *string                `protobuf:"bytes,18,opt,name=website,proto3,oneof" json:"website,omitempty"`
+	Timezone       string                 `protobuf:"bytes,19,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
-func (x *GetSchoolIDRequest) Reset() {
-	*x = GetSchoolIDRequest{}
+func (x *School) Reset() {
+	*x = School{}
 	mi := &file_v1_school_api_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetSchoolIDRequest) String() string {
+func (x *School) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetSchoolIDRequest) ProtoMessage() {}
+func (*School) ProtoMessage() {}
 
-func (x *GetSchoolIDRequest) ProtoReflect() protoreflect.Message {
+func (x *School) ProtoReflect() protoreflect.Message {
 	mi := &file_v1_school_api_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -53,39 +72,180 @@ func (x *GetSchoolIDRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetSchoolIDRequest.ProtoReflect.Descriptor instead.
-func (*GetSchoolIDRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use School.ProtoReflect.Descriptor instead.
+func (*School) Descriptor() ([]byte, []int) {
 	return file_v1_school_api_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *GetSchoolIDRequest) GetAuthId() int64 {
-	if x != nil {
-		return x.AuthId
+func (x *School) GetNPSN() string {
+	if x != nil && x.NPSN != nil {
+		return *x.NPSN
 	}
-	return 0
+	return ""
 }
 
-type GetSchoolIDResponse struct {
+func (x *School) GetNPSNVerifiedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.NPSNVerifiedAt
+	}
+	return nil
+}
+
+func (x *School) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *School) GetLevel() string {
+	if x != nil {
+		return x.Level
+	}
+	return ""
+}
+
+func (x *School) GetOwnership() string {
+	if x != nil {
+		return x.Ownership
+	}
+	return ""
+}
+
+func (x *School) GetProfilePicture() string {
+	if x != nil && x.ProfilePicture != nil {
+		return *x.ProfilePicture
+	}
+	return ""
+}
+
+func (x *School) GetProfileBanner() string {
+	if x != nil && x.ProfileBanner != nil {
+		return *x.ProfileBanner
+	}
+	return ""
+}
+
+func (x *School) GetAccreditation() string {
+	if x != nil && x.Accreditation != nil {
+		return *x.Accreditation
+	}
+	return ""
+}
+
+func (x *School) GetEstablishedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.EstablishedAt
+	}
+	return nil
+}
+
+func (x *School) GetProvince() string {
+	if x != nil {
+		return x.Province
+	}
+	return ""
+}
+
+func (x *School) GetCityRegency() string {
+	if x != nil {
+		return x.CityRegency
+	}
+	return ""
+}
+
+func (x *School) GetDistrict() string {
+	if x != nil {
+		return x.District
+	}
+	return ""
+}
+
+func (x *School) GetSubdistrict() string {
+	if x != nil {
+		return x.Subdistrict
+	}
+	return ""
+}
+
+func (x *School) GetStreet() string {
+	if x != nil {
+		return x.Street
+	}
+	return ""
+}
+
+func (x *School) GetPostcode() string {
+	if x != nil {
+		return x.Postcode
+	}
+	return ""
+}
+
+func (x *School) GetPhone() string {
+	if x != nil && x.Phone != nil {
+		return *x.Phone
+	}
+	return ""
+}
+
+func (x *School) GetEmail() string {
+	if x != nil && x.Email != nil {
+		return *x.Email
+	}
+	return ""
+}
+
+func (x *School) GetWebsite() string {
+	if x != nil && x.Website != nil {
+		return *x.Website
+	}
+	return ""
+}
+
+func (x *School) GetTimezone() string {
+	if x != nil {
+		return x.Timezone
+	}
+	return ""
+}
+
+type CreateSchoolRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	SchoolId      int64                  `protobuf:"varint,1,opt,name=school_id,json=schoolId,proto3" json:"school_id,omitempty"`
+	NPSN          *string                `protobuf:"bytes,1,opt,name=n_p_s_n,json=nPSN,proto3,oneof" json:"n_p_s_n,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Level         string                 `protobuf:"bytes,3,opt,name=level,proto3" json:"level,omitempty"`
+	Ownership     string                 `protobuf:"bytes,4,opt,name=ownership,proto3" json:"ownership,omitempty"`
+	Accreditation *string                `protobuf:"bytes,5,opt,name=accreditation,proto3,oneof" json:"accreditation,omitempty"`
+	EstablishedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=established_at,json=establishedAt,proto3" json:"established_at,omitempty"`
+	Province      string                 `protobuf:"bytes,7,opt,name=province,proto3" json:"province,omitempty"`
+	CityRegency   string                 `protobuf:"bytes,8,opt,name=city_regency,json=cityRegency,proto3" json:"city_regency,omitempty"`
+	District      string                 `protobuf:"bytes,9,opt,name=district,proto3" json:"district,omitempty"`
+	Subdistrict   string                 `protobuf:"bytes,10,opt,name=subdistrict,proto3" json:"subdistrict,omitempty"`
+	Street        string                 `protobuf:"bytes,11,opt,name=street,proto3" json:"street,omitempty"`
+	Postcode      string                 `protobuf:"bytes,12,opt,name=postcode,proto3" json:"postcode,omitempty"`
+	Phone         *string                `protobuf:"bytes,13,opt,name=phone,proto3,oneof" json:"phone,omitempty"`
+	Email         *string                `protobuf:"bytes,14,opt,name=email,proto3,oneof" json:"email,omitempty"`
+	Website       *string                `protobuf:"bytes,15,opt,name=website,proto3,oneof" json:"website,omitempty"`
+	Timezone      string                 `protobuf:"bytes,16,opt,name=timezone,proto3" json:"timezone,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetSchoolIDResponse) Reset() {
-	*x = GetSchoolIDResponse{}
+func (x *CreateSchoolRequest) Reset() {
+	*x = CreateSchoolRequest{}
 	mi := &file_v1_school_api_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetSchoolIDResponse) String() string {
+func (x *CreateSchoolRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetSchoolIDResponse) ProtoMessage() {}
+func (*CreateSchoolRequest) ProtoMessage() {}
 
-func (x *GetSchoolIDResponse) ProtoReflect() protoreflect.Message {
+func (x *CreateSchoolRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_v1_school_api_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -97,29 +257,231 @@ func (x *GetSchoolIDResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetSchoolIDResponse.ProtoReflect.Descriptor instead.
-func (*GetSchoolIDResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateSchoolRequest.ProtoReflect.Descriptor instead.
+func (*CreateSchoolRequest) Descriptor() ([]byte, []int) {
 	return file_v1_school_api_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetSchoolIDResponse) GetSchoolId() int64 {
-	if x != nil {
-		return x.SchoolId
+func (x *CreateSchoolRequest) GetNPSN() string {
+	if x != nil && x.NPSN != nil {
+		return *x.NPSN
 	}
-	return 0
+	return ""
+}
+
+func (x *CreateSchoolRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateSchoolRequest) GetLevel() string {
+	if x != nil {
+		return x.Level
+	}
+	return ""
+}
+
+func (x *CreateSchoolRequest) GetOwnership() string {
+	if x != nil {
+		return x.Ownership
+	}
+	return ""
+}
+
+func (x *CreateSchoolRequest) GetAccreditation() string {
+	if x != nil && x.Accreditation != nil {
+		return *x.Accreditation
+	}
+	return ""
+}
+
+func (x *CreateSchoolRequest) GetEstablishedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.EstablishedAt
+	}
+	return nil
+}
+
+func (x *CreateSchoolRequest) GetProvince() string {
+	if x != nil {
+		return x.Province
+	}
+	return ""
+}
+
+func (x *CreateSchoolRequest) GetCityRegency() string {
+	if x != nil {
+		return x.CityRegency
+	}
+	return ""
+}
+
+func (x *CreateSchoolRequest) GetDistrict() string {
+	if x != nil {
+		return x.District
+	}
+	return ""
+}
+
+func (x *CreateSchoolRequest) GetSubdistrict() string {
+	if x != nil {
+		return x.Subdistrict
+	}
+	return ""
+}
+
+func (x *CreateSchoolRequest) GetStreet() string {
+	if x != nil {
+		return x.Street
+	}
+	return ""
+}
+
+func (x *CreateSchoolRequest) GetPostcode() string {
+	if x != nil {
+		return x.Postcode
+	}
+	return ""
+}
+
+func (x *CreateSchoolRequest) GetPhone() string {
+	if x != nil && x.Phone != nil {
+		return *x.Phone
+	}
+	return ""
+}
+
+func (x *CreateSchoolRequest) GetEmail() string {
+	if x != nil && x.Email != nil {
+		return *x.Email
+	}
+	return ""
+}
+
+func (x *CreateSchoolRequest) GetWebsite() string {
+	if x != nil && x.Website != nil {
+		return *x.Website
+	}
+	return ""
+}
+
+func (x *CreateSchoolRequest) GetTimezone() string {
+	if x != nil {
+		return x.Timezone
+	}
+	return ""
+}
+
+type CreateSchoolResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	School        *School                `protobuf:"bytes,1,opt,name=school,proto3" json:"school,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateSchoolResponse) Reset() {
+	*x = CreateSchoolResponse{}
+	mi := &file_v1_school_api_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateSchoolResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateSchoolResponse) ProtoMessage() {}
+
+func (x *CreateSchoolResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_school_api_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateSchoolResponse.ProtoReflect.Descriptor instead.
+func (*CreateSchoolResponse) Descriptor() ([]byte, []int) {
+	return file_v1_school_api_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *CreateSchoolResponse) GetSchool() *School {
+	if x != nil {
+		return x.School
+	}
+	return nil
 }
 
 var File_v1_school_api_proto protoreflect.FileDescriptor
 
 const file_v1_school_api_proto_rawDesc = "" +
 	"\n" +
-	"\x13v1/school_api.proto\x12\tschool.v1\"-\n" +
-	"\x12GetSchoolIDRequest\x12\x17\n" +
-	"\aauth_id\x18\x01 \x01(\x03R\x06authId\"2\n" +
-	"\x13GetSchoolIDResponse\x12\x1b\n" +
-	"\tschool_id\x18\x01 \x01(\x03R\bschoolId2]\n" +
-	"\rSchoolService\x12L\n" +
-	"\vGetSchoolID\x12\x1d.school.v1.GetSchoolIDRequest\x1a\x1e.school.v1.GetSchoolIDResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
+	"\x13v1/school_api.proto\x12\tschool.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x84\x06\n" +
+	"\x06School\x12\x1a\n" +
+	"\an_p_s_n\x18\x01 \x01(\tH\x00R\x04nPSN\x88\x01\x01\x12G\n" +
+	"\x13n_p_s_n_verified_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x0enPSNVerifiedAt\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x14\n" +
+	"\x05level\x18\x04 \x01(\tR\x05level\x12\x1c\n" +
+	"\townership\x18\x05 \x01(\tR\townership\x12,\n" +
+	"\x0fprofile_picture\x18\x06 \x01(\tH\x01R\x0eprofilePicture\x88\x01\x01\x12*\n" +
+	"\x0eprofile_banner\x18\a \x01(\tH\x02R\rprofileBanner\x88\x01\x01\x12)\n" +
+	"\raccreditation\x18\b \x01(\tH\x03R\raccreditation\x88\x01\x01\x12A\n" +
+	"\x0eestablished_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\restablishedAt\x12\x1a\n" +
+	"\bprovince\x18\n" +
+	" \x01(\tR\bprovince\x12!\n" +
+	"\fcity_regency\x18\v \x01(\tR\vcityRegency\x12\x1a\n" +
+	"\bdistrict\x18\f \x01(\tR\bdistrict\x12 \n" +
+	"\vsubdistrict\x18\r \x01(\tR\vsubdistrict\x12\x16\n" +
+	"\x06street\x18\x0e \x01(\tR\x06street\x12\x1a\n" +
+	"\bpostcode\x18\x0f \x01(\tR\bpostcode\x12\x19\n" +
+	"\x05phone\x18\x10 \x01(\tH\x04R\x05phone\x88\x01\x01\x12\x19\n" +
+	"\x05email\x18\x11 \x01(\tH\x05R\x05email\x88\x01\x01\x12\x1d\n" +
+	"\awebsite\x18\x12 \x01(\tH\x06R\awebsite\x88\x01\x01\x12\x1a\n" +
+	"\btimezone\x18\x13 \x01(\tR\btimezoneB\n" +
+	"\n" +
+	"\b_n_p_s_nB\x12\n" +
+	"\x10_profile_pictureB\x11\n" +
+	"\x0f_profile_bannerB\x10\n" +
+	"\x0e_accreditationB\b\n" +
+	"\x06_phoneB\b\n" +
+	"\x06_emailB\n" +
+	"\n" +
+	"\b_website\"\xc7\x04\n" +
+	"\x13CreateSchoolRequest\x12\x1a\n" +
+	"\an_p_s_n\x18\x01 \x01(\tH\x00R\x04nPSN\x88\x01\x01\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05level\x18\x03 \x01(\tR\x05level\x12\x1c\n" +
+	"\townership\x18\x04 \x01(\tR\townership\x12)\n" +
+	"\raccreditation\x18\x05 \x01(\tH\x01R\raccreditation\x88\x01\x01\x12A\n" +
+	"\x0eestablished_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\restablishedAt\x12\x1a\n" +
+	"\bprovince\x18\a \x01(\tR\bprovince\x12!\n" +
+	"\fcity_regency\x18\b \x01(\tR\vcityRegency\x12\x1a\n" +
+	"\bdistrict\x18\t \x01(\tR\bdistrict\x12 \n" +
+	"\vsubdistrict\x18\n" +
+	" \x01(\tR\vsubdistrict\x12\x16\n" +
+	"\x06street\x18\v \x01(\tR\x06street\x12\x1a\n" +
+	"\bpostcode\x18\f \x01(\tR\bpostcode\x12\x19\n" +
+	"\x05phone\x18\r \x01(\tH\x02R\x05phone\x88\x01\x01\x12\x19\n" +
+	"\x05email\x18\x0e \x01(\tH\x03R\x05email\x88\x01\x01\x12\x1d\n" +
+	"\awebsite\x18\x0f \x01(\tH\x04R\awebsite\x88\x01\x01\x12\x1a\n" +
+	"\btimezone\x18\x10 \x01(\tR\btimezoneB\n" +
+	"\n" +
+	"\b_n_p_s_nB\x10\n" +
+	"\x0e_accreditationB\b\n" +
+	"\x06_phoneB\b\n" +
+	"\x06_emailB\n" +
+	"\n" +
+	"\b_website\"A\n" +
+	"\x14CreateSchoolResponse\x12)\n" +
+	"\x06school\x18\x01 \x01(\v2\x11.school.v1.SchoolR\x06school2`\n" +
+	"\rSchoolService\x12O\n" +
+	"\fCreateSchool\x12\x1e.school.v1.CreateSchoolRequest\x1a\x1f.school.v1.CreateSchoolResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
 
 var (
 	file_v1_school_api_proto_rawDescOnce sync.Once
@@ -133,19 +495,25 @@ func file_v1_school_api_proto_rawDescGZIP() []byte {
 	return file_v1_school_api_proto_rawDescData
 }
 
-var file_v1_school_api_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_v1_school_api_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_v1_school_api_proto_goTypes = []any{
-	(*GetSchoolIDRequest)(nil),  // 0: school.v1.GetSchoolIDRequest
-	(*GetSchoolIDResponse)(nil), // 1: school.v1.GetSchoolIDResponse
+	(*School)(nil),                // 0: school.v1.School
+	(*CreateSchoolRequest)(nil),   // 1: school.v1.CreateSchoolRequest
+	(*CreateSchoolResponse)(nil),  // 2: school.v1.CreateSchoolResponse
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
 }
 var file_v1_school_api_proto_depIdxs = []int32{
-	0, // 0: school.v1.SchoolService.GetSchoolID:input_type -> school.v1.GetSchoolIDRequest
-	1, // 1: school.v1.SchoolService.GetSchoolID:output_type -> school.v1.GetSchoolIDResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	3, // 0: school.v1.School.n_p_s_n_verified_at:type_name -> google.protobuf.Timestamp
+	3, // 1: school.v1.School.established_at:type_name -> google.protobuf.Timestamp
+	3, // 2: school.v1.CreateSchoolRequest.established_at:type_name -> google.protobuf.Timestamp
+	0, // 3: school.v1.CreateSchoolResponse.school:type_name -> school.v1.School
+	1, // 4: school.v1.SchoolService.CreateSchool:input_type -> school.v1.CreateSchoolRequest
+	2, // 5: school.v1.SchoolService.CreateSchool:output_type -> school.v1.CreateSchoolResponse
+	5, // [5:6] is the sub-list for method output_type
+	4, // [4:5] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_v1_school_api_proto_init() }
@@ -153,13 +521,15 @@ func file_v1_school_api_proto_init() {
 	if File_v1_school_api_proto != nil {
 		return
 	}
+	file_v1_school_api_proto_msgTypes[0].OneofWrappers = []any{}
+	file_v1_school_api_proto_msgTypes[1].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_school_api_proto_rawDesc), len(file_v1_school_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
