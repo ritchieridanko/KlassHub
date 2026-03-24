@@ -56,15 +56,21 @@ func (e *Error) ToGRPCStatus() error {
 	switch e.code {
 	case CodeInvalidPayload:
 		return status.Error(codes.InvalidArgument, e.message)
-	case CodeIdentifierNotRegistered, CodeWrongPassword, CodeWrongSubdomain:
+	case CodeIdentifierNotRegistered, CodeUnauthenticated, CodeWrongPassword,
+		CodeWrongSubdomain:
 		return status.Error(codes.Unauthenticated, e.message)
+	case CodeUnauthorizedRole, CodeUnauthorizedSubdomain:
+		return status.Error(codes.PermissionDenied, e.message)
 	case CodeAuthNotFound:
 		return status.Error(codes.NotFound, e.message)
 	case CodeEmailNotAvailable:
 		return status.Error(codes.AlreadyExists, e.message)
+	case CodeAuthNotVerified:
+		return status.Error(codes.FailedPrecondition, e.message)
 	case CodeBCryptHashingFailed, CodeCacheCommandExec, CodeDBQueryExec,
 		CodeDBTransaction, CodeInternal, CodeJWTGenerationFailed,
-		CodeUnknown, CodeUUIDGenerationFailed:
+		CodeMissingMetadata, CodeTypeConversionFailed, CodeUnknown,
+		CodeUUIDGenerationFailed:
 		return status.Error(codes.Internal, e.message)
 	default:
 		return status.Error(codes.Internal, e.message)

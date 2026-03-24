@@ -7,17 +7,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/constants"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/models"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
-
-// Get IP Address from Context
-func CtxIPAddress(ctx context.Context) string {
-	if v, ok := ctx.Value(constants.CtxKeyIPAddress).(string); ok {
-		return v
-	}
-	return ""
-}
 
 // Get Request ID from Context
 func CtxRequestID(ctx context.Context) string {
@@ -43,12 +36,12 @@ func CtxTraceID(ctx context.Context) string {
 	return ""
 }
 
-// Get User Agent from Context
-func CtxUserAgent(ctx context.Context) string {
-	if v, ok := ctx.Value(constants.CtxKeyUserAgent).(string); ok {
+// Get Transport Information from Context
+func CtxTransport(ctx context.Context) *models.TransportContext {
+	if v, ok := ctx.Value(constants.CtxKeyTransport).(*models.TransportContext); ok {
 		return v
 	}
-	return ""
+	return nil
 }
 
 // Create a new random UUID v7

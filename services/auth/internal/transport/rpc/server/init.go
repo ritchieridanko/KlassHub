@@ -30,6 +30,7 @@ func Init(cfg *configs.Server, name string, l *logger.Logger, ah *handlers.AuthH
 			interceptors.Request(),
 			interceptors.Recovery(l),
 			interceptors.Logging(l),
+			interceptors.Auth(),
 		),
 	)
 

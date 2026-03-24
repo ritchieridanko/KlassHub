@@ -90,7 +90,7 @@ type Tracer struct {
 
 func Init(path string) (*Config, error) {
 	env := utils.NormalizeString(os.Getenv("APP_ENV"))
-	if env == "" || (env != "dev" && env != "prod") {
+	if env != "dev" && env != "prod" {
 		env = "dev"
 	}
 	if path == "" {

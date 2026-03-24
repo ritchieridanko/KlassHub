@@ -1,7 +1,7 @@
 package jwt
 
 import (
-	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -35,7 +35,7 @@ func (j *JWT) Generate(authID, schoolID int64, role string, isVerified bool, now
 			IsVerified: isVerified,
 			RegisteredClaims: jwt.RegisteredClaims{
 				Issuer:    j.issuer,
-				Subject:   fmt.Sprintf("auth_%d", authID),
+				Subject:   "auth_" + strconv.FormatInt(authID, 10),
 				IssuedAt:  &jwt.NumericDate{Time: *now},
 				ExpiresAt: &jwt.NumericDate{Time: now.Add(j.duration)},
 			},

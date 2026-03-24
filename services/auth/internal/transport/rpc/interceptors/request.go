@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ritchieridanko/klasshub/services/auth/internal/constants"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/models"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -19,15 +20,25 @@ func Request() grpc.UnaryServerInterceptor {
 		if values := md.Get(constants.MDKeyRequestID); len(values) > 0 {
 			ctx = context.WithValue(ctx, constants.CtxKeyRequestID, values[0])
 		}
+
+		var ua, ip string
 		if values := md.Get(constants.MDKeyUserAgent); len(values) > 0 {
-			ctx = context.WithValue(ctx, constants.CtxKeyUserAgent, values[0])
+			ua = values[0]
 		}
 		if values := md.Get(constants.MDKeyIPAddress); len(values) > 0 {
-			ctx = context.WithValue(ctx, constants.CtxKeyIPAddress, values[0])
+			ip = values[0]
 		}
-		if values := md.Get(constants.MDKeySubdomain); len(values) > 0 {
-			ctx = context.WithValue(ctx, constants.CtxKeySubdomain, values[0])
-		}
-		return handler(ctx, req)
+
+		return handler(
+			context.WithValue(
+				ctx,
+				constants.CtxKeyTransport,
+				&models.TransportContext{
+					UserAgent: ua,
+					IPAddress: ip,
+				},
+			),
+			req,
+		)
 	}
 }

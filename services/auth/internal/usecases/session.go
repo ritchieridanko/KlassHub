@@ -48,6 +48,7 @@ func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSe
 
 	authIDField := logger.NewField("auth_id", req.AuthID)
 	schoolIDField := logger.NewField("school_id", req.SchoolID)
+	roleField := logger.NewField("role", req.Role)
 
 	// UUID Creation
 	uuid, err := utils.GenerateUUIDv7()
@@ -58,6 +59,7 @@ func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSe
 			err,
 			authIDField,
 			schoolIDField,
+			roleField,
 		)
 	}
 
@@ -71,25 +73,25 @@ func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSe
 			err,
 			authIDField,
 			schoolIDField,
+			roleField,
 		)
 	}
 
 	txErr := u.transactor.WithTx(ctx, func(ctx context.Context) *ce.Error {
-		ua := utils.CtxUserAgent(ctx)
-		ip := utils.CtxIPAddress(ctx)
+		transportCtx := utils.CtxTransport(ctx)
 
 		// Active Session Revocation
 		sessionID, err := u.sr.RevokeActive(
 			ctx,
 			&models.RevokeSessionParams{
 				AuthID:    req.AuthID,
-				UserAgent: ua,
-				IPAddress: ip,
+				UserAgent: transportCtx.UserAgent,
+				IPAddress: transportCtx.IPAddress,
 				ExpiresAt: now,
 			},
 		)
 		if err != nil {
-			return err.Append(schoolIDField)
+			return err.Append(schoolIDField, roleField)
 		}
 
 		// Session Creation
@@ -97,15 +99,15 @@ func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSe
 		data := models.CreateSessionData{
 			AuthID:       req.AuthID,
 			RefreshToken: uuid.String(),
-			UserAgent:    ua,
-			IPAddress:    ip,
+			UserAgent:    transportCtx.UserAgent,
+			IPAddress:    transportCtx.IPAddress,
 			ExpiresAt:    now.Add(u.refreshTokenExpiry),
 		}
 		if invalidSessionID := int64(0); sessionID > invalidSessionID {
 			data.ParentID = &sessionID
 		}
 		if err := u.sr.Create(ctx, &data); err != nil {
-			return err.Append(schoolIDField)
+			return err.Append(schoolIDField, roleField)
 		}
 		return nil
 	})
@@ -116,6 +118,7 @@ func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSe
 			fmt.Errorf("failed to create session: %w", txErr.Unwrap()),
 			authIDField,
 			schoolIDField,
+			roleField,
 		)
 	}
 	if txErr != nil {
