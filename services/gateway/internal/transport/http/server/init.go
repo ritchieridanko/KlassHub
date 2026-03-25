@@ -48,8 +48,7 @@ func (s *Server) Shutdown(ctx context.Context) error {
 
 	select {
 	case <-ctx.Done():
-		err := s.server.Close()
-		if err != nil {
+		if err := s.server.Close(); err != nil {
 			return fmt.Errorf("failed to shutdown server: %v: %w", err, ctx.Err())
 		}
 		return fmt.Errorf("failed to shutdown server: %w", ctx.Err())

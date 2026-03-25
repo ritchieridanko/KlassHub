@@ -64,9 +64,14 @@ func (e *Error) ToHTTPStatus() int {
 		return http.StatusBadRequest
 	case CodeUnauthenticated:
 		return http.StatusUnauthorized
+	case CodeUnauthorized:
+		return http.StatusForbidden
 	case CodeNotFound:
 		return http.StatusNotFound
-	case CodeInternal, CodeUnknown, CodeUUIDGenerationFailed:
+	case CodeAlreadyExists:
+		return http.StatusConflict
+	case CodeInternal, CodeInvalidContextValue, CodeUnknown,
+		CodeUUIDGenerationFailed:
 		return http.StatusInternalServerError
 	default:
 		return http.StatusInternalServerError

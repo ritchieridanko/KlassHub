@@ -8,8 +8,17 @@ import (
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/google/uuid"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/constants"
+	"github.com/ritchieridanko/klasshub/services/gateway/internal/models"
 	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+func CtxAuth(ctx context.Context) *models.AuthContext {
+	if v, ok := ctx.Value(constants.CtxKeyAuth).(*models.AuthContext); ok {
+		return v
+	}
+	return nil
+}
 
 // Get Request ID from Context
 func CtxRequestID(ctx context.Context) string {
@@ -53,4 +62,12 @@ func ToTime(ts *timestamp.Timestamp) *time.Time {
 	}
 	t := ts.AsTime()
 	return &t
+}
+
+// Convert time value to timestamp
+func ToTimestamp(t *time.Time) *timestamppb.Timestamp {
+	if t == nil {
+		return nil
+	}
+	return timestamppb.New(*t)
 }

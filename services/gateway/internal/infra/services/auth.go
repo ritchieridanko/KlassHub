@@ -32,7 +32,7 @@ func NewAuthService(cfg *configs.Service, l *zap.Logger) (*AuthService, error) {
 	}
 
 	l.Sugar().Infof(
-		"[%s] is connected (host=%s, port=%d)",
+		"[%s] connected (host=%s, port=%d)",
 		strings.ToUpper(cfg.Auth.Name), cfg.Auth.Host, cfg.Auth.Port,
 	)
 	return &AuthService{

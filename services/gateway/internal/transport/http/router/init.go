@@ -32,12 +32,13 @@ func Init(cfg *configs.Client, appName string, l *logger.Logger, ah *handlers.Au
 		middlewares.Recovery(l),
 		otelgin.Middleware(appName),
 		middlewares.Logging(l),
+		middlewares.Subdomain(cfg.Hostname, cfg.TLD),
 	)
 
 	// Auth Endpoints
 	auth := v1.Group("/auth")
 	{
-		auth.POST("/login", middlewares.Subdomain(cfg.Hostname, cfg.TLD), ah.Login)
+		auth.POST("/login", ah.Login)
 	}
 
 	return &Router{router: r}

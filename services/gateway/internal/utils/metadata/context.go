@@ -9,11 +9,13 @@ import (
 )
 
 func ToOutgoingCtx(ctx context.Context, pairs ...Pair) context.Context {
-	defaultSize := 2
+	defaultSize := 4
 	kv := append(
 		make([]string, 0, (len(pairs)*2)+defaultSize),
 		constants.MDKeyRequestID,
 		utils.CtxRequestID(ctx),
+		constants.MDKeySubdomain,
+		utils.CtxSubdomain(ctx),
 	)
 
 	for _, pair := range pairs {

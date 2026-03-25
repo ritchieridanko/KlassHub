@@ -61,10 +61,6 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 				constants.MDKeyIPAddress,
 				ip,
 			),
-			metadata.NewPair(
-				constants.MDKeySubdomain,
-				utils.CtxSubdomain(ctx.Request.Context()),
-			),
 		),
 		&models.LoginReq{
 			Identifier: payload.Identifier,

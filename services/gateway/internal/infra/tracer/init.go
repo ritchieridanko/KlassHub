@@ -38,8 +38,8 @@ func Init(env, appName, endpoint string, l *zap.Logger) (*Tracer, error) {
 			),
 		),
 	)
-	otel.SetTracerProvider(tp)
 
+	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(
 		propagation.NewCompositeTextMapPropagator(
 			propagation.TraceContext{},
