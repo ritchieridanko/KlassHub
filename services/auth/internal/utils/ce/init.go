@@ -69,8 +69,8 @@ func (e *Error) ToGRPCStatus() error {
 		return status.Error(codes.FailedPrecondition, e.message)
 	case CodeBCryptHashingFailed, CodeCacheCommandExec, CodeDBQueryExec,
 		CodeDBTransaction, CodeInternal, CodeJWTGenerationFailed,
-		CodeMissingMetadata, CodeTypeConversionFailed, CodeUnknown,
-		CodeUUIDGenerationFailed:
+		CodeMissingContextValue, CodeMissingMetadata, CodeTypeConversionFailed,
+		CodeUnknown, CodeUUIDGenerationFailed:
 		return status.Error(codes.Internal, e.message)
 	default:
 		return status.Error(codes.Internal, e.message)

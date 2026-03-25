@@ -68,7 +68,7 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 
 	// Usecases
 	su := usecases.NewSessionUsecase(cfg.App.Name, cfg.Auth.JWT.Duration, cfg.Auth.Duration.Session, sr, tx, v, j)
-	au := usecases.NewAuthUsecase(cfg.App.Name, su, ar, tx, v, b)
+	au := usecases.NewAuthUsecase(cfg.App.Name, su, ar, tx, v, b, l)
 
 	// Handlers
 	ah := handlers.NewAuthHandler(au)

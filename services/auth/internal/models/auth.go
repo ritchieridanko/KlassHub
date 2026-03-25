@@ -21,3 +21,8 @@ type Auth struct {
 func (a *Auth) IsVerified() bool {
 	return a.VerifiedAt != nil
 }
+
+// If School ID != 0, school exists
+func (a *Auth) SchoolExists() bool {
+	return a.SchoolID != 0
+}

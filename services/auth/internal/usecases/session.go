@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -30,7 +31,7 @@ type sessionUsecase struct {
 	jwt                *jwt.JWT
 }
 
-func NewSessionUsecase(appName string, accessTokenExpiry, refreshTokenExpiry time.Duration, sr repositories.SessionRepository, tx *database.Transactor, v *validator.Validator, jwt *jwt.JWT) SessionUsecase {
+func NewSessionUsecase(appName string, accessTokenExpiry, refreshTokenExpiry time.Duration, sr repositories.SessionRepository, tx *database.Transactor, v *validator.Validator, j *jwt.JWT) SessionUsecase {
 	return &sessionUsecase{
 		appName:            appName,
 		accessTokenExpiry:  accessTokenExpiry,
@@ -38,7 +39,7 @@ func NewSessionUsecase(appName string, accessTokenExpiry, refreshTokenExpiry tim
 		sr:                 sr,
 		transactor:         tx,
 		validator:          v,
-		jwt:                jwt,
+		jwt:                j,
 	}
 }
 
@@ -79,6 +80,16 @@ func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSe
 
 	txErr := u.transactor.WithTx(ctx, func(ctx context.Context) *ce.Error {
 		transportCtx := utils.CtxTransport(ctx)
+		if transportCtx == nil {
+			return ce.NewError(
+				ce.CodeMissingContextValue,
+				ce.MsgInternalServer,
+				errors.New("failed to create session: transport missing from context"),
+				authIDField,
+				schoolIDField,
+				roleField,
+			)
+		}
 
 		// Active Session Revocation
 		sessionID, err := u.sr.RevokeActive(

@@ -18,7 +18,7 @@ import (
 
 type AuthUsecase interface {
 	Login(ctx context.Context, req *models.LoginReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
-	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, err *ce.Error)
+	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 }
 
 type authUsecase struct {
@@ -28,16 +28,18 @@ type authUsecase struct {
 	transactor *database.Transactor
 	validator  *validator.Validator
 	bcrypt     *bcrypt.BCrypt
+	logger     *logger.Logger
 }
 
-func NewAuthUsecase(appName string, su SessionUsecase, ar repositories.AuthRepository, tx *database.Transactor, v *validator.Validator, bcrypt *bcrypt.BCrypt) AuthUsecase {
+func NewAuthUsecase(appName string, su SessionUsecase, ar repositories.AuthRepository, tx *database.Transactor, v *validator.Validator, b *bcrypt.BCrypt, l *logger.Logger) AuthUsecase {
 	return &authUsecase{
 		appName:    appName,
 		su:         su,
 		ar:         ar,
 		transactor: tx,
 		validator:  v,
-		bcrypt:     bcrypt,
+		bcrypt:     b,
+		logger:     l,
 	}
 }
 
@@ -112,65 +114,44 @@ func (u *authUsecase) Login(ctx context.Context, req *models.LoginReq) (*models.
 	return a, at, err
 }
 
-func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (*models.Auth, *ce.Error) {
+func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (*models.Auth, *models.AuthToken, *ce.Error) {
 	ctx, span := otel.Tracer(u.appName).Start(ctx, "auth.usecase.CreateSchoolAuth")
 	defer span.End()
-
-	schoolIDField := logger.NewField("school_id", req.SchoolID)
 
 	// Data Normalization
 	email := utils.NormalizeString(req.Email)
 
 	// Data Validation
 	if ok, why := u.validator.Email(email); !ok {
-		return nil, ce.NewError(
-			ce.CodeInvalidPayload,
-			why,
-			nil,
-			schoolIDField,
-		)
+		return nil, nil, ce.NewError(ce.CodeInvalidPayload, why, nil)
 	}
 	if ok, why := u.validator.Password(req.Password); !ok {
-		return nil, ce.NewError(
-			ce.CodeInvalidPayload,
-			why,
-			nil,
-			schoolIDField,
-		)
+		return nil, nil, ce.NewError(ce.CodeInvalidPayload, why, nil)
 	}
 
-	var school *models.Auth
+	var a *models.Auth
 	err := u.transactor.WithTx(ctx, func(ctx context.Context) *ce.Error {
 		// Email Availability Check
 		available, err := u.ar.IsEmailAvailable(ctx, email)
 		if err != nil {
-			return err.Append(schoolIDField)
+			return err
 		}
 		if !available {
-			return ce.NewError(
-				ce.CodeEmailNotAvailable,
-				ce.MsgEmailNotAvailable,
-				nil,
-				schoolIDField,
-			)
+			return ce.NewError(ce.CodeEmailNotAvailable, ce.MsgEmailNotAvailable, nil)
 		}
 
 		// Password Hashing
 		hash, hashErr := u.bcrypt.Hash(req.Password)
 		if hashErr != nil {
-			return ce.NewError(
-				ce.CodeBCryptHashingFailed,
-				ce.MsgInternalServer,
-				hashErr,
-				schoolIDField,
-			)
+			return ce.NewError(ce.CodeBCryptHashingFailed, ce.MsgInternalServer, hashErr)
 		}
 
 		// Auth Creation
-		school, err = u.ar.Create(
+		schoolProfileNotYetExists := int64(0)
+		a, err = u.ar.Create(
 			ctx,
 			&models.CreateAuthData{
-				SchoolID: req.SchoolID,
+				SchoolID: schoolProfileNotYetExists,
 				Email:    &email,
 				Password: hash,
 				Role:     constants.RoleSchool,
@@ -179,13 +160,35 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 		return err
 	})
 	if err != nil && err.Code() == ce.CodeDBTransaction {
-		return nil, ce.NewError(
+		return nil, nil, ce.NewError(
 			err.Code(),
 			err.Message(),
 			fmt.Errorf("failed to create school auth: %w", err.Unwrap()),
-			schoolIDField,
 		)
 	}
 
-	return school, err
+	// Session Creation
+	// NOTE: Fail to create session does not fail create school auth process
+	at, err := u.su.CreateSession(
+		ctx,
+		&models.CreateSessionReq{
+			AuthID:     a.ID,
+			SchoolID:   a.SchoolID,
+			Role:       a.Role,
+			IsVerified: a.IsVerified(),
+		},
+	)
+	if err != nil {
+		u.logger.Warn(
+			ctx,
+			"created school auth. failed to create session",
+			err.Append(
+				logger.NewField("error_code", err.Code()),
+				logger.NewField("error", err),
+			).Fields()...,
+		)
+		return a, nil, nil
+	}
+
+	return a, at, nil
 }

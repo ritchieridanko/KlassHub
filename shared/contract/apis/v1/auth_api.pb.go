@@ -28,7 +28,8 @@ type Auth struct {
 	Username          *string                `protobuf:"bytes,2,opt,name=username,proto3,oneof" json:"username,omitempty"`
 	Role              string                 `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
 	IsVerified        bool                   `protobuf:"varint,4,opt,name=is_verified,json=isVerified,proto3" json:"is_verified,omitempty"`
-	PasswordChangedAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=password_changed_at,json=passwordChangedAt,proto3" json:"password_changed_at,omitempty"`
+	SchoolExists      bool                   `protobuf:"varint,5,opt,name=school_exists,json=schoolExists,proto3" json:"school_exists,omitempty"`
+	PasswordChangedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=password_changed_at,json=passwordChangedAt,proto3" json:"password_changed_at,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -87,6 +88,13 @@ func (x *Auth) GetRole() string {
 func (x *Auth) GetIsVerified() bool {
 	if x != nil {
 		return x.IsVerified
+	}
+	return false
+}
+
+func (x *Auth) GetSchoolExists() bool {
+	if x != nil {
+		return x.SchoolExists
 	}
 	return false
 }
@@ -360,9 +368,8 @@ func (x *LoginResponse) GetAuthToken() *AuthToken {
 
 type CreateSchoolAuthRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	SchoolId      int64                  `protobuf:"varint,1,opt,name=school_id,json=schoolId,proto3" json:"school_id,omitempty"`
-	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
-	Password      string                 `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -397,13 +404,6 @@ func (*CreateSchoolAuthRequest) Descriptor() ([]byte, []int) {
 	return file_v1_auth_api_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *CreateSchoolAuthRequest) GetSchoolId() int64 {
-	if x != nil {
-		return x.SchoolId
-	}
-	return 0
-}
-
 func (x *CreateSchoolAuthRequest) GetEmail() string {
 	if x != nil {
 		return x.Email
@@ -421,6 +421,7 @@ func (x *CreateSchoolAuthRequest) GetPassword() string {
 type CreateSchoolAuthResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Auth          *Auth                  `protobuf:"bytes,1,opt,name=auth,proto3" json:"auth,omitempty"`
+	AuthToken     *AuthToken             `protobuf:"bytes,2,opt,name=auth_token,json=authToken,proto3" json:"auth_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -462,18 +463,26 @@ func (x *CreateSchoolAuthResponse) GetAuth() *Auth {
 	return nil
 }
 
+func (x *CreateSchoolAuthResponse) GetAuthToken() *AuthToken {
+	if x != nil {
+		return x.AuthToken
+	}
+	return nil
+}
+
 var File_v1_auth_api_proto protoreflect.FileDescriptor
 
 const file_v1_auth_api_proto_rawDesc = "" +
 	"\n" +
-	"\x11v1/auth_api.proto\x12\aauth.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xda\x01\n" +
+	"\x11v1/auth_api.proto\x12\aauth.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xff\x01\n" +
 	"\x04Auth\x12\x19\n" +
 	"\x05email\x18\x01 \x01(\tH\x00R\x05email\x88\x01\x01\x12\x1f\n" +
 	"\busername\x18\x02 \x01(\tH\x01R\busername\x88\x01\x01\x12\x12\n" +
 	"\x04role\x18\x03 \x01(\tR\x04role\x12\x1f\n" +
 	"\vis_verified\x18\x04 \x01(\bR\n" +
-	"isVerified\x12J\n" +
-	"\x13password_changed_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\x11passwordChangedAtB\b\n" +
+	"isVerified\x12#\n" +
+	"\rschool_exists\x18\x05 \x01(\bR\fschoolExists\x12J\n" +
+	"\x13password_changed_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\x11passwordChangedAtB\b\n" +
 	"\x06_emailB\v\n" +
 	"\t_username\"B\n" +
 	"\vAccessToken\x12\x14\n" +
@@ -495,13 +504,14 @@ const file_v1_auth_api_proto_rawDesc = "" +
 	"\rLoginResponse\x12!\n" +
 	"\x04auth\x18\x01 \x01(\v2\r.auth.v1.AuthR\x04auth\x121\n" +
 	"\n" +
-	"auth_token\x18\x02 \x01(\v2\x12.auth.v1.AuthTokenR\tauthToken\"h\n" +
-	"\x17CreateSchoolAuthRequest\x12\x1b\n" +
-	"\tschool_id\x18\x01 \x01(\x03R\bschoolId\x12\x14\n" +
-	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x03 \x01(\tR\bpassword\"=\n" +
+	"auth_token\x18\x02 \x01(\v2\x12.auth.v1.AuthTokenR\tauthToken\"K\n" +
+	"\x17CreateSchoolAuthRequest\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"p\n" +
 	"\x18CreateSchoolAuthResponse\x12!\n" +
-	"\x04auth\x18\x01 \x01(\v2\r.auth.v1.AuthR\x04auth2\x9e\x01\n" +
+	"\x04auth\x18\x01 \x01(\v2\r.auth.v1.AuthR\x04auth\x121\n" +
+	"\n" +
+	"auth_token\x18\x02 \x01(\v2\x12.auth.v1.AuthTokenR\tauthToken2\x9e\x01\n" +
 	"\vAuthService\x126\n" +
 	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponse\x12W\n" +
 	"\x10CreateSchoolAuth\x12 .auth.v1.CreateSchoolAuthRequest\x1a!.auth.v1.CreateSchoolAuthResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
@@ -537,15 +547,16 @@ var file_v1_auth_api_proto_depIdxs = []int32{
 	0, // 3: auth.v1.LoginResponse.auth:type_name -> auth.v1.Auth
 	3, // 4: auth.v1.LoginResponse.auth_token:type_name -> auth.v1.AuthToken
 	0, // 5: auth.v1.CreateSchoolAuthResponse.auth:type_name -> auth.v1.Auth
-	4, // 6: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
-	6, // 7: auth.v1.AuthService.CreateSchoolAuth:input_type -> auth.v1.CreateSchoolAuthRequest
-	5, // 8: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
-	7, // 9: auth.v1.AuthService.CreateSchoolAuth:output_type -> auth.v1.CreateSchoolAuthResponse
-	8, // [8:10] is the sub-list for method output_type
-	6, // [6:8] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	3, // 6: auth.v1.CreateSchoolAuthResponse.auth_token:type_name -> auth.v1.AuthToken
+	4, // 7: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
+	6, // 8: auth.v1.AuthService.CreateSchoolAuth:input_type -> auth.v1.CreateSchoolAuthRequest
+	5, // 9: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
+	7, // 10: auth.v1.AuthService.CreateSchoolAuth:output_type -> auth.v1.CreateSchoolAuthResponse
+	9, // [9:11] is the sub-list for method output_type
+	7, // [7:9] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_v1_auth_api_proto_init() }

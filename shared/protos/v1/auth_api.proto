@@ -16,7 +16,8 @@ message Auth {
   optional string username = 2;
   string role = 3;
   bool is_verified = 4;
-  google.protobuf.Timestamp password_changed_at = 5;
+  bool school_exists = 5;
+  google.protobuf.Timestamp password_changed_at = 6;
 }
 
 message AccessToken {
@@ -45,11 +46,11 @@ message LoginResponse {
 }
 
 message CreateSchoolAuthRequest {
-  int64 school_id = 1;
-  string email = 2;
-  string password = 3;
+  string email = 1;
+  string password = 2;
 }
 
 message CreateSchoolAuthResponse {
   Auth auth = 1;
+  AuthToken auth_token = 2;
 }

@@ -26,6 +26,7 @@ const (
 	CodeInternal                errCode = "ERR_INTERNAL"
 	CodeInvalidPayload          errCode = "ERR_INVALID_PAYLOAD"
 	CodeJWTGenerationFailed     errCode = "ERR_JWT_GENERATION_FAILED"
+	CodeMissingContextValue     errCode = "ERR_MISSING_CONTEXT_VALUE"
 	CodeMissingMetadata         errCode = "ERR_MISSING_METADATA"
 	CodeTypeConversionFailed    errCode = "ERR_TYPE_CONVERSION_FAILED"
 	CodeUnauthenticated         errCode = "ERR_UNAUTHENTICATED"

@@ -1,7 +1,6 @@
 package models
 
 type CreateSchoolAuthReq struct {
-	SchoolID int64
 	Email    string
 	Password string
 }

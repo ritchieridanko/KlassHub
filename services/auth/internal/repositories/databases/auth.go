@@ -35,7 +35,8 @@ func (d *authDatabase) Create(ctx context.Context, data *models.CreateAuthData) 
 			$1, $2, $3, $4, $5, $6
 		)
 		RETURNING
-			email, username, role, verified_at
+			id, school_id, email, username,
+			role, verified_at, password_changed_at
 	`
 
 	var a models.Auth
@@ -44,8 +45,8 @@ func (d *authDatabase) Create(ctx context.Context, data *models.CreateAuthData) 
 		data.SchoolID, data.Email, data.Username,
 		data.Password, data.Role, data.VerifiedAt,
 	).Scan(
-		&a.Email, &a.Username,
-		&a.Role, &a.VerifiedAt,
+		&a.ID, &a.SchoolID, &a.Email, &a.Username,
+		&a.Role, &a.VerifiedAt, &a.PasswordChangedAt,
 	)
 	if err != nil {
 		return nil, ce.NewError(
