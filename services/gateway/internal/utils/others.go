@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/google/uuid"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/constants"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/models"
@@ -13,6 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+// Get Auth Information from Context
 func CtxAuth(ctx context.Context) *models.AuthContext {
 	if v, ok := ctx.Value(constants.CtxKeyAuth).(*models.AuthContext); ok {
 		return v
@@ -56,7 +56,7 @@ func NormalizeString(s string) string {
 }
 
 // Convert timestamp value to time
-func ToTime(ts *timestamp.Timestamp) *time.Time {
+func ToTime(ts *timestamppb.Timestamp) *time.Time {
 	if ts == nil {
 		return nil
 	}

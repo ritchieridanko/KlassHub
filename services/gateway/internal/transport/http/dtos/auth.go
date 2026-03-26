@@ -7,5 +7,6 @@ type Auth struct {
 	Username          *string    `json:"username,omitempty"`
 	Role              string     `json:"role"`
 	IsVerified        bool       `json:"is_verified"`
+	SchoolExists      bool       `json:"school_exists"`
 	PasswordChangedAt *time.Time `json:"password_changed_at"`
 }

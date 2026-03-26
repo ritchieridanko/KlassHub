@@ -4,7 +4,6 @@ package ce
 const (
 	CodeAlreadyExists          errCode = "ERR_ALREADY_EXISTS"
 	CodeInternal               errCode = "ERR_INTERNAL"
-	CodeInvalidContextValue    errCode = "ERR_INVALID_CONTEXT_VALUE"
 	CodeInvalidPayload         errCode = "ERR_INVALID_PAYLOAD"
 	CodeInvalidRequestMetadata errCode = "ERR_INVALID_REQUEST_METADATA"
 	CodeInvalidSubdomain       errCode = "ERR_INVALID_SUBDOMAIN"

@@ -12,6 +12,7 @@ import (
 
 type AuthClient interface {
 	Login(ctx context.Context, req *models.LoginReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 }
 
 type authClient struct {
@@ -40,6 +41,24 @@ func (c *authClient) Login(ctx context.Context, req *models.LoginReq) (*models.A
 	return c.toAuth(resp.GetAuth()), c.toAuthToken(resp.GetAuthToken()), nil
 }
 
+func (c *authClient) CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (*models.Auth, *models.AuthToken, *ce.Error) {
+	resp, err := c.client.CreateSchoolAuth(
+		ctx,
+		&apis.CreateSchoolAuthRequest{
+			Email:    req.Email,
+			Password: req.Password,
+		},
+	)
+	if err != nil {
+		return nil, nil, ce.FromGRPCErr(
+			err,
+		).Append(
+			logger.NewField("service", "auth"),
+		)
+	}
+	return c.toAuth(resp.GetAuth()), c.toAuthToken(resp.GetAuthToken()), nil
+}
+
 func (c *authClient) toAuth(a *apis.Auth) *models.Auth {
 	if a == nil {
 		return nil
@@ -49,6 +68,7 @@ func (c *authClient) toAuth(a *apis.Auth) *models.Auth {
 		Username:          a.Username,
 		Role:              a.GetRole(),
 		IsVerified:        a.GetIsVerified(),
+		SchoolExists:      a.GetSchoolExists(),
 		PasswordChangedAt: utils.ToTime(a.GetPasswordChangedAt()),
 	}
 }

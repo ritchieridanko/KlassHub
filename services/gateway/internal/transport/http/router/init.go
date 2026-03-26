@@ -39,6 +39,7 @@ func Init(cfg *configs.Client, appName string, l *logger.Logger, ah *handlers.Au
 	auth := v1.Group("/auth")
 	{
 		auth.POST("/login", ah.Login)
+		auth.POST("/register", ah.CreateSchoolAuth)
 	}
 
 	return &Router{router: r}

@@ -70,8 +70,7 @@ func (e *Error) ToHTTPStatus() int {
 		return http.StatusNotFound
 	case CodeAlreadyExists:
 		return http.StatusConflict
-	case CodeInternal, CodeInvalidContextValue, CodeUnknown,
-		CodeUUIDGenerationFailed:
+	case CodeInternal, CodeUnknown, CodeUUIDGenerationFailed:
 		return http.StatusInternalServerError
 	default:
 		return http.StatusInternalServerError

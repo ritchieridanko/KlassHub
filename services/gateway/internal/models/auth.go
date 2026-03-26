@@ -7,5 +7,6 @@ type Auth struct {
 	Username          *string
 	Role              string
 	IsVerified        bool
+	SchoolExists      bool
 	PasswordChangedAt *time.Time
 }

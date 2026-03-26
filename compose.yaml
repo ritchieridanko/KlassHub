@@ -74,6 +74,8 @@ services:
         condition: service_healthy
       auth-migrator:
         condition: service_completed_successfully
+      auth-cache:
+        condition: service_healthy
 
   auth-database:
     image: postgres:16-alpine

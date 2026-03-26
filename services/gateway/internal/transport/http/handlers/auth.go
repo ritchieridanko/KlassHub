@@ -72,20 +72,65 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	h.cookie.Set(
-		ctx,
-		constants.CookieKeyRefreshToken,
-		at.RefreshToken.Token,
-		"/",
-		int(at.RefreshToken.ExpiresIn),
-	)
+	if at != nil && at.RefreshToken != nil {
+		h.cookie.Set(
+			ctx,
+			constants.CookieKeyRefreshToken,
+			at.RefreshToken.Token,
+			"/",
+			int(at.RefreshToken.ExpiresIn),
+		)
+	}
+
 	utils.SetResponse(
 		ctx,
 		http.StatusOK,
 		"Logged in successfully",
 		dtos.LoginResponse{
 			Auth:        h.toAuth(a),
-			AccessToken: h.toAccessToken(at.AccessToken),
+			AccessToken: h.toAccessToken(at),
+		},
+	)
+}
+
+func (h *AuthHandler) CreateSchoolAuth(ctx *gin.Context) {
+	var payload dtos.CreateSchoolAuthRequest
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		ce.NewError(ce.CodeInvalidPayload, ce.MsgInvalidPayload, err).Bind(ctx)
+		return
+	}
+
+	a, at, err := h.ac.CreateSchoolAuth(
+		metadata.ToOutgoingCtx(
+			ctx.Request.Context(),
+		),
+		&models.CreateSchoolAuthReq{
+			Email:    payload.Email,
+			Password: payload.Password,
+		},
+	)
+	if err != nil {
+		err.Bind(ctx)
+		return
+	}
+
+	if at != nil && at.RefreshToken != nil {
+		h.cookie.Set(
+			ctx,
+			constants.CookieKeyRefreshToken,
+			at.RefreshToken.Token,
+			"/",
+			int(at.RefreshToken.ExpiresIn),
+		)
+	}
+
+	utils.SetResponse(
+		ctx,
+		http.StatusCreated,
+		"Registered successfully",
+		dtos.CreateSchoolAuthResponse{
+			Auth:        h.toAuth(a),
+			AccessToken: h.toAccessToken(at),
 		},
 	)
 }
@@ -99,16 +144,17 @@ func (h *AuthHandler) toAuth(a *models.Auth) *dtos.Auth {
 		Username:          a.Username,
 		Role:              a.Role,
 		IsVerified:        a.IsVerified,
+		SchoolExists:      a.SchoolExists,
 		PasswordChangedAt: a.PasswordChangedAt,
 	}
 }
 
-func (h *AuthHandler) toAccessToken(at *models.AccessToken) *dtos.AccessToken {
-	if at == nil {
+func (h *AuthHandler) toAccessToken(at *models.AuthToken) *dtos.AccessToken {
+	if at == nil || at.AccessToken == nil {
 		return nil
 	}
 	return &dtos.AccessToken{
-		Token:     at.Token,
-		ExpiresIn: at.ExpiresIn,
+		Token:     at.AccessToken.Token,
+		ExpiresIn: at.AccessToken.ExpiresIn,
 	}
 }
