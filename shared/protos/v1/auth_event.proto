@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package auth.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/ritchieridanko/klasshub/shared/contract/events/v1;events";
+
+message AuthCreated {
+  string event_id = 1;
+  string email = 2;
+  string verification_token = 3;
+  google.protobuf.Timestamp created_at = 4;
+}

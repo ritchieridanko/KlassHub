@@ -52,17 +52,7 @@ func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSe
 	roleField := logger.NewField("role", req.Role)
 
 	// UUID Creation
-	uuid, err := utils.GenerateUUIDv7()
-	if err != nil {
-		return nil, ce.NewError(
-			ce.CodeUUIDGenerationFailed,
-			ce.MsgInternalServer,
-			err,
-			authIDField,
-			schoolIDField,
-			roleField,
-		)
-	}
+	uuid := utils.GenerateUUID()
 
 	// JWT Creation
 	now := time.Now().UTC()

@@ -1,5 +1,6 @@
 package constants
 
 const (
-	CachePrefixEmailReservation string = "emres"
+	CachePrefixEmailReservation  string = "emres"
+	CachePrefixEmailVerification string = "emver"
 )

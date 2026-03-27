@@ -19,3 +19,9 @@ type CreateSessionData struct {
 	IPAddress    string
 	ExpiresAt    time.Time
 }
+
+type CreateVerificationTokenData struct {
+	AuthID   int64
+	Token    string
+	Duration time.Duration
+}

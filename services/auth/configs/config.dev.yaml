@@ -10,6 +10,7 @@ auth:
     duration: "10m"
   duration:
     session: "24h"
+    verification: "24h"
 
 server:
   host: "localhost"
@@ -42,6 +43,14 @@ cache:
     dial: "5s"
     read: "1s"
     write: "1s"
+
+broker:
+  brokers: "localhost:9092,localhost:9093,localhost:9094"
+  topics:
+    auth_created:
+      name: "auth.created"
+      batch_size: 1
+      batch_timeout: "5ms"
 
 tracer:
   host: "localhost"

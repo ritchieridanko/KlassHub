@@ -3,17 +3,22 @@ package usecases
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/ritchieridanko/klasshub/services/auth/internal/constants"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/database"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/publisher"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/models"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/repositories"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/utils"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/utils/bcrypt"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/utils/ce"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/utils/validator"
+	"github.com/ritchieridanko/klasshub/shared/contract/events/v1"
 	"go.opentelemetry.io/otel"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type AuthUsecase interface {
@@ -22,24 +27,30 @@ type AuthUsecase interface {
 }
 
 type authUsecase struct {
-	appName    string
-	su         SessionUsecase
-	ar         repositories.AuthRepository
-	transactor *database.Transactor
-	validator  *validator.Validator
-	bcrypt     *bcrypt.BCrypt
-	logger     *logger.Logger
+	appName                 string
+	verificationTokenExpiry time.Duration
+	su                      SessionUsecase
+	ar                      repositories.AuthRepository
+	tr                      repositories.TokenRepository
+	transactor              *database.Transactor
+	acp                     *publisher.Publisher
+	validator               *validator.Validator
+	bcrypt                  *bcrypt.BCrypt
+	logger                  *logger.Logger
 }
 
-func NewAuthUsecase(appName string, su SessionUsecase, ar repositories.AuthRepository, tx *database.Transactor, v *validator.Validator, b *bcrypt.BCrypt, l *logger.Logger) AuthUsecase {
+func NewAuthUsecase(appName string, verificationTokenExpiry time.Duration, su SessionUsecase, ar repositories.AuthRepository, tr repositories.TokenRepository, tx *database.Transactor, acp *publisher.Publisher, v *validator.Validator, b *bcrypt.BCrypt, l *logger.Logger) AuthUsecase {
 	return &authUsecase{
-		appName:    appName,
-		su:         su,
-		ar:         ar,
-		transactor: tx,
-		validator:  v,
-		bcrypt:     b,
-		logger:     l,
+		appName:                 appName,
+		verificationTokenExpiry: verificationTokenExpiry,
+		su:                      su,
+		ar:                      ar,
+		tr:                      tr,
+		transactor:              tx,
+		acp:                     acp,
+		validator:               v,
+		bcrypt:                  b,
+		logger:                  l,
 	}
 }
 
@@ -166,6 +177,12 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 			fmt.Errorf("failed to create school auth: %w", err.Unwrap()),
 		)
 	}
+	if err != nil {
+		return nil, nil, err
+	}
+
+	authIDField := logger.NewField("auth_id", a.ID)
+	roleField := logger.NewField("role", a.Role)
 
 	// Session Creation
 	// NOTE: Fail to create session does not fail create school auth process
@@ -187,8 +204,64 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 				logger.NewField("error", err),
 			).Fields()...,
 		)
-		return a, nil, nil
 	}
+
+	// Verification Token Creation
+	// NOTE: Fail to create verification token does not fail create school auth process
+	token := utils.GenerateUUID()
+	err = u.tr.CreateVerification(
+		ctx,
+		&models.CreateVerificationTokenData{
+			AuthID:   a.ID,
+			Token:    token.String(),
+			Duration: u.verificationTokenExpiry,
+		},
+	)
+	if err != nil {
+		u.logger.Warn(
+			ctx,
+			"created school auth. failed to create verification token",
+			err.Append(
+				roleField,
+				logger.NewField("error_code", err.Code()),
+				logger.NewField("error", err),
+			).Fields()...,
+		)
+		return a, at, nil
+	}
+
+	// Event Publishing
+	// NOTE: Fail to publish event does not fail create school auth process
+	pubErr := u.acp.Publish(
+		ctx,
+		"auth_"+strconv.FormatInt(a.ID, 10),
+		&events.AuthCreated{
+			EventId:           utils.GenerateUUID().String(),
+			Email:             email,
+			VerificationToken: token.String(),
+			CreatedAt:         timestamppb.New(time.Now().UTC()),
+		},
+	)
+	if pubErr != nil {
+		u.logger.Warn(
+			ctx,
+			"created school auth. failed to publish event",
+			authIDField,
+			roleField,
+			logger.NewField("event_topic", constants.EventTopicAC),
+			logger.NewField("error_code", ce.CodeEventPublishingFailed),
+			logger.NewField("error", pubErr),
+		)
+		return a, at, nil
+	}
+
+	u.logger.Info(
+		ctx,
+		"EVENT PUBLISHED",
+		authIDField,
+		roleField,
+		logger.NewField("event_topic", constants.EventTopicAC),
+	)
 
 	return a, at, nil
 }

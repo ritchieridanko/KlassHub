@@ -6,10 +6,13 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"github.com/ritchieridanko/klasshub/services/auth/configs"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/constants"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/cache"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/database"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/publisher"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/tracer"
+	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
 )
 
@@ -19,6 +22,7 @@ type Infra struct {
 	database *pgxpool.Pool
 	logger   *zap.Logger
 	tracer   *tracer.Tracer
+	acp      *kafka.Writer
 }
 
 func Init(cfg *configs.Config) (*Infra, error) {
@@ -42,12 +46,25 @@ func Init(cfg *configs.Config) (*Infra, error) {
 		return nil, err
 	}
 
+	// Publishers
+	acp := publisher.Init(
+		cfg.Broker.Brokers,
+		cfg.Broker.Topics.AuthCreated.Name,
+		&kafka.Murmur2Balancer{
+			Consistent: true,
+		},
+		cfg.Broker.Topics.AuthCreated.BatchSize,
+		cfg.Broker.Topics.AuthCreated.BatchTimeout,
+		l,
+	)
+
 	return &Infra{
 		config:   cfg,
 		cache:    cc,
 		database: db,
 		logger:   l,
 		tracer:   t,
+		acp:      acp,
 	}, nil
 }
 
@@ -63,6 +80,10 @@ func (i *Infra) Logger() *zap.Logger {
 	return i.logger
 }
 
+func (i *Infra) PublisherAC() *kafka.Writer {
+	return i.acp
+}
+
 func (i *Infra) Close() error {
 	if err := i.cache.Close(); err != nil {
 		return fmt.Errorf("failed to close cache: %w", err)
@@ -72,6 +93,9 @@ func (i *Infra) Close() error {
 	}
 	if err := i.tracer.Shutdown(); err != nil {
 		return fmt.Errorf("failed to close tracer: %w", err)
+	}
+	if err := i.acp.Close(); err != nil {
+		return fmt.Errorf("failed to close publisher (%s): %w", constants.EventTopicAC, err)
 	}
 
 	i.database.Close()

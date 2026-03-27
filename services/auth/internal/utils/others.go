@@ -44,6 +44,11 @@ func CtxTransport(ctx context.Context) *models.TransportContext {
 	return nil
 }
 
+// Create a new random UUID
+func GenerateUUID() uuid.UUID {
+	return uuid.New()
+}
+
 // Create a new random UUID v7
 func GenerateUUIDv7() (uuid.UUID, error) {
 	return uuid.NewV7()

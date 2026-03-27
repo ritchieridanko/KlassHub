@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ritchieridanko/klasshub/services/auth/internal/constants"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/utils"
 	"github.com/spf13/viper"
 )
@@ -16,6 +17,7 @@ type Config struct {
 	Server   Server   `mapstructure:"server"`
 	Database Database `mapstructure:"database"`
 	Cache    Cache    `mapstructure:"cache"`
+	Broker   Broker   `mapstructure:"broker"`
 	Tracer   Tracer   `mapstructure:"tracer"`
 }
 
@@ -36,7 +38,8 @@ type Auth struct {
 	} `mapstructure:"jwt"`
 
 	Duration struct {
-		Session time.Duration `mapstructure:"session"`
+		Session      time.Duration `mapstructure:"session"`
+		Verification time.Duration `mapstructure:"verification"`
 	} `mapstructure:"duration"`
 }
 
@@ -80,6 +83,18 @@ type Cache struct {
 		Read  time.Duration `mapstructure:"read"`
 		Write time.Duration `mapstructure:"write"`
 	} `mapstructure:"timeout"`
+}
+
+type Broker struct {
+	Brokers string `mapstructure:"brokers"`
+
+	Topics struct {
+		AuthCreated struct {
+			Name         string        `mapstructure:"name"`
+			BatchSize    int           `mapstructure:"batch_size"`
+			BatchTimeout time.Duration `mapstructure:"batch_timeout"`
+		} `mapstructure:"auth_created"`
+	} `mapstructure:"topics"`
 }
 
 type Tracer struct {
@@ -126,6 +141,8 @@ func Init(path string) (*Config, error) {
 		cfg.Database.Name,
 		cfg.Database.SSLMode,
 	)
+
+	constants.EventTopicAC = cfg.Broker.Topics.AuthCreated.Name
 
 	return &cfg, nil
 }

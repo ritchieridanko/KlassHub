@@ -67,10 +67,10 @@ func (e *Error) ToGRPCStatus() error {
 		return status.Error(codes.AlreadyExists, e.message)
 	case CodeAuthNotVerified:
 		return status.Error(codes.FailedPrecondition, e.message)
-	case CodeBCryptHashingFailed, CodeCacheCommandExec, CodeDBQueryExec,
-		CodeDBTransaction, CodeInternal, CodeJWTGenerationFailed,
-		CodeMissingContextValue, CodeMissingMetadata, CodeTypeConversionFailed,
-		CodeUnknown, CodeUUIDGenerationFailed:
+	case CodeBCryptHashingFailed, CodeCacheCommandExec, CodeCacheScriptExec,
+		CodeDBQueryExec, CodeDBTransaction, CodeEventPublishingFailed, CodeInternal,
+		CodeJWTGenerationFailed, CodeMissingContextValue, CodeMissingMetadata,
+		CodeTypeConversionFailed, CodeUnknown, CodeUUIDGenerationFailed:
 		return status.Error(codes.Internal, e.message)
 	default:
 		return status.Error(codes.Internal, e.message)

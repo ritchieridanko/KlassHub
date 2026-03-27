@@ -6,6 +6,7 @@ import (
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/cache"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/database"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/publisher"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/repositories"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/repositories/caches"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/repositories/databases"
@@ -28,9 +29,13 @@ type Container struct {
 	sdb databases.SessionDatabase
 
 	acc caches.AuthCache
+	tcc caches.TokenCache
+
+	acp *publisher.Publisher
 
 	ar repositories.AuthRepository
 	sr repositories.SessionRepository
+	tr repositories.TokenRepository
 
 	bcrypt    *bcrypt.BCrypt
 	jwt       *jwt.JWT
@@ -56,10 +61,15 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 
 	// Caches
 	acc := caches.NewAuthCache(cc)
+	tcc := caches.NewTokenCache(&cfg.Auth, cc)
+
+	// Publishers
+	acp := publisher.NewPublisher(inf.PublisherAC())
 
 	// Repositories
 	ar := repositories.NewAuthRepository(adb, acc)
 	sr := repositories.NewSessionRepository(sdb)
+	tr := repositories.NewTokenRepository(tcc)
 
 	// Utils
 	b := bcrypt.Init(cfg.Auth.BCrypt.Cost)
@@ -68,7 +78,7 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 
 	// Usecases
 	su := usecases.NewSessionUsecase(cfg.App.Name, cfg.Auth.JWT.Duration, cfg.Auth.Duration.Session, sr, tx, v, j)
-	au := usecases.NewAuthUsecase(cfg.App.Name, su, ar, tx, v, b, l)
+	au := usecases.NewAuthUsecase(cfg.App.Name, cfg.Auth.Duration.Verification, su, ar, tr, tx, acp, v, b, l)
 
 	// Handlers
 	ah := handlers.NewAuthHandler(au)
@@ -85,8 +95,11 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 		adb:        adb,
 		sdb:        sdb,
 		acc:        acc,
+		tcc:        tcc,
+		acp:        acp,
 		ar:         ar,
 		sr:         sr,
+		tr:         tr,
 		bcrypt:     b,
 		jwt:        j,
 		validator:  v,
