@@ -22,7 +22,6 @@ func main() {
 	if err != nil {
 		log.Fatalln("[FATAL]:", err)
 	}
-
 	defer func(m *database.Migrator) {
 		if err := m.Close(); err != nil {
 			log.Println("[WARN]:", err)

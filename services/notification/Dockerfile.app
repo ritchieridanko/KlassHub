@@ -13,19 +13,18 @@ COPY services/notification/go.mod services/notification/go.sum ./
 RUN go mod download
 
 # Copy app source
-COPY services/notification/cmd/migrator ./cmd/migrator
+COPY services/notification/cmd/app ./cmd/app
 COPY services/notification/configs ./configs
-COPY services/notification/internal/constants ./internal/constants
-COPY services/notification/internal/infra/database ./internal/infra/database
-COPY services/notification/internal/infra/logger ./internal/infra/logger
-COPY services/notification/internal/utils ./internal/utils
-COPY services/notification/migrations ./migrations
+COPY services/notification/internal ./internal
 
 # Build binary
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/migrator cmd/migrator/main.go
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/app cmd/app/main.go
 
 # ---------- Runtime Stage ----------
 FROM alpine:3.22
+
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates
 
 # Set work directory
 WORKDIR /root
@@ -33,7 +32,6 @@ WORKDIR /root
 # Copy from the Build Stage
 COPY --from=builder /app/services/notification/bin ./bin
 COPY --from=builder /app/services/notification/configs ./configs
-COPY --from=builder /app/services/notification/migrations ./migrations
 
 # Set entry point
-ENTRYPOINT ["./bin/migrator"]
+ENTRYPOINT ["./bin/app"]

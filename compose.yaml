@@ -23,7 +23,7 @@ services:
       - SERVICE_AUTH_NAME=${AUTH_SERVICE_HOST}
       - SERVICE_AUTH_HOST=${AUTH_SERVICE_HOST}
       - SERVICE_AUTH_PORT=${AUTH_SERVICE_PORT}
-      - TRACER_PORT=${TRACER_HTTP_PORT}
+      - TRACER_PORT=${TRACER_GRPC_PORT}
     depends_on:
       jaeger:
         condition: service_started
@@ -301,6 +301,37 @@ services:
       test: ["CMD", "pg_isready", "-h", "${SCHOOL_DATABASE_HOST}"]
       interval: 10s
       retries: 3
+
+  notification-service:
+    image: klasshub-notification-service
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: services/notification/Dockerfile.app
+    container_name: ${NOTIFICATION_SERVICE_HOST}
+    networks:
+      - klasshub-net
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - APP_NAME=${NOTIFICATION_SERVICE_HOST}
+      - DATABASE_HOST=${NOTIFICATION_DATABASE_HOST}
+      - DATABASE_PORT=${NOTIFICATION_DATABASE_PORT}
+      - DATABASE_USER=${NOTIFICATION_DATABASE_USER}
+      - DATABASE_PASS=${NOTIFICATION_DATABASE_PASS}
+      - DATABASE_NAME=${NOTIFICATION_DATABASE_NAME}
+      - DATABASE_SSL_MODE=${NOTIFICATION_DATABASE_SSL_MODE}
+      - DATABASE_MAX_CONNS=${NOTIFICATION_DATABASE_MAX_CONNS}
+      - DATABASE_MIN_CONNS=${NOTIFICATION_DATABASE_MIN_CONNS}
+      - DATABASE_MAX_CONN_LIFETIME=${NOTIFICATION_DATABASE_MAX_CONN_LIFETIME}
+      - DATABASE_MAX_CONN_IDLE_TIME=${NOTIFICATION_DATABASE_MAX_CONN_IDLE_TIME}
+      - TRACER_PORT=${TRACER_GRPC_PORT}
+    depends_on:
+      notification-database:
+        condition: service_healthy
+      notification-migrator:
+        condition: service_completed_successfully
 
   notification-database:
     image: postgres:16-alpine
