@@ -52,7 +52,7 @@ func Init(cfg *configs.Config, inf *infra.Infra) (*Container, error) {
 	acs := subscriber.NewSubscriber(cfg.Broker.Subscriber.AuthCreated.ProcessTimeout, inf.SubscriberAC(), l)
 
 	// Channels
-	ec, err := channels.NewEmailChannel(&cfg.Client, cfg.Mailer.From, m)
+	ec, err := channels.NewEmailChannel(&cfg.Client, cfg.Mailer.From, cfg.App.LogoURL, m)
 	if err != nil {
 		return nil, err
 	}

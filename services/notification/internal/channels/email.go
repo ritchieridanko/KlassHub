@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"html/template"
+	"time"
 
 	"github.com/ritchieridanko/klasshub/services/notification/configs"
 	"github.com/ritchieridanko/klasshub/services/notification/internal/infra/logger"
@@ -23,11 +24,12 @@ type EmailChannel interface {
 type emailChannel struct {
 	config   *configs.Client
 	sender   string
+	logoURL  string
 	mailer   *mailer.Mailer
 	template *template.Template
 }
 
-func NewEmailChannel(cfg *configs.Client, sender string, m *mailer.Mailer) (EmailChannel, error) {
+func NewEmailChannel(cfg *configs.Client, sender, logoURL string, m *mailer.Mailer) (EmailChannel, error) {
 	tmpl, err := template.ParseFS(templates.Email, "*.html.tmpl")
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize email channel: %w", err)
@@ -35,6 +37,7 @@ func NewEmailChannel(cfg *configs.Client, sender string, m *mailer.Mailer) (Emai
 	return &emailChannel{
 		config:   cfg,
 		sender:   sender,
+		logoURL:  logoURL,
 		mailer:   m,
 		template: tmpl,
 	}, nil
@@ -53,7 +56,10 @@ func (c *emailChannel) SendWelcome(ctx context.Context, msg *models.WelcomeEmail
 		map[string]any{
 			"Subject":   "Welcome Aboard!",
 			"Recipient": msg.Recipient,
+			"Title":     "Welcome to KlassHub",
 			"URL":       url,
+			"LogoURL":   c.logoURL,
+			"Year":      time.Now().UTC().Year(),
 		},
 	)
 	if buildErr != nil {

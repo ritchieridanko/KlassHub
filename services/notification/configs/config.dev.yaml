@@ -1,5 +1,6 @@
 app:
   name: "notification-service"
+  logo_url: ""
 
 client:
   host: "localhost"
