@@ -2,8 +2,8 @@ app:
   name: "gateway-service"
 
 client:
-  hostname: ""
-  tld: ""
+  host: "localhost"
+  port: 3000
 
 server:
   host: "localhost"
@@ -21,4 +21,4 @@ service:
 
 tracer:
   host: "localhost"
-  port: 4318
+  port: 4317

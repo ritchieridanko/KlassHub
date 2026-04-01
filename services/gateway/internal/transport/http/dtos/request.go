@@ -9,3 +9,7 @@ type LoginRequest struct {
 	Identifier string `json:"identifier" binding:"required"`
 	Password   string `json:"password" binding:"required"`
 }
+
+type VerifyEmailRequest struct {
+	VerificationToken string `form:"token" binding:"required"`
+}

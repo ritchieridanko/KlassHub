@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/clients"
@@ -16,17 +18,13 @@ import (
 )
 
 type AuthHandler struct {
-	hostname  string
-	tld       string
 	ac        clients.AuthClient
 	validator *validator.Validator
 	cookie    *cookie.Cookie
 }
 
-func NewAuthHandler(hostname, tld string, ac clients.AuthClient, v *validator.Validator, c *cookie.Cookie) *AuthHandler {
+func NewAuthHandler(ac clients.AuthClient, v *validator.Validator, c *cookie.Cookie) *AuthHandler {
 	return &AuthHandler{
-		hostname:  hostname,
-		tld:       tld,
 		ac:        ac,
 		validator: v,
 		cookie:    c,
@@ -129,6 +127,82 @@ func (h *AuthHandler) CreateSchoolAuth(ctx *gin.Context) {
 		http.StatusCreated,
 		"Registered successfully",
 		dtos.CreateSchoolAuthResponse{
+			Auth:        h.toAuth(a),
+			AccessToken: h.toAccessToken(at),
+		},
+	)
+}
+
+func (h *AuthHandler) VerifyEmail(ctx *gin.Context) {
+	var params dtos.VerifyEmailRequest
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ce.NewError(ce.CodeInvalidParams, ce.MsgInvalidParams, err).Bind(ctx)
+		return
+	}
+
+	authCtx := utils.CtxAuth(ctx.Request.Context())
+	if authCtx == nil {
+		ce.NewError(
+			ce.CodeMissingContextValue,
+			ce.MsgInternalServer,
+			errors.New("auth missing from context"),
+		).Bind(
+			ctx,
+		)
+		return
+	}
+
+	refreshToken, err := ctx.Cookie(constants.CookieKeyRefreshToken)
+	if errors.Is(err, ce.ErrCookieNotFound) {
+		ce.NewError(ce.CodeRefreshTokenNotFound, ce.MsgInvalidSession, err).Bind(ctx)
+		return
+	}
+	if err != nil {
+		ce.NewError(ce.CodeInternal, ce.MsgInternalServer, err).Bind(ctx)
+		return
+	}
+
+	a, at, verifyErr := h.ac.VerifyEmail(
+		metadata.ToOutgoingCtx(
+			ctx.Request.Context(),
+			metadata.NewPair(
+				constants.MDKeyAuthID,
+				strconv.FormatInt(authCtx.AuthID, 10),
+			),
+			metadata.NewPair(
+				constants.MDKeySchoolID,
+				strconv.FormatInt(authCtx.SchoolID, 10),
+			),
+			metadata.NewPair(
+				constants.MDKeyRole,
+				authCtx.Role,
+			),
+		),
+		&models.VerifyEmailReq{
+			VerificationToken: params.VerificationToken,
+			RefreshToken:      refreshToken,
+		},
+	)
+	if verifyErr != nil {
+		verifyErr.Bind(ctx)
+		return
+	}
+
+	if at != nil && at.RefreshToken != nil {
+		h.cookie.Set(
+			ctx,
+			constants.CookieKeyRefreshToken,
+			at.RefreshToken.Token,
+			"/",
+			int(at.RefreshToken.ExpiresIn),
+		)
+	}
+
+	utils.SetResponse(
+		ctx,
+		http.StatusOK,
+		"Email verified successfully",
+		dtos.VerifyEmailResponse{
 			Auth:        h.toAuth(a),
 			AccessToken: h.toAccessToken(at),
 		},

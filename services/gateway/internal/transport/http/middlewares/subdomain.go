@@ -12,7 +12,7 @@ import (
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils/ce"
 )
 
-func Subdomain(hostname, tld string) gin.HandlerFunc {
+func Subdomain(hostname string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		host, _, err := net.SplitHostPort(ctx.Request.Host)
 		if err != nil {
@@ -20,10 +20,8 @@ func Subdomain(hostname, tld string) gin.HandlerFunc {
 		}
 
 		var subdomain string
-		if suffix := fmt.Sprintf(".%s.%s", hostname, tld); strings.HasSuffix(host, suffix) {
+		if suffix := fmt.Sprintf(".%s", hostname); strings.HasSuffix(host, suffix) {
 			subdomain = strings.TrimSuffix(host, suffix)
-		} else if localhost := ".localhost"; strings.HasSuffix(host, localhost) {
-			subdomain = strings.TrimSuffix(host, localhost)
 		}
 
 		if subdomain != constants.SubdomainAdmin && subdomain != constants.SubdomainLMS {

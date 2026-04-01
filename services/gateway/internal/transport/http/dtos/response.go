@@ -26,3 +26,8 @@ type LoginResponse struct {
 	Auth        *Auth        `json:"auth,omitempty"`
 	AccessToken *AccessToken `json:"access_token,omitempty"`
 }
+
+type VerifyEmailResponse struct {
+	Auth        *Auth        `json:"auth,omitempty"`
+	AccessToken *AccessToken `json:"access_token,omitempty"`
+}

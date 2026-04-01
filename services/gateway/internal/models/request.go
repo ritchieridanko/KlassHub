@@ -9,3 +9,8 @@ type LoginReq struct {
 	Identifier string
 	Password   string
 }
+
+type VerifyEmailReq struct {
+	VerificationToken string
+	RefreshToken      string
+}

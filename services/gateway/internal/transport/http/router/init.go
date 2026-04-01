@@ -27,12 +27,12 @@ func Init(cfg *configs.Client, appName string, l *logger.Logger, ah *handlers.Au
 	})
 
 	v1 := r.Group(
-		"/api/v1",
+		"/v1",
 		middlewares.Request(l),
 		middlewares.Recovery(l),
 		otelgin.Middleware(appName),
 		middlewares.Logging(l),
-		middlewares.Subdomain(cfg.Hostname, cfg.TLD),
+		middlewares.Subdomain(cfg.Host),
 	)
 
 	// Auth Endpoints
@@ -40,6 +40,11 @@ func Init(cfg *configs.Client, appName string, l *logger.Logger, ah *handlers.Au
 	{
 		auth.POST("/login", ah.Login)
 		auth.POST("/register", ah.CreateSchoolAuth)
+
+		email := auth.Group("/email")
+		{
+			email.POST("/verification/confirm", ah.VerifyEmail)
+		}
 	}
 
 	return &Router{router: r}

@@ -55,7 +55,7 @@ func NormalizeString(s string) string {
 	return strings.ToLower(strings.TrimSpace(s))
 }
 
-// Convert timestamp value to time
+// Convert timestamp to time
 func ToTime(ts *timestamppb.Timestamp) *time.Time {
 	if ts == nil {
 		return nil
@@ -64,7 +64,7 @@ func ToTime(ts *timestamppb.Timestamp) *time.Time {
 	return &t
 }
 
-// Convert time value to timestamp
+// Convert time to timestamp
 func ToTimestamp(t *time.Time) *timestamppb.Timestamp {
 	if t == nil {
 		return nil

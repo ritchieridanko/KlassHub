@@ -13,6 +13,7 @@ import (
 type AuthClient interface {
 	Login(ctx context.Context, req *models.LoginReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 }
 
 type authClient struct {
@@ -47,6 +48,24 @@ func (c *authClient) CreateSchoolAuth(ctx context.Context, req *models.CreateSch
 		&apis.CreateSchoolAuthRequest{
 			Email:    req.Email,
 			Password: req.Password,
+		},
+	)
+	if err != nil {
+		return nil, nil, ce.FromGRPCErr(
+			err,
+		).Append(
+			logger.NewField("service", "auth"),
+		)
+	}
+	return c.toAuth(resp.GetAuth()), c.toAuthToken(resp.GetAuthToken()), nil
+}
+
+func (c *authClient) VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (*models.Auth, *models.AuthToken, *ce.Error) {
+	resp, err := c.client.VerifyEmail(
+		ctx,
+		&apis.VerifyEmailRequest{
+			VerificationToken: req.VerificationToken,
+			RefreshToken:      req.RefreshToken,
 		},
 	)
 	if err != nil {

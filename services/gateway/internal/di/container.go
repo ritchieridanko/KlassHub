@@ -35,7 +35,7 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	v := validator.Init()
 
 	// Handlers
-	ah := handlers.NewAuthHandler(cfg.Client.Hostname, cfg.Client.TLD, ac, v, c)
+	ah := handlers.NewAuthHandler(ac, v, c)
 
 	// Router
 	r := router.Init(&cfg.Client, cfg.App.Name, l, ah)

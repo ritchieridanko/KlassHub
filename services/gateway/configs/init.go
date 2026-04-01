@@ -24,8 +24,8 @@ type App struct {
 }
 
 type Client struct {
-	Hostname string `mapstructure:"hostname"`
-	TLD      string `mapstructure:"tld"`
+	Host string `mapstructure:"host"`
+	Port int    `mapstructure:"port"`
 }
 
 type Server struct {
