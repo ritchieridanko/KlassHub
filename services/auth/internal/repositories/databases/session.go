@@ -13,7 +13,9 @@ import (
 
 type SessionDatabase interface {
 	Create(ctx context.Context, data *models.CreateSessionData) (err *ce.Error)
-	RevokeActive(ctx context.Context, params *models.RevokeSessionParams) (sessionID int64, err *ce.Error)
+	GetByRefreshToken(ctx context.Context, refreshToken string) (s *models.Session, err *ce.Error)
+	Revoke(ctx context.Context, params *models.RevokeSessionParams) (s *models.Session, err *ce.Error)
+	RevokeActive(ctx context.Context, params *models.RevokeActiveSessionParams) (sessionID int64, err *ce.Error)
 }
 
 type sessionDatabase struct {
@@ -50,7 +52,83 @@ func (d *sessionDatabase) Create(ctx context.Context, data *models.CreateSession
 	return nil
 }
 
-func (d *sessionDatabase) RevokeActive(ctx context.Context, params *models.RevokeSessionParams) (int64, *ce.Error) {
+func (d *sessionDatabase) GetByRefreshToken(ctx context.Context, refreshToken string) (*models.Session, *ce.Error) {
+	query := `
+		SELECT
+			id, auth_id, refresh_token,
+			user_agent, ip_address, expires_at
+		FROM
+			sessions
+		WHERE
+			refresh_token = $1
+			AND revoked_at IS NULL
+	`
+	if d.database.WithinTx(ctx) {
+		query += " FOR UPDATE"
+	}
+
+	var s models.Session
+	err := d.database.Query(
+		ctx, query,
+		refreshToken,
+	).Scan(
+		&s.ID, &s.AuthID, &s.RefreshToken,
+		&s.UserAgent, &s.IPAddress, &s.ExpiresAt,
+	)
+	if err != nil {
+		wrappedErr := fmt.Errorf("failed to get session by refresh token: %w", err)
+
+		if errors.Is(err, ce.ErrDBQueryNoRows) {
+			return nil, ce.NewError(ce.CodeSessionNotFound, ce.MsgSessionNotFound, wrappedErr)
+		}
+		return nil, ce.NewError(ce.CodeDBQueryExec, ce.MsgInternalServer, wrappedErr)
+	}
+
+	return &s, nil
+}
+
+func (d *sessionDatabase) Revoke(ctx context.Context, params *models.RevokeSessionParams) (*models.Session, *ce.Error) {
+	query := `
+		UPDATE sessions
+		SET revoked_at = NOW()
+		WHERE
+			refresh_token = $1
+			AND expires_at >= $2
+			AND revoked_at IS NULL
+		RETURNING
+			id, auth_id, refresh_token,
+			user_agent, ip_address
+	`
+
+	var s models.Session
+	err := d.database.Query(
+		ctx, query,
+		params.RefreshToken, params.ExpiresAt,
+	).Scan(
+		&s.ID, &s.AuthID, &s.RefreshToken,
+		&s.UserAgent, &s.IPAddress,
+	)
+	if err != nil {
+		wrappedErr := fmt.Errorf("failed to revoke session: %w", err)
+
+		if errors.Is(err, ce.ErrDBQueryNoRows) {
+			return nil, ce.NewError(
+				ce.CodeSessionNotFound,
+				ce.MsgSessionNotFound,
+				wrappedErr,
+			)
+		}
+		return nil, ce.NewError(
+			ce.CodeDBQueryExec,
+			ce.MsgInternalServer,
+			wrappedErr,
+		)
+	}
+
+	return &s, nil
+}
+
+func (d *sessionDatabase) RevokeActive(ctx context.Context, params *models.RevokeActiveSessionParams) (int64, *ce.Error) {
 	query := `
 		UPDATE sessions
 		SET revoked_at = NOW()

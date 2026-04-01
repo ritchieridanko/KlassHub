@@ -18,6 +18,7 @@ COPY services/auth/configs ./configs
 COPY services/auth/internal/constants ./internal/constants
 COPY services/auth/internal/infra/database ./internal/infra/database
 COPY services/auth/internal/infra/logger ./internal/infra/logger
+COPY services/auth/internal/models ./internal/models
 COPY services/auth/internal/utils ./internal/utils
 COPY services/auth/migrations ./migrations
 

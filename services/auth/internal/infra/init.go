@@ -49,12 +49,12 @@ func Init(cfg *configs.Config) (*Infra, error) {
 	// Publishers
 	acp := publisher.Init(
 		cfg.Broker.Brokers,
-		cfg.Broker.Topics.AuthCreated.Name,
+		cfg.Broker.Publisher.AuthCreated.Name,
 		&kafka.Murmur2Balancer{
 			Consistent: true,
 		},
-		cfg.Broker.Topics.AuthCreated.BatchSize,
-		cfg.Broker.Topics.AuthCreated.BatchTimeout,
+		cfg.Broker.Publisher.AuthCreated.BatchSize,
+		cfg.Broker.Publisher.AuthCreated.BatchTimeout,
 		l,
 	)
 
@@ -95,7 +95,7 @@ func (i *Infra) Close() error {
 		return fmt.Errorf("failed to close tracer: %w", err)
 	}
 	if err := i.acp.Close(); err != nil {
-		return fmt.Errorf("failed to close publisher (%s): %w", constants.EventTopicAC, err)
+		return fmt.Errorf("failed to close publisher (topic: %s): %w", constants.EventTopicAC, err)
 	}
 
 	i.database.Close()

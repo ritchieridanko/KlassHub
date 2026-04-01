@@ -2,6 +2,8 @@ package utils
 
 import (
 	"context"
+	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -11,6 +13,14 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+// Get Auth Information from Context
+func CtxAuth(ctx context.Context) *models.AuthContext {
+	if v, ok := ctx.Value(constants.CtxKeyAuth).(*models.AuthContext); ok {
+		return v
+	}
+	return nil
+}
 
 // Get Request ID from Context
 func CtxRequestID(ctx context.Context) string {
@@ -60,7 +70,15 @@ func NormalizeString(s string) string {
 	return strings.ToLower(strings.TrimSpace(s))
 }
 
-// Convert time value to timestamp
+// Convert value to int64
+func ToInt64(value any) (int64, error) {
+	if v, ok := value.(string); ok {
+		return strconv.ParseInt(v, 10, 64)
+	}
+	return 0, fmt.Errorf("unable to convert to int64: %v", value)
+}
+
+// Convert time to timestamp
 func ToTimestamp(t *time.Time) *timestamppb.Timestamp {
 	if t == nil {
 		return nil

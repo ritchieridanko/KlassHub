@@ -2,8 +2,10 @@ package usecases
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ritchieridanko/klasshub/services/auth/internal/constants"
@@ -24,6 +26,7 @@ import (
 type AuthUsecase interface {
 	Login(ctx context.Context, req *models.LoginReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 }
 
 type authUsecase struct {
@@ -201,7 +204,7 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 			"created school auth. failed to create session",
 			err.Append(
 				logger.NewField("error_code", err.Code()),
-				logger.NewField("error", err),
+				logger.NewField("error", err.Unwrap()),
 			).Fields()...,
 		)
 	}
@@ -224,7 +227,7 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 			err.Append(
 				roleField,
 				logger.NewField("error_code", err.Code()),
-				logger.NewField("error", err),
+				logger.NewField("error", err.Unwrap()),
 			).Fields()...,
 		)
 		return a, at, nil
@@ -262,6 +265,136 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 		roleField,
 		logger.NewField("event_topic", constants.EventTopicAC),
 	)
+
+	return a, at, nil
+}
+
+func (u *authUsecase) VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (*models.Auth, *models.AuthToken, *ce.Error) {
+	ctx, span := otel.Tracer(u.appName).Start(ctx, "auth.usecase.VerifyEmail")
+	defer span.End()
+
+	authCtx := utils.CtxAuth(ctx)
+	if authCtx == nil {
+		return nil, nil, ce.NewError(
+			ce.CodeMissingContextValue,
+			ce.MsgInternalServer,
+			errors.New("failed to verify email: auth missing from context"),
+		)
+	}
+
+	authIDField := logger.NewField("auth_id", authCtx.AuthID)
+	schoolIDField := logger.NewField("school_id", authCtx.SchoolID)
+	roleField := logger.NewField("role", authCtx.Role)
+
+	// Data Normalization
+	verificationToken := strings.TrimSpace(req.VerificationToken)
+	refreshToken := strings.TrimSpace(req.RefreshToken)
+
+	// Data Validation
+	if verificationToken == "" {
+		return nil, nil, ce.NewError(
+			ce.CodeInvalidPayload,
+			"Verification token is required",
+			nil,
+			authIDField,
+			schoolIDField,
+			roleField,
+		)
+	}
+	if refreshToken == "" {
+		return nil, nil, ce.NewError(
+			ce.CodeUnauthenticated,
+			ce.MsgUnauthenticated,
+			errors.New("failed to verify email: refresh token is empty"),
+			authIDField,
+			schoolIDField,
+			roleField,
+		)
+	}
+
+	// Verification Token Consumption
+	authID, err := u.tr.UseVerification(ctx, verificationToken)
+	if err != nil {
+		return nil, nil, err.Append(authIDField, schoolIDField, roleField)
+	}
+
+	// Verification Token Ownership Validation
+	// NOTE: Invalid ownership re-creates the verification token
+	if authID != authCtx.AuthID {
+		err := u.tr.CreateVerification(
+			ctx,
+			&models.CreateVerificationTokenData{
+				AuthID:   authID,
+				Token:    verificationToken,
+				Duration: u.verificationTokenExpiry,
+			},
+		)
+		if err != nil {
+			return nil, nil, err.Append(schoolIDField, roleField)
+		}
+		return nil, nil, ce.NewError(
+			ce.CodeTokenNotOwned,
+			ce.MsgInvalidToken,
+			nil,
+			authIDField,
+			logger.NewField("token_auth_id", authID),
+			schoolIDField,
+			roleField,
+		)
+	}
+
+	// Verification Update
+	// NOTE: Fail to update verification status re-creates the verification token
+	a, err := u.ar.SetVerified(ctx, authID)
+	if err != nil && err.Code() == ce.CodeAuthNotFound {
+		return nil, nil, ce.NewError(
+			ce.CodeAuthNotRegistered,
+			ce.MsgInvalidCredentials,
+			err.Unwrap(),
+			err.Append(
+				schoolIDField,
+				roleField,
+			).Fields()...,
+		)
+	}
+	if err != nil {
+		createErr := u.tr.CreateVerification(
+			ctx,
+			&models.CreateVerificationTokenData{
+				AuthID:   authID,
+				Token:    verificationToken,
+				Duration: u.verificationTokenExpiry,
+			},
+		)
+		if createErr != nil {
+			return nil, nil, createErr.Append(schoolIDField, roleField)
+		}
+		return nil, nil, err.Append(schoolIDField, roleField)
+	}
+
+	// Session Refresh
+	// NOTE: Fail to refresh session does not fail verify email process
+	at, err := u.su.RefreshSession(
+		ctx,
+		&models.RefreshSessionReq{
+			AuthID:       a.ID,
+			SchoolID:     a.SchoolID,
+			Role:         a.Role,
+			IsVerified:   a.IsVerified(),
+			RefreshToken: refreshToken,
+		},
+	)
+	if err != nil {
+		u.logger.Warn(
+			ctx,
+			"verified email. failed to refresh session",
+			err.Append(
+				logger.NewField("error_code", err.Code()),
+				logger.NewField("error", err.Unwrap()),
+			).Fields()...,
+		)
+		return a, nil, nil
+	}
 
 	return a, at, nil
 }

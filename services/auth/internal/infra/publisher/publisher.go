@@ -3,7 +3,7 @@ package publisher
 import (
 	"context"
 
-	"github.com/ritchieridanko/klasshub/services/auth/internal/utils"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/utils/event"
 	"github.com/segmentio/kafka-go"
 	"google.golang.org/protobuf/proto"
 )
@@ -21,15 +21,12 @@ func (p *Publisher) Publish(ctx context.Context, key string, msg proto.Message) 
 	if err != nil {
 		return err
 	}
-
-	m := kafka.Message{
-		Key:   []byte(key),
-		Value: value,
-		Headers: []kafka.Header{
-			{Key: "request_id", Value: []byte(utils.CtxRequestID(ctx))},
-			{Key: "trace_id", Value: []byte(utils.CtxTraceID(ctx))},
-			{Key: "content_type", Value: []byte("application/x-protobuf")},
+	return p.writer.WriteMessages(
+		ctx,
+		kafka.Message{
+			Key:     []byte(key),
+			Value:   value,
+			Headers: event.NewHeader(ctx),
 		},
-	}
-	return p.writer.WriteMessages(ctx, m)
+	)
 }

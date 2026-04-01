@@ -12,6 +12,7 @@ import (
 type AuthRepository interface {
 	Create(ctx context.Context, data *models.CreateAuthData) (a *models.Auth, err *ce.Error)
 	GetByIdentifier(ctx context.Context, identifier string) (a *models.Auth, err *ce.Error)
+	SetVerified(ctx context.Context, authID int64) (a *models.Auth, err *ce.Error)
 	IsEmailAvailable(ctx context.Context, email string) (available bool, err *ce.Error)
 }
 
@@ -30,6 +31,10 @@ func (r *authRepository) Create(ctx context.Context, data *models.CreateAuthData
 
 func (r *authRepository) GetByIdentifier(ctx context.Context, identifier string) (*models.Auth, *ce.Error) {
 	return r.database.GetByIdentifier(ctx, identifier)
+}
+
+func (r *authRepository) SetVerified(ctx context.Context, authID int64) (*models.Auth, *ce.Error) {
+	return r.database.SetVerified(ctx, authID)
 }
 
 func (r *authRepository) IsEmailAvailable(ctx context.Context, email string) (bool, *ce.Error) {

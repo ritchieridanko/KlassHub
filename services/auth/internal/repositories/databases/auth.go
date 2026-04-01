@@ -14,6 +14,7 @@ import (
 type AuthDatabase interface {
 	Create(ctx context.Context, data *models.CreateAuthData) (a *models.Auth, err *ce.Error)
 	GetByIdentifier(ctx context.Context, identifier string) (a *models.Auth, err *ce.Error)
+	SetVerified(ctx context.Context, authID int64) (a *models.Auth, err *ce.Error)
 	IsEmailRegistered(ctx context.Context, email string) (exists bool, err *ce.Error)
 }
 
@@ -88,12 +89,55 @@ func (d *authDatabase) GetByIdentifier(ctx context.Context, identifier string) (
 		&a.Role, &a.VerifiedAt, &a.PasswordChangedAt,
 	)
 	if err != nil {
-		formattedErr := fmt.Errorf("failed to get auth by identifier: %w", err)
+		wrappedErr := fmt.Errorf("failed to get auth by identifier: %w", err)
 
 		if errors.Is(err, ce.ErrDBQueryNoRows) {
-			return nil, ce.NewError(ce.CodeAuthNotFound, ce.MsgAuthNotFound, formattedErr)
+			return nil, ce.NewError(ce.CodeAuthNotFound, ce.MsgAuthNotFound, wrappedErr)
 		}
-		return nil, ce.NewError(ce.CodeDBQueryExec, ce.MsgInternalServer, formattedErr)
+		return nil, ce.NewError(ce.CodeDBQueryExec, ce.MsgInternalServer, wrappedErr)
+	}
+
+	return &a, nil
+}
+
+func (d *authDatabase) SetVerified(ctx context.Context, authID int64) (*models.Auth, *ce.Error) {
+	query := `
+		UPDATE auth
+		SET verified_at = NOW(), updated_at = NOW()
+		WHERE
+			id = $1
+			AND deleted_at IS NULL
+		RETURNING
+			id, school_id, email, username,
+			role, verified_at, password_changed_at
+	`
+
+	var a models.Auth
+	err := d.database.Query(
+		ctx, query,
+		authID,
+	).Scan(
+		&a.ID, &a.SchoolID, &a.Email, &a.Username,
+		&a.Role, &a.VerifiedAt, &a.PasswordChangedAt,
+	)
+	if err != nil {
+		wrappedErr := fmt.Errorf("failed to set auth verified: %w", err)
+		authIDField := logger.NewField("auth_id", authID)
+
+		if errors.Is(err, ce.ErrDBQueryNoRows) {
+			return nil, ce.NewError(
+				ce.CodeAuthNotFound,
+				ce.MsgAuthNotFound,
+				wrappedErr,
+				authIDField,
+			)
+		}
+		return nil, ce.NewError(
+			ce.CodeDBQueryExec,
+			ce.MsgInternalServer,
+			wrappedErr,
+			authIDField,
+		)
 	}
 
 	return &a, nil

@@ -2,6 +2,7 @@ package caches
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/ritchieridanko/klasshub/services/auth/configs"
@@ -9,11 +10,13 @@ import (
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/cache"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/models"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/utils"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/utils/ce"
 )
 
 type TokenCache interface {
 	CreateVerification(ctx context.Context, data *models.CreateVerificationTokenData) (err *ce.Error)
+	UseVerification(ctx context.Context, token string) (authID int64, err *ce.Error)
 }
 
 type tokenCache struct {
@@ -58,4 +61,44 @@ func (c *tokenCache) CreateVerification(ctx context.Context, data *models.Create
 	}
 
 	return nil
+}
+
+func (c *tokenCache) UseVerification(ctx context.Context, token string) (int64, *ce.Error) {
+	prefix := constants.CachePrefixEmailVerification
+	script := `
+		local authID = redis.call("GET", KEYS[1])
+		if authID then
+			redis.call("DEL", KEYS[1])
+			redis.call("DEL", KEYS[2] .. ":" .. authID)
+			return authID
+		end
+		return nil
+	`
+
+	res, err := c.cache.Evaluate(
+		ctx, "s:usver", script,
+		[]string{
+			fmt.Sprintf("%s:%s", prefix, token),
+			prefix,
+		},
+	)
+	if err != nil {
+		wrappedErr := fmt.Errorf("failed to use verification token: %w", err)
+
+		if errors.Is(err, ce.ErrCacheNoResult) {
+			return 0, ce.NewError(ce.CodeTokenNotFound, ce.MsgInvalidToken, wrappedErr)
+		}
+		return 0, ce.NewError(ce.CodeCacheScriptExec, ce.MsgInternalServer, wrappedErr)
+	}
+
+	authID, err := utils.ToInt64(res)
+	if err != nil {
+		return 0, ce.NewError(
+			ce.CodeTypeConversionFailed,
+			ce.MsgInternalServer,
+			fmt.Errorf("failed to use verification token: %w", err),
+		)
+	}
+
+	return authID, nil
 }

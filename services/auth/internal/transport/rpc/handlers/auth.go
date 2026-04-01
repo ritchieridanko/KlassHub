@@ -52,6 +52,23 @@ func (h *AuthHandler) CreateSchoolAuth(ctx context.Context, req *apis.CreateScho
 	}, nil
 }
 
+func (h *AuthHandler) VerifyEmail(ctx context.Context, req *apis.VerifyEmailRequest) (*apis.VerifyEmailResponse, error) {
+	a, at, err := h.au.VerifyEmail(
+		ctx,
+		&models.VerifyEmailReq{
+			VerificationToken: req.GetVerificationToken(),
+			RefreshToken:      req.GetRefreshToken(),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &apis.VerifyEmailResponse{
+		Auth:      h.toAuth(a),
+		AuthToken: h.toAuthToken(at),
+	}, nil
+}
+
 func (h *AuthHandler) toAuth(a *models.Auth) *apis.Auth {
 	if a == nil {
 		return nil

@@ -35,7 +35,6 @@ func Auth() grpc.UnaryServerInterceptor {
 		}
 
 		// Check if policy requires subdomain authorization
-		var subdomain string
 		if policy.RequireSubdomain() {
 			values := md.Get(constants.MDKeySubdomain)
 			if len(values) == 0 {
@@ -46,7 +45,7 @@ func Auth() grpc.UnaryServerInterceptor {
 				)
 			}
 
-			subdomain = values[0]
+			subdomain := values[0]
 			if !policy.IsSubdomainAuthorized(subdomain) {
 				return nil, ce.NewError(
 					ce.CodeUnauthorizedSubdomain,
@@ -149,7 +148,8 @@ func Auth() grpc.UnaryServerInterceptor {
 					ce.MsgInternalServer,
 					fmt.Errorf("failed to convert is_verified (%v) to bool: %w", values[0], err),
 				)
-			} else if !verified {
+			}
+			if !verified {
 				return nil, ce.NewError(ce.CodeAuthNotVerified, ce.MsgAuthNotVerified, nil)
 			}
 

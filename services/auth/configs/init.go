@@ -88,13 +88,13 @@ type Cache struct {
 type Broker struct {
 	Brokers string `mapstructure:"brokers"`
 
-	Topics struct {
+	Publisher struct {
 		AuthCreated struct {
 			Name         string        `mapstructure:"name"`
 			BatchSize    int           `mapstructure:"batch_size"`
 			BatchTimeout time.Duration `mapstructure:"batch_timeout"`
 		} `mapstructure:"auth_created"`
-	} `mapstructure:"topics"`
+	} `mapstructure:"publisher"`
 }
 
 type Tracer struct {
@@ -142,7 +142,7 @@ func Init(path string) (*Config, error) {
 		cfg.Database.SSLMode,
 	)
 
-	constants.EventTopicAC = cfg.Broker.Topics.AuthCreated.Name
+	constants.EventTopicAC = cfg.Broker.Publisher.AuthCreated.Name
 
 	return &cfg, nil
 }
