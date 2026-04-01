@@ -59,8 +59,7 @@ func (e *Error) Bind(ctx *gin.Context) {
 
 func (e *Error) ToHTTPStatus() int {
 	switch e.code {
-	case CodeInvalidParams, CodeInvalidPayload, CodeInvalidRequestMetadata,
-		CodeInvalidSubdomain:
+	case CodeInvalidParams, CodeInvalidPayload, CodeInvalidRequestMetadata:
 		return http.StatusBadRequest
 	case CodeRefreshTokenNotFound, CodeUnauthenticated:
 		return http.StatusUnauthorized

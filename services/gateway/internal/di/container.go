@@ -9,6 +9,7 @@ import (
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/transport/http/router"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/transport/http/server"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils/cookie"
+	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils/jwt"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils/validator"
 )
 
@@ -17,6 +18,7 @@ type Container struct {
 	logger    *logger.Logger
 	ac        clients.AuthClient
 	cookie    *cookie.Cookie
+	jwt       *jwt.JWT
 	validator *validator.Validator
 	ah        *handlers.AuthHandler
 	router    *router.Router
@@ -32,13 +34,14 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 
 	// Utils
 	c := cookie.Init(cfg.App.Env, "")
+	j := jwt.Init(cfg.JWT.Secret)
 	v := validator.Init()
 
 	// Handlers
 	ah := handlers.NewAuthHandler(ac, v, c)
 
 	// Router
-	r := router.Init(&cfg.Client, cfg.App.Name, l, ah)
+	r := router.Init(&cfg.Client, cfg.App.Name, j, l, ah)
 
 	// Server
 	srv := server.Init(&cfg.Server, r, l)
@@ -48,6 +51,7 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 		logger:    l,
 		ac:        ac,
 		cookie:    c,
+		jwt:       j,
 		validator: v,
 		ah:        ah,
 		router:    r,

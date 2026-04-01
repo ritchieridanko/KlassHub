@@ -22,3 +22,6 @@ service:
 tracer:
   host: "localhost"
   port: 4317
+
+jwt:
+  secret: ""

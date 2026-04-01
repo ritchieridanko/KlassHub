@@ -16,6 +16,7 @@ type Config struct {
 	Server  Server  `mapstructure:"server"`
 	Service Service `mapstructure:"service"`
 	Tracer  Tracer  `mapstructure:"tracer"`
+	JWT     JWT     `mapstructure:"jwt"`
 }
 
 type App struct {
@@ -53,6 +54,10 @@ type Tracer struct {
 	Addr string
 	Host string `mapstructure:"host"`
 	Port int    `mapstructure:"port"`
+}
+
+type JWT struct {
+	Secret string `mapstructure:"secret"`
 }
 
 func Init(path string) (*Config, error) {

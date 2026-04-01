@@ -1,10 +1,17 @@
 package ce
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/golang-jwt/jwt/v5"
+)
 
 // Internal Errors
 var (
-	ErrCookieNotFound error = http.ErrNoCookie
+	ErrCookieNotFound  error = http.ErrNoCookie
+	ErrInvalidJWTClaim error = jwt.ErrTokenInvalidClaims
+	ErrJWTExpired      error = jwt.ErrTokenExpired
+	ErrJWTMalformed    error = jwt.ErrTokenMalformed
 )
 
 // Internal Error Codes
@@ -14,7 +21,6 @@ const (
 	CodeInvalidParams          errCode = "ERR_INVALID_PARAMS"
 	CodeInvalidPayload         errCode = "ERR_INVALID_PAYLOAD"
 	CodeInvalidRequestMetadata errCode = "ERR_INVALID_REQUEST_METADATA"
-	CodeInvalidSubdomain       errCode = "ERR_INVALID_SUBDOMAIN"
 	CodeMissingContextValue    errCode = "ERR_MISSING_CONTEXT_VALUE"
 	CodeNotFound               errCode = "ERR_NOT_FOUND"
 	CodeRefreshTokenNotFound   errCode = "ERR_REFRESH_TOKEN_NOT_FOUND"
@@ -30,5 +36,6 @@ const (
 	MsgInvalidParams    string = "Invalid params"
 	MsgInvalidPayload   string = "Invalid payload"
 	MsgInvalidSession   string = "Invalid session"
-	MsgInvalidSubdomain string = "Invalid host domain"
+	MsgResourceNotFound string = "Resource not found"
+	MsgUnauthenticated  string = "Unauthenticated"
 )
