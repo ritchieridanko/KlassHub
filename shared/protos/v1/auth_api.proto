@@ -2,12 +2,14 @@ syntax = "proto3";
 
 package auth.v1;
 
+import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apis";
 
 service AuthService {
   rpc Login (LoginRequest) returns (LoginResponse);
+  rpc Logout (LogoutRequest) returns (google.protobuf.Empty);
   rpc CreateSchoolAuth (CreateSchoolAuthRequest) returns (CreateSchoolAuthResponse);
   rpc VerifyEmail (VerifyEmailRequest) returns (VerifyEmailResponse);
 }
@@ -44,6 +46,10 @@ message LoginRequest {
 message LoginResponse {
   Auth auth = 1;
   AuthToken auth_token = 2;
+}
+
+message LogoutRequest {
+  string refresh_token = 1;
 }
 
 message CreateSchoolAuthRequest {

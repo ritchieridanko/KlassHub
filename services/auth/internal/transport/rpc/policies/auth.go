@@ -51,6 +51,16 @@ var AuthPolicies map[string]AuthPolicy = map[string]AuthPolicy{
 			constants.SubdomainAdmin: {},
 		},
 	},
+	"/auth.v1.AuthService/Logout": AuthPolicy{
+		requireAuth:         true,
+		requireSchool:       false,
+		requireVerification: false,
+		roles:               map[string]struct{}{},
+		subdomains: map[string]struct{}{
+			constants.SubdomainLMS:   {},
+			constants.SubdomainAdmin: {},
+		},
+	},
 	"/auth.v1.AuthService/CreateSchoolAuth": AuthPolicy{
 		requireAuth:         false,
 		requireSchool:       false,

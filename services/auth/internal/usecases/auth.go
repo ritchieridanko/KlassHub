@@ -25,6 +25,7 @@ import (
 
 type AuthUsecase interface {
 	Login(ctx context.Context, req *models.LoginReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	Logout(ctx context.Context, refreshToken string) (err *ce.Error)
 	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 }
@@ -126,6 +127,16 @@ func (u *authUsecase) Login(ctx context.Context, req *models.LoginReq) (*models.
 	)
 
 	return a, at, err
+}
+
+func (u *authUsecase) Logout(ctx context.Context, refreshToken string) *ce.Error {
+	// Session Revocation
+	// NOTE: Invalid session does not fail logout process
+	err := u.su.RevokeSession(ctx, strings.TrimSpace(refreshToken))
+	if err != nil && err.Code() != ce.CodeSessionNotFound {
+		return err
+	}
+	return nil
 }
 
 func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (*models.Auth, *models.AuthToken, *ce.Error) {

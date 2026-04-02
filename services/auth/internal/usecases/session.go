@@ -21,6 +21,7 @@ type SessionUsecase interface {
 	CreateSession(ctx context.Context, req *models.CreateSessionReq) (at *models.AuthToken, err *ce.Error)
 	GetSession(ctx context.Context, refreshToken string) (s *models.Session, err *ce.Error)
 	RefreshSession(ctx context.Context, req *models.RefreshSessionReq) (at *models.AuthToken, err *ce.Error)
+	RevokeSession(ctx context.Context, refreshToken string) (err *ce.Error)
 }
 
 type sessionUsecase struct {
@@ -234,4 +235,15 @@ func (u *sessionUsecase) RefreshSession(ctx context.Context, req *models.Refresh
 			ExpiresIn: int64(u.refreshTokenExpiry.Seconds()),
 		},
 	}, nil
+}
+
+func (u *sessionUsecase) RevokeSession(ctx context.Context, refreshToken string) *ce.Error {
+	_, err := u.sr.Revoke(
+		ctx,
+		&models.RevokeSessionParams{
+			RefreshToken: refreshToken,
+			ExpiresAt:    time.Now().UTC(),
+		},
+	)
+	return err
 }

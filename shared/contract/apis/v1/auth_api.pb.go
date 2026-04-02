@@ -9,6 +9,7 @@ package apis
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
@@ -366,6 +367,50 @@ func (x *LoginResponse) GetAuthToken() *AuthToken {
 	return nil
 }
 
+type LogoutRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RefreshToken  string                 `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogoutRequest) Reset() {
+	*x = LogoutRequest{}
+	mi := &file_v1_auth_api_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogoutRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogoutRequest) ProtoMessage() {}
+
+func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_api_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
+func (*LogoutRequest) Descriptor() ([]byte, []int) {
+	return file_v1_auth_api_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *LogoutRequest) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
 type CreateSchoolAuthRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
@@ -376,7 +421,7 @@ type CreateSchoolAuthRequest struct {
 
 func (x *CreateSchoolAuthRequest) Reset() {
 	*x = CreateSchoolAuthRequest{}
-	mi := &file_v1_auth_api_proto_msgTypes[6]
+	mi := &file_v1_auth_api_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -388,7 +433,7 @@ func (x *CreateSchoolAuthRequest) String() string {
 func (*CreateSchoolAuthRequest) ProtoMessage() {}
 
 func (x *CreateSchoolAuthRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_api_proto_msgTypes[6]
+	mi := &file_v1_auth_api_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -401,7 +446,7 @@ func (x *CreateSchoolAuthRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSchoolAuthRequest.ProtoReflect.Descriptor instead.
 func (*CreateSchoolAuthRequest) Descriptor() ([]byte, []int) {
-	return file_v1_auth_api_proto_rawDescGZIP(), []int{6}
+	return file_v1_auth_api_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CreateSchoolAuthRequest) GetEmail() string {
@@ -428,7 +473,7 @@ type CreateSchoolAuthResponse struct {
 
 func (x *CreateSchoolAuthResponse) Reset() {
 	*x = CreateSchoolAuthResponse{}
-	mi := &file_v1_auth_api_proto_msgTypes[7]
+	mi := &file_v1_auth_api_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -440,7 +485,7 @@ func (x *CreateSchoolAuthResponse) String() string {
 func (*CreateSchoolAuthResponse) ProtoMessage() {}
 
 func (x *CreateSchoolAuthResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_api_proto_msgTypes[7]
+	mi := &file_v1_auth_api_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -453,7 +498,7 @@ func (x *CreateSchoolAuthResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSchoolAuthResponse.ProtoReflect.Descriptor instead.
 func (*CreateSchoolAuthResponse) Descriptor() ([]byte, []int) {
-	return file_v1_auth_api_proto_rawDescGZIP(), []int{7}
+	return file_v1_auth_api_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *CreateSchoolAuthResponse) GetAuth() *Auth {
@@ -480,7 +525,7 @@ type VerifyEmailRequest struct {
 
 func (x *VerifyEmailRequest) Reset() {
 	*x = VerifyEmailRequest{}
-	mi := &file_v1_auth_api_proto_msgTypes[8]
+	mi := &file_v1_auth_api_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -492,7 +537,7 @@ func (x *VerifyEmailRequest) String() string {
 func (*VerifyEmailRequest) ProtoMessage() {}
 
 func (x *VerifyEmailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_api_proto_msgTypes[8]
+	mi := &file_v1_auth_api_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -505,7 +550,7 @@ func (x *VerifyEmailRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyEmailRequest.ProtoReflect.Descriptor instead.
 func (*VerifyEmailRequest) Descriptor() ([]byte, []int) {
-	return file_v1_auth_api_proto_rawDescGZIP(), []int{8}
+	return file_v1_auth_api_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *VerifyEmailRequest) GetVerificationToken() string {
@@ -532,7 +577,7 @@ type VerifyEmailResponse struct {
 
 func (x *VerifyEmailResponse) Reset() {
 	*x = VerifyEmailResponse{}
-	mi := &file_v1_auth_api_proto_msgTypes[9]
+	mi := &file_v1_auth_api_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -544,7 +589,7 @@ func (x *VerifyEmailResponse) String() string {
 func (*VerifyEmailResponse) ProtoMessage() {}
 
 func (x *VerifyEmailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_auth_api_proto_msgTypes[9]
+	mi := &file_v1_auth_api_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -557,7 +602,7 @@ func (x *VerifyEmailResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyEmailResponse.ProtoReflect.Descriptor instead.
 func (*VerifyEmailResponse) Descriptor() ([]byte, []int) {
-	return file_v1_auth_api_proto_rawDescGZIP(), []int{9}
+	return file_v1_auth_api_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *VerifyEmailResponse) GetAuth() *Auth {
@@ -578,7 +623,7 @@ var File_v1_auth_api_proto protoreflect.FileDescriptor
 
 const file_v1_auth_api_proto_rawDesc = "" +
 	"\n" +
-	"\x11v1/auth_api.proto\x12\aauth.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xff\x01\n" +
+	"\x11v1/auth_api.proto\x12\aauth.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xff\x01\n" +
 	"\x04Auth\x12\x19\n" +
 	"\x05email\x18\x01 \x01(\tH\x00R\x05email\x88\x01\x01\x12\x1f\n" +
 	"\busername\x18\x02 \x01(\tH\x01R\busername\x88\x01\x01\x12\x12\n" +
@@ -608,7 +653,9 @@ const file_v1_auth_api_proto_rawDesc = "" +
 	"\rLoginResponse\x12!\n" +
 	"\x04auth\x18\x01 \x01(\v2\r.auth.v1.AuthR\x04auth\x121\n" +
 	"\n" +
-	"auth_token\x18\x02 \x01(\v2\x12.auth.v1.AuthTokenR\tauthToken\"K\n" +
+	"auth_token\x18\x02 \x01(\v2\x12.auth.v1.AuthTokenR\tauthToken\"4\n" +
+	"\rLogoutRequest\x12#\n" +
+	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"K\n" +
 	"\x17CreateSchoolAuthRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"p\n" +
@@ -622,9 +669,10 @@ const file_v1_auth_api_proto_rawDesc = "" +
 	"\x13VerifyEmailResponse\x12!\n" +
 	"\x04auth\x18\x01 \x01(\v2\r.auth.v1.AuthR\x04auth\x121\n" +
 	"\n" +
-	"auth_token\x18\x02 \x01(\v2\x12.auth.v1.AuthTokenR\tauthToken2\xe8\x01\n" +
+	"auth_token\x18\x02 \x01(\v2\x12.auth.v1.AuthTokenR\tauthToken2\xa2\x02\n" +
 	"\vAuthService\x126\n" +
-	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponse\x12W\n" +
+	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponse\x128\n" +
+	"\x06Logout\x12\x16.auth.v1.LogoutRequest\x1a\x16.google.protobuf.Empty\x12W\n" +
 	"\x10CreateSchoolAuth\x12 .auth.v1.CreateSchoolAuthRequest\x1a!.auth.v1.CreateSchoolAuthResponse\x12H\n" +
 	"\vVerifyEmail\x12\x1b.auth.v1.VerifyEmailRequest\x1a\x1c.auth.v1.VerifyEmailResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
 
@@ -640,7 +688,7 @@ func file_v1_auth_api_proto_rawDescGZIP() []byte {
 	return file_v1_auth_api_proto_rawDescData
 }
 
-var file_v1_auth_api_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_v1_auth_api_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_v1_auth_api_proto_goTypes = []any{
 	(*Auth)(nil),                     // 0: auth.v1.Auth
 	(*AccessToken)(nil),              // 1: auth.v1.AccessToken
@@ -648,14 +696,16 @@ var file_v1_auth_api_proto_goTypes = []any{
 	(*AuthToken)(nil),                // 3: auth.v1.AuthToken
 	(*LoginRequest)(nil),             // 4: auth.v1.LoginRequest
 	(*LoginResponse)(nil),            // 5: auth.v1.LoginResponse
-	(*CreateSchoolAuthRequest)(nil),  // 6: auth.v1.CreateSchoolAuthRequest
-	(*CreateSchoolAuthResponse)(nil), // 7: auth.v1.CreateSchoolAuthResponse
-	(*VerifyEmailRequest)(nil),       // 8: auth.v1.VerifyEmailRequest
-	(*VerifyEmailResponse)(nil),      // 9: auth.v1.VerifyEmailResponse
-	(*timestamppb.Timestamp)(nil),    // 10: google.protobuf.Timestamp
+	(*LogoutRequest)(nil),            // 6: auth.v1.LogoutRequest
+	(*CreateSchoolAuthRequest)(nil),  // 7: auth.v1.CreateSchoolAuthRequest
+	(*CreateSchoolAuthResponse)(nil), // 8: auth.v1.CreateSchoolAuthResponse
+	(*VerifyEmailRequest)(nil),       // 9: auth.v1.VerifyEmailRequest
+	(*VerifyEmailResponse)(nil),      // 10: auth.v1.VerifyEmailResponse
+	(*timestamppb.Timestamp)(nil),    // 11: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),            // 12: google.protobuf.Empty
 }
 var file_v1_auth_api_proto_depIdxs = []int32{
-	10, // 0: auth.v1.Auth.password_changed_at:type_name -> google.protobuf.Timestamp
+	11, // 0: auth.v1.Auth.password_changed_at:type_name -> google.protobuf.Timestamp
 	1,  // 1: auth.v1.AuthToken.access_token:type_name -> auth.v1.AccessToken
 	2,  // 2: auth.v1.AuthToken.refresh_token:type_name -> auth.v1.RefreshToken
 	0,  // 3: auth.v1.LoginResponse.auth:type_name -> auth.v1.Auth
@@ -665,13 +715,15 @@ var file_v1_auth_api_proto_depIdxs = []int32{
 	0,  // 7: auth.v1.VerifyEmailResponse.auth:type_name -> auth.v1.Auth
 	3,  // 8: auth.v1.VerifyEmailResponse.auth_token:type_name -> auth.v1.AuthToken
 	4,  // 9: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
-	6,  // 10: auth.v1.AuthService.CreateSchoolAuth:input_type -> auth.v1.CreateSchoolAuthRequest
-	8,  // 11: auth.v1.AuthService.VerifyEmail:input_type -> auth.v1.VerifyEmailRequest
-	5,  // 12: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
-	7,  // 13: auth.v1.AuthService.CreateSchoolAuth:output_type -> auth.v1.CreateSchoolAuthResponse
-	9,  // 14: auth.v1.AuthService.VerifyEmail:output_type -> auth.v1.VerifyEmailResponse
-	12, // [12:15] is the sub-list for method output_type
-	9,  // [9:12] is the sub-list for method input_type
+	6,  // 10: auth.v1.AuthService.Logout:input_type -> auth.v1.LogoutRequest
+	7,  // 11: auth.v1.AuthService.CreateSchoolAuth:input_type -> auth.v1.CreateSchoolAuthRequest
+	9,  // 12: auth.v1.AuthService.VerifyEmail:input_type -> auth.v1.VerifyEmailRequest
+	5,  // 13: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
+	12, // 14: auth.v1.AuthService.Logout:output_type -> google.protobuf.Empty
+	8,  // 15: auth.v1.AuthService.CreateSchoolAuth:output_type -> auth.v1.CreateSchoolAuthResponse
+	10, // 16: auth.v1.AuthService.VerifyEmail:output_type -> auth.v1.VerifyEmailResponse
+	13, // [13:17] is the sub-list for method output_type
+	9,  // [9:13] is the sub-list for method input_type
 	9,  // [9:9] is the sub-list for extension type_name
 	9,  // [9:9] is the sub-list for extension extendee
 	0,  // [0:9] is the sub-list for field type_name
@@ -689,7 +741,7 @@ func file_v1_auth_api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_auth_api_proto_rawDesc), len(file_v1_auth_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

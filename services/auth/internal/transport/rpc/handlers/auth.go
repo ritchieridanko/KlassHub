@@ -7,6 +7,7 @@ import (
 	"github.com/ritchieridanko/klasshub/services/auth/internal/usecases"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/utils"
 	"github.com/ritchieridanko/klasshub/shared/contract/apis/v1"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type AuthHandler struct {
@@ -33,6 +34,13 @@ func (h *AuthHandler) Login(ctx context.Context, req *apis.LoginRequest) (*apis.
 		Auth:      h.toAuth(a),
 		AuthToken: h.toAuthToken(at),
 	}, nil
+}
+
+func (h *AuthHandler) Logout(ctx context.Context, req *apis.LogoutRequest) (*emptypb.Empty, error) {
+	if err := h.au.Logout(ctx, req.GetRefreshToken()); err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
 }
 
 func (h *AuthHandler) CreateSchoolAuth(ctx context.Context, req *apis.CreateSchoolAuthRequest) (*apis.CreateSchoolAuthResponse, error) {
