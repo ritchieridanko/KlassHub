@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/clients"
@@ -91,6 +92,59 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 	)
 }
 
+func (h *AuthHandler) Logout(ctx *gin.Context) {
+	authCtx := utils.CtxAuth(ctx.Request.Context())
+	if authCtx == nil {
+		ce.NewError(
+			ce.CodeMissingContextValue,
+			ce.MsgInternalServer,
+			errors.New("auth missing from context"),
+		).Bind(
+			ctx,
+		)
+		return
+	}
+
+	refreshToken, err := ctx.Cookie(constants.CookieKeyRefreshToken)
+	if errors.Is(err, ce.ErrCookieNotFound) {
+		ce.NewError(ce.CodeRefreshTokenNotFound, ce.MsgInvalidSession, err).Bind(ctx)
+		return
+	}
+	if err != nil {
+		ce.NewError(ce.CodeInternal, ce.MsgInternalServer, err).Bind(ctx)
+		return
+	}
+
+	refreshToken = strings.TrimSpace(refreshToken)
+	if refreshToken == "" {
+		ce.NewError(ce.CodeRefreshTokenNotFound, ce.MsgInvalidSession, nil).Bind(ctx)
+		return
+	}
+
+	logoutErr := h.ac.Logout(
+		metadata.ToOutgoingCtx(
+			ctx.Request.Context(),
+			metadata.NewPair(
+				constants.MDKeyAuthID,
+				strconv.FormatInt(authCtx.AuthID, 10),
+			),
+		),
+		refreshToken,
+	)
+	if logoutErr != nil {
+		logoutErr.Bind(ctx)
+		return
+	}
+
+	h.cookie.Unset(
+		ctx,
+		constants.CookieKeyRefreshToken,
+		"/",
+	)
+
+	utils.SetResponse[any](ctx, http.StatusNoContent, "", nil)
+}
+
 func (h *AuthHandler) CreateSchoolAuth(ctx *gin.Context) {
 	var payload dtos.CreateSchoolAuthRequest
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -159,6 +213,12 @@ func (h *AuthHandler) VerifyEmail(ctx *gin.Context) {
 	}
 	if err != nil {
 		ce.NewError(ce.CodeInternal, ce.MsgInternalServer, err).Bind(ctx)
+		return
+	}
+
+	refreshToken = strings.TrimSpace(refreshToken)
+	if refreshToken == "" {
+		ce.NewError(ce.CodeRefreshTokenNotFound, ce.MsgInvalidSession, nil).Bind(ctx)
 		return
 	}
 

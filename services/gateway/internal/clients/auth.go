@@ -12,6 +12,7 @@ import (
 
 type AuthClient interface {
 	Login(ctx context.Context, req *models.LoginReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	Logout(ctx context.Context, refreshToken string) (err *ce.Error)
 	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 }
@@ -40,6 +41,23 @@ func (c *authClient) Login(ctx context.Context, req *models.LoginReq) (*models.A
 		)
 	}
 	return c.toAuth(resp.GetAuth()), c.toAuthToken(resp.GetAuthToken()), nil
+}
+
+func (c *authClient) Logout(ctx context.Context, refreshToken string) *ce.Error {
+	_, err := c.client.Logout(
+		ctx,
+		&apis.LogoutRequest{
+			RefreshToken: refreshToken,
+		},
+	)
+	if err != nil {
+		return ce.FromGRPCErr(
+			err,
+		).Append(
+			logger.NewField("service", "auth"),
+		)
+	}
+	return nil
 }
 
 func (c *authClient) CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (*models.Auth, *models.AuthToken, *ce.Error) {
