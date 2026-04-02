@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ritchieridanko/klasshub/services/gateway/configs"
+	"github.com/ritchieridanko/klasshub/services/gateway/internal/constants"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/transport/http/handlers"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/transport/http/middlewares"
@@ -36,15 +37,26 @@ func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, ah 
 		middlewares.Subdomain(cfg.Host),
 	)
 
-	// Auth Endpoints
+	// AUTH ENDPOINTS
 	auth := v1.Group("/auth")
 	{
+		// Authentications
 		auth.POST("/login", ah.Login)
 		auth.POST("/register", ah.CreateSchoolAuth)
 
 		email := auth.Group("/email")
 		{
-			email.POST("/verification/confirm", middlewares.Auth(j), ah.VerifyEmail)
+			// Email Verification
+			email.POST(
+				"/verification/confirm",
+				middlewares.Auth(j),
+				middlewares.Authz(
+					false,
+					[]string{constants.SubdomainAdmin},
+					constants.RoleSchool,
+				),
+				ah.VerifyEmail,
+			)
 		}
 	}
 

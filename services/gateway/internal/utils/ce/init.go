@@ -63,7 +63,7 @@ func (e *Error) ToHTTPStatus() int {
 		return http.StatusBadRequest
 	case CodeRefreshTokenNotFound, CodeUnauthenticated:
 		return http.StatusUnauthorized
-	case CodeUnauthorized:
+	case CodeAuthNotVerified, CodeUnauthorized, CodeUnauthorizedRole:
 		return http.StatusForbidden
 	case CodeNotFound:
 		return http.StatusNotFound
