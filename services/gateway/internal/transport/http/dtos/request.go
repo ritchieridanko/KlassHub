@@ -5,6 +5,10 @@ type CreateSchoolAuthRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type EmailAvailabilityCheckRequest struct {
+	Email string `form:"email" binding:"required"`
+}
+
 type LoginRequest struct {
 	Identifier string `json:"identifier" binding:"required"`
 	Password   string `json:"password" binding:"required"`

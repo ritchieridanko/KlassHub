@@ -47,6 +47,9 @@ func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, ah 
 
 		email := auth.Group("/email")
 		{
+			// Email Availability
+			email.GET("/available", ah.IsEmailAvailable)
+
 			// Email Verification
 			email.POST(
 				"/verification/confirm",

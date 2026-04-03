@@ -15,6 +15,7 @@ type AuthClient interface {
 	Logout(ctx context.Context, refreshToken string) (err *ce.Error)
 	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	IsEmailAvailable(ctx context.Context, email string) (available bool, err *ce.Error)
 }
 
 type authClient struct {
@@ -94,6 +95,23 @@ func (c *authClient) VerifyEmail(ctx context.Context, req *models.VerifyEmailReq
 		)
 	}
 	return c.toAuth(resp.GetAuth()), c.toAuthToken(resp.GetAuthToken()), nil
+}
+
+func (c *authClient) IsEmailAvailable(ctx context.Context, email string) (bool, *ce.Error) {
+	resp, err := c.client.IsEmailAvailable(
+		ctx,
+		&apis.EmailAvailabilityCheckRequest{
+			Email: email,
+		},
+	)
+	if err != nil {
+		return false, ce.FromGRPCErr(
+			err,
+		).Append(
+			logger.NewField("service", "auth"),
+		)
+	}
+	return resp.GetIsAvailable(), nil
 }
 
 func (c *authClient) toAuth(a *apis.Auth) *models.Auth {
