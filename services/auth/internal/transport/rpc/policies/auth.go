@@ -81,4 +81,13 @@ var AuthPolicies map[string]AuthPolicy = map[string]AuthPolicy{
 			constants.SubdomainAdmin: {},
 		},
 	},
+	"/auth.v1.AuthService/IsEmailAvailable": AuthPolicy{
+		requireAuth:         false,
+		requireSchool:       false,
+		requireVerification: false,
+		roles:               map[string]struct{}{},
+		subdomains: map[string]struct{}{
+			constants.SubdomainAdmin: {},
+		},
+	},
 }

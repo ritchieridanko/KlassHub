@@ -28,6 +28,7 @@ type AuthUsecase interface {
 	Logout(ctx context.Context, refreshToken string) (err *ce.Error)
 	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	IsEmailAvailable(ctx context.Context, email string) (available bool, err *ce.Error)
 }
 
 type authUsecase struct {
@@ -408,4 +409,18 @@ func (u *authUsecase) VerifyEmail(ctx context.Context, req *models.VerifyEmailRe
 	}
 
 	return a, at, nil
+}
+
+func (u *authUsecase) IsEmailAvailable(ctx context.Context, email string) (bool, *ce.Error) {
+	ctx, span := otel.Tracer(u.appName).Start(ctx, "auth.usecase.IsEmailAvailable")
+	defer span.End()
+
+	// Data Normalization & Validation
+	em := utils.NormalizeString(email)
+	if ok, why := u.validator.Email(em); !ok {
+		return false, ce.NewError(ce.CodeInvalidPayload, why, nil)
+	}
+
+	// Email Availability Check
+	return u.ar.IsEmailAvailable(ctx, em)
 }

@@ -619,6 +619,94 @@ func (x *VerifyEmailResponse) GetAuthToken() *AuthToken {
 	return nil
 }
 
+type EmailAvailabilityCheckRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EmailAvailabilityCheckRequest) Reset() {
+	*x = EmailAvailabilityCheckRequest{}
+	mi := &file_v1_auth_api_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EmailAvailabilityCheckRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EmailAvailabilityCheckRequest) ProtoMessage() {}
+
+func (x *EmailAvailabilityCheckRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_api_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EmailAvailabilityCheckRequest.ProtoReflect.Descriptor instead.
+func (*EmailAvailabilityCheckRequest) Descriptor() ([]byte, []int) {
+	return file_v1_auth_api_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *EmailAvailabilityCheckRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+type EmailAvailabilityCheckResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	IsAvailable   bool                   `protobuf:"varint,1,opt,name=is_available,json=isAvailable,proto3" json:"is_available,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EmailAvailabilityCheckResponse) Reset() {
+	*x = EmailAvailabilityCheckResponse{}
+	mi := &file_v1_auth_api_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EmailAvailabilityCheckResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EmailAvailabilityCheckResponse) ProtoMessage() {}
+
+func (x *EmailAvailabilityCheckResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_auth_api_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EmailAvailabilityCheckResponse.ProtoReflect.Descriptor instead.
+func (*EmailAvailabilityCheckResponse) Descriptor() ([]byte, []int) {
+	return file_v1_auth_api_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *EmailAvailabilityCheckResponse) GetIsAvailable() bool {
+	if x != nil {
+		return x.IsAvailable
+	}
+	return false
+}
+
 var File_v1_auth_api_proto protoreflect.FileDescriptor
 
 const file_v1_auth_api_proto_rawDesc = "" +
@@ -669,12 +757,17 @@ const file_v1_auth_api_proto_rawDesc = "" +
 	"\x13VerifyEmailResponse\x12!\n" +
 	"\x04auth\x18\x01 \x01(\v2\r.auth.v1.AuthR\x04auth\x121\n" +
 	"\n" +
-	"auth_token\x18\x02 \x01(\v2\x12.auth.v1.AuthTokenR\tauthToken2\xa2\x02\n" +
+	"auth_token\x18\x02 \x01(\v2\x12.auth.v1.AuthTokenR\tauthToken\"5\n" +
+	"\x1dEmailAvailabilityCheckRequest\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\"C\n" +
+	"\x1eEmailAvailabilityCheckResponse\x12!\n" +
+	"\fis_available\x18\x01 \x01(\bR\visAvailable2\x87\x03\n" +
 	"\vAuthService\x126\n" +
 	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponse\x128\n" +
 	"\x06Logout\x12\x16.auth.v1.LogoutRequest\x1a\x16.google.protobuf.Empty\x12W\n" +
 	"\x10CreateSchoolAuth\x12 .auth.v1.CreateSchoolAuthRequest\x1a!.auth.v1.CreateSchoolAuthResponse\x12H\n" +
-	"\vVerifyEmail\x12\x1b.auth.v1.VerifyEmailRequest\x1a\x1c.auth.v1.VerifyEmailResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
+	"\vVerifyEmail\x12\x1b.auth.v1.VerifyEmailRequest\x1a\x1c.auth.v1.VerifyEmailResponse\x12c\n" +
+	"\x10IsEmailAvailable\x12&.auth.v1.EmailAvailabilityCheckRequest\x1a'.auth.v1.EmailAvailabilityCheckResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
 
 var (
 	file_v1_auth_api_proto_rawDescOnce sync.Once
@@ -688,24 +781,26 @@ func file_v1_auth_api_proto_rawDescGZIP() []byte {
 	return file_v1_auth_api_proto_rawDescData
 }
 
-var file_v1_auth_api_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_v1_auth_api_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_v1_auth_api_proto_goTypes = []any{
-	(*Auth)(nil),                     // 0: auth.v1.Auth
-	(*AccessToken)(nil),              // 1: auth.v1.AccessToken
-	(*RefreshToken)(nil),             // 2: auth.v1.RefreshToken
-	(*AuthToken)(nil),                // 3: auth.v1.AuthToken
-	(*LoginRequest)(nil),             // 4: auth.v1.LoginRequest
-	(*LoginResponse)(nil),            // 5: auth.v1.LoginResponse
-	(*LogoutRequest)(nil),            // 6: auth.v1.LogoutRequest
-	(*CreateSchoolAuthRequest)(nil),  // 7: auth.v1.CreateSchoolAuthRequest
-	(*CreateSchoolAuthResponse)(nil), // 8: auth.v1.CreateSchoolAuthResponse
-	(*VerifyEmailRequest)(nil),       // 9: auth.v1.VerifyEmailRequest
-	(*VerifyEmailResponse)(nil),      // 10: auth.v1.VerifyEmailResponse
-	(*timestamppb.Timestamp)(nil),    // 11: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),            // 12: google.protobuf.Empty
+	(*Auth)(nil),                           // 0: auth.v1.Auth
+	(*AccessToken)(nil),                    // 1: auth.v1.AccessToken
+	(*RefreshToken)(nil),                   // 2: auth.v1.RefreshToken
+	(*AuthToken)(nil),                      // 3: auth.v1.AuthToken
+	(*LoginRequest)(nil),                   // 4: auth.v1.LoginRequest
+	(*LoginResponse)(nil),                  // 5: auth.v1.LoginResponse
+	(*LogoutRequest)(nil),                  // 6: auth.v1.LogoutRequest
+	(*CreateSchoolAuthRequest)(nil),        // 7: auth.v1.CreateSchoolAuthRequest
+	(*CreateSchoolAuthResponse)(nil),       // 8: auth.v1.CreateSchoolAuthResponse
+	(*VerifyEmailRequest)(nil),             // 9: auth.v1.VerifyEmailRequest
+	(*VerifyEmailResponse)(nil),            // 10: auth.v1.VerifyEmailResponse
+	(*EmailAvailabilityCheckRequest)(nil),  // 11: auth.v1.EmailAvailabilityCheckRequest
+	(*EmailAvailabilityCheckResponse)(nil), // 12: auth.v1.EmailAvailabilityCheckResponse
+	(*timestamppb.Timestamp)(nil),          // 13: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),                  // 14: google.protobuf.Empty
 }
 var file_v1_auth_api_proto_depIdxs = []int32{
-	11, // 0: auth.v1.Auth.password_changed_at:type_name -> google.protobuf.Timestamp
+	13, // 0: auth.v1.Auth.password_changed_at:type_name -> google.protobuf.Timestamp
 	1,  // 1: auth.v1.AuthToken.access_token:type_name -> auth.v1.AccessToken
 	2,  // 2: auth.v1.AuthToken.refresh_token:type_name -> auth.v1.RefreshToken
 	0,  // 3: auth.v1.LoginResponse.auth:type_name -> auth.v1.Auth
@@ -718,12 +813,14 @@ var file_v1_auth_api_proto_depIdxs = []int32{
 	6,  // 10: auth.v1.AuthService.Logout:input_type -> auth.v1.LogoutRequest
 	7,  // 11: auth.v1.AuthService.CreateSchoolAuth:input_type -> auth.v1.CreateSchoolAuthRequest
 	9,  // 12: auth.v1.AuthService.VerifyEmail:input_type -> auth.v1.VerifyEmailRequest
-	5,  // 13: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
-	12, // 14: auth.v1.AuthService.Logout:output_type -> google.protobuf.Empty
-	8,  // 15: auth.v1.AuthService.CreateSchoolAuth:output_type -> auth.v1.CreateSchoolAuthResponse
-	10, // 16: auth.v1.AuthService.VerifyEmail:output_type -> auth.v1.VerifyEmailResponse
-	13, // [13:17] is the sub-list for method output_type
-	9,  // [9:13] is the sub-list for method input_type
+	11, // 13: auth.v1.AuthService.IsEmailAvailable:input_type -> auth.v1.EmailAvailabilityCheckRequest
+	5,  // 14: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
+	14, // 15: auth.v1.AuthService.Logout:output_type -> google.protobuf.Empty
+	8,  // 16: auth.v1.AuthService.CreateSchoolAuth:output_type -> auth.v1.CreateSchoolAuthResponse
+	10, // 17: auth.v1.AuthService.VerifyEmail:output_type -> auth.v1.VerifyEmailResponse
+	12, // 18: auth.v1.AuthService.IsEmailAvailable:output_type -> auth.v1.EmailAvailabilityCheckResponse
+	14, // [14:19] is the sub-list for method output_type
+	9,  // [9:14] is the sub-list for method input_type
 	9,  // [9:9] is the sub-list for extension type_name
 	9,  // [9:9] is the sub-list for extension extendee
 	0,  // [0:9] is the sub-list for field type_name
@@ -741,7 +838,7 @@ func file_v1_auth_api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_auth_api_proto_rawDesc), len(file_v1_auth_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
