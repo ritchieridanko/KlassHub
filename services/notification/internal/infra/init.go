@@ -23,6 +23,7 @@ type Infra struct {
 	mailer   *gomail.Dialer
 	tracer   *tracer.Tracer
 	acs      *kafka.Reader
+	avrs     *kafka.Reader
 }
 
 func Init(cfg *configs.Config) (*Infra, error) {
@@ -47,10 +48,19 @@ func Init(cfg *configs.Config) (*Infra, error) {
 	acs := subscriber.Init(
 		cfg.App.Name,
 		cfg.Broker.Brokers,
-		cfg.Broker.Subscriber.AuthCreated.Name,
-		cfg.Broker.Subscriber.AuthCreated.MaxBytes,
-		cfg.Broker.Subscriber.AuthCreated.MaxWait,
-		cfg.Broker.Subscriber.AuthCreated.CommitInterval,
+		cfg.Broker.Subscriber.AC.Name,
+		cfg.Broker.Subscriber.AC.MaxBytes,
+		cfg.Broker.Subscriber.AC.MaxWait,
+		cfg.Broker.Subscriber.AC.CommitInterval,
+		l,
+	)
+	avrs := subscriber.Init(
+		cfg.App.Name,
+		cfg.Broker.Brokers,
+		cfg.Broker.Subscriber.AVR.Name,
+		cfg.Broker.Subscriber.AVR.MaxBytes,
+		cfg.Broker.Subscriber.AVR.MaxWait,
+		cfg.Broker.Subscriber.AVR.CommitInterval,
 		l,
 	)
 
@@ -61,6 +71,7 @@ func Init(cfg *configs.Config) (*Infra, error) {
 		mailer:   m,
 		tracer:   t,
 		acs:      acs,
+		avrs:     avrs,
 	}, nil
 }
 
@@ -80,6 +91,10 @@ func (i *Infra) SubscriberAC() *kafka.Reader {
 	return i.acs
 }
 
+func (i *Infra) SubscriberAVR() *kafka.Reader {
+	return i.avrs
+}
+
 func (i *Infra) Close() error {
 	if err := i.logger.Sync(); err != nil {
 		return fmt.Errorf("failed to close logger: %w", err)
@@ -89,6 +104,9 @@ func (i *Infra) Close() error {
 	}
 	if err := i.acs.Close(); err != nil {
 		return fmt.Errorf("failed to close subscriber (topic: %s): %w", constants.EventTopicAC, err)
+	}
+	if err := i.avrs.Close(); err != nil {
+		return fmt.Errorf("failed to close subscriber (topic: %s): %w", constants.EventTopicAVR, err)
 	}
 
 	i.database.Close()

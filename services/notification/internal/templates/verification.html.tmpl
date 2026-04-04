@@ -1,0 +1,123 @@
+{{ define "verification" }}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{ .Subject }}</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body
+    style="
+      margin: 0;
+      padding: 32px 12px;
+      background-color: #e7f0fa;
+      font-family: 'Ubuntu', Arial, sans-serif;
+    "
+  >
+    <!-- Card -->
+    <div
+      style="
+        margin: 0 auto;
+        padding: 32px 28px;
+        max-width: 620px;
+        width: 100%;
+        background: #ffffff;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        border-radius: 10px;
+      "
+    >
+      {{ template "header" . }}
+
+      <p
+        style="
+          margin: 0 0 8px;
+          color: #000000;
+          font-size: 16px;
+          font-weight: 400;
+          line-height: 1.6;
+        "
+      >
+        Hi <strong>{{ .Recipient }}</strong>,
+      </p>
+      <p
+        style="
+          margin: 0 0 24px;
+          color: #000000;
+          font-size: 16px;
+          font-weight: 400;
+          line-height: 1.6;
+        "
+      >
+        To activate your account and start creating your school's <strong>KlassHub</strong> profile, please verify your email by clicking the button below. If you didn't create an account, you can safely ignore this email.
+      </p>
+
+      <!-- CTA -->
+      <a
+        href="{{ .URL }}"
+        target="_blank"
+        role="button"
+        style="
+          margin: 0 0 28px;
+          padding: 14px 50px;
+          display: inline-block;
+          background-color: #265084;
+          box-shadow: 0 4px 10px rgba(38, 80, 132, 0.25);
+          border-radius: 8px;
+          color: #ffffff !important;
+          font-size: 16px;
+          font-weight: 500;
+          line-height: 1.4;
+          text-decoration: none;
+        "
+      >
+        Verify Email
+      </a>
+
+      <!-- Divider -->
+      <div style="height: 1px; background-color: #eeeeee; margin: 24px 0"></div>
+
+      <!-- Fallback Link -->
+      <p
+        style="
+          margin: 0 0 8px;
+          color: #777777;
+          font-size: 14px;
+          line-height: 1.5;
+        "
+      >
+        If the button above doesn't work, copy and paste this link into your browser:
+      </p>
+      <div
+        style="
+          margin-bottom: 28px;
+          padding: 12px;
+          background-color: #f5f7fa;
+          border-radius: 6px;
+          word-break: break-all;
+        "
+      >
+        <a
+          href="{{ .URL }}"
+          target="_blank"
+          style="
+            color: #265084;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+          "
+        >
+          {{ .URL }}
+        </a>
+      </div>
+      
+      {{ template "signature" . }}
+    </div>
+
+    {{ template "footer" . }}
+  </body>
+</html>
+{{ end }}

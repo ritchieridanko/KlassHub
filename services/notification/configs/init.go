@@ -54,13 +54,21 @@ type Broker struct {
 	Brokers string `mapstructure:"brokers"`
 
 	Subscriber struct {
-		AuthCreated struct {
+		AC struct {
 			Name           string        `mapstructure:"name"`
 			MaxBytes       int           `mapstructure:"max_bytes"`
 			MaxWait        time.Duration `mapstructure:"max_wait"`
 			CommitInterval time.Duration `mapstructure:"commit_interval"`
 			ProcessTimeout time.Duration `mapstructure:"process_timeout"`
 		} `mapstructure:"auth_created"`
+
+		AVR struct {
+			Name           string        `mapstructure:"name"`
+			MaxBytes       int           `mapstructure:"max_bytes"`
+			MaxWait        time.Duration `mapstructure:"max_wait"`
+			CommitInterval time.Duration `mapstructure:"commit_interval"`
+			ProcessTimeout time.Duration `mapstructure:"process_timeout"`
+		} `mapstructure:"auth_verification_requested"`
 	} `mapstructure:"subscriber"`
 }
 
@@ -118,7 +126,8 @@ func Init(path string) (*Config, error) {
 		cfg.Database.SSLMode,
 	)
 
-	constants.EventTopicAC = cfg.Broker.Subscriber.AuthCreated.Name
+	constants.EventTopicAC = cfg.Broker.Subscriber.AC.Name
+	constants.EventTopicAVR = cfg.Broker.Subscriber.AVR.Name
 
 	return &cfg, nil
 }

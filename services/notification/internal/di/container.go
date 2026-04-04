@@ -23,7 +23,8 @@ type Container struct {
 	logger   *logger.Logger
 	mailer   *mailer.Mailer
 
-	acs *subscriber.Subscriber
+	acs  *subscriber.Subscriber
+	avrs *subscriber.Subscriber
 
 	ec channels.EmailChannel
 
@@ -38,8 +39,9 @@ type Container struct {
 	tm  handlers.Middleware
 	lm  handlers.Middleware
 
-	ah  *handlers.AuthHandler
-	ach handlers.Handler
+	ah   *handlers.AuthHandler
+	ach  handlers.Handler
+	avrh handlers.Handler
 }
 
 func Init(cfg *configs.Config, inf *infra.Infra) (*Container, error) {
@@ -49,7 +51,8 @@ func Init(cfg *configs.Config, inf *infra.Infra) (*Container, error) {
 	m := mailer.NewMailer(inf.Mailer())
 
 	// Subscribers
-	acs := subscriber.NewSubscriber(cfg.Broker.Subscriber.AuthCreated.ProcessTimeout, inf.SubscriberAC(), l)
+	acs := subscriber.NewSubscriber(cfg.Broker.Subscriber.AC.ProcessTimeout, inf.SubscriberAC(), l)
+	avrs := subscriber.NewSubscriber(cfg.Broker.Subscriber.AVR.ProcessTimeout, inf.SubscriberAVR(), l)
 
 	// Channels
 	ec, err := channels.NewEmailChannel(&cfg.Client, cfg.Mailer.From, cfg.App.LogoURL, m)
@@ -75,6 +78,7 @@ func Init(cfg *configs.Config, inf *infra.Infra) (*Container, error) {
 	// Handlers
 	ah := handlers.NewAuthHandler(au)
 	ach := handlers.NewHandler(ah.OnAuthCreated, rqm, rvm, tm, lm)
+	avrh := handlers.NewHandler(ah.OnAuthVerificationRequested, rqm, rvm, tm, lm)
 
 	return &Container{
 		config:   cfg,
@@ -82,6 +86,7 @@ func Init(cfg *configs.Config, inf *infra.Infra) (*Container, error) {
 		logger:   l,
 		mailer:   m,
 		acs:      acs,
+		avrs:     avrs,
 		ec:       ec,
 		edb:      edb,
 		er:       er,
@@ -92,6 +97,7 @@ func Init(cfg *configs.Config, inf *infra.Infra) (*Container, error) {
 		lm:       lm,
 		ah:       ah,
 		ach:      ach,
+		avrh:     avrh,
 	}, nil
 }
 
@@ -99,8 +105,16 @@ func (c *Container) SubscriberAC() *subscriber.Subscriber {
 	return c.acs
 }
 
+func (c *Container) SubscriberAVR() *subscriber.Subscriber {
+	return c.avrs
+}
+
 func (c *Container) HandlerAC() handlers.Handler {
 	return c.ach
+}
+
+func (c *Container) HandlerAVR() handlers.Handler {
+	return c.avrh
 }
 
 func (c *Container) Close() error {

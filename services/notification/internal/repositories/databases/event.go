@@ -97,13 +97,13 @@ func (d *eventDatabase) SetCompleted(ctx context.Context, eventID uuid.UUID) *ce
 		eventID,
 	)
 	if err != nil {
-		formattedErr := fmt.Errorf("failed to set event completed: %w", err)
+		wrappedErr := fmt.Errorf("failed to set event completed: %w", err)
 		eventIDField := logger.NewField("event_id", eventID.String())
 
 		if errors.Is(err, ce.ErrDBAffectNoRows) {
-			return ce.NewError(ce.CodeEventNotFound, formattedErr, eventIDField)
+			return ce.NewError(ce.CodeEventNotFound, wrappedErr, eventIDField)
 		}
-		return ce.NewError(ce.CodeDBQueryExec, formattedErr, eventIDField)
+		return ce.NewError(ce.CodeDBQueryExec, wrappedErr, eventIDField)
 	}
 
 	return nil
@@ -121,13 +121,13 @@ func (d *eventDatabase) SetLastProcessed(ctx context.Context, eventID uuid.UUID)
 		eventID,
 	)
 	if err != nil {
-		formattedErr := fmt.Errorf("failed to set event last process time: %w", err)
+		wrappedErr := fmt.Errorf("failed to set event last process time: %w", err)
 		eventIDField := logger.NewField("event_id", eventID.String())
 
 		if errors.Is(err, ce.ErrDBAffectNoRows) {
-			return ce.NewError(ce.CodeEventNotFound, formattedErr, eventIDField)
+			return ce.NewError(ce.CodeEventNotFound, wrappedErr, eventIDField)
 		}
-		return ce.NewError(ce.CodeDBQueryExec, formattedErr, eventIDField)
+		return ce.NewError(ce.CodeDBQueryExec, wrappedErr, eventIDField)
 	}
 
 	return nil

@@ -37,7 +37,32 @@ func (h *AuthHandler) OnAuthCreated(ctx context.Context, msg kafka.Message) *ce.
 	}
 	return h.au.OnAuthCreated(
 		ctx,
-		&models.AuthCreatedEventReq{
+		&models.ACEventReq{
+			ID:                eventID,
+			Email:             evt.GetEmail(),
+			VerificationToken: evt.GetVerificationToken(),
+			CreatedAt:         utils.ToTime(evt.GetCreatedAt()),
+		},
+	)
+}
+
+func (h *AuthHandler) OnAuthVerificationRequested(ctx context.Context, msg kafka.Message) *ce.Error {
+	var evt events.AuthVerificationRequested
+	if err := proto.Unmarshal(msg.Value, &evt); err != nil {
+		return ce.NewError(ce.CodeProtobufParsingFailed, err)
+	}
+
+	eventID, err := utils.ToUUID(evt.GetEventId())
+	if err != nil {
+		return ce.NewError(
+			ce.CodeTypeConversionFailed,
+			err,
+			logger.NewField("event_id", evt.GetEventId()),
+		)
+	}
+	return h.au.OnAuthVerificationRequested(
+		ctx,
+		&models.AVREventReq{
 			ID:                eventID,
 			Email:             evt.GetEmail(),
 			VerificationToken: evt.GetVerificationToken(),

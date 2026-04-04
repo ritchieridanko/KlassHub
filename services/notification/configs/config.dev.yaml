@@ -27,6 +27,12 @@ broker:
       max_wait: "1s"
       commit_interval: "500ms"
       process_timeout: "15s"
+    auth_verification_requested:
+      name: "auth.verification.requested"
+      max_bytes: 1000000
+      max_wait: "1s"
+      commit_interval: "500ms"
+      process_timeout: "15s"
 
 tracer:
   host: "localhost"

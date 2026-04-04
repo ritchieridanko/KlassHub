@@ -46,7 +46,7 @@ func main() {
 	defer cancel()
 
 	var wg sync.WaitGroup
-	wg.Add(1)
+	wg.Add(2)
 
 	// Subscribers Start
 	//
@@ -57,6 +57,14 @@ func main() {
 			log.Println("[WARN]:", err)
 		}
 	}(ctx, ctr.SubscriberAC(), ctr.HandlerAC())
+
+	// Topic: auth.verification.requested
+	go func(ctx context.Context, s *subscriber.Subscriber, h handlers.Handler) {
+		defer wg.Done()
+		if err := s.Listen(ctx, h); err != nil {
+			log.Println("[WARN]:", err)
+		}
+	}(ctx, ctr.SubscriberAVR(), ctr.HandlerAVR())
 
 	// Graceful Shutdown
 	quit := make(chan os.Signal, 1)
