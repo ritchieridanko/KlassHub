@@ -8,12 +8,14 @@ import (
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils/ce"
 	"github.com/ritchieridanko/klasshub/shared/contract/apis/v1"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type AuthClient interface {
 	Login(ctx context.Context, req *models.LoginReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	Logout(ctx context.Context, refreshToken string) (err *ce.Error)
 	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	ResendVerification(ctx context.Context) (email string, err *ce.Error)
 	VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	IsEmailAvailable(ctx context.Context, email string) (available bool, err *ce.Error)
 }
@@ -77,6 +79,18 @@ func (c *authClient) CreateSchoolAuth(ctx context.Context, req *models.CreateSch
 		)
 	}
 	return c.toAuth(resp.GetAuth()), c.toAuthToken(resp.GetAuthToken()), nil
+}
+
+func (c *authClient) ResendVerification(ctx context.Context) (string, *ce.Error) {
+	resp, err := c.client.ResendVerification(ctx, &emptypb.Empty{})
+	if err != nil {
+		return "", ce.FromGRPCErr(
+			err,
+		).Append(
+			logger.NewField("service", "auth"),
+		)
+	}
+	return resp.GetEmail(), nil
 }
 
 func (c *authClient) VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (*models.Auth, *models.AuthToken, *ce.Error) {

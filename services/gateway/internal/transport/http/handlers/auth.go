@@ -187,6 +187,51 @@ func (h *AuthHandler) CreateSchoolAuth(ctx *gin.Context) {
 	)
 }
 
+func (h *AuthHandler) ResendVerification(ctx *gin.Context) {
+	authCtx := utils.CtxAuth(ctx.Request.Context())
+	if authCtx == nil {
+		ce.NewError(
+			ce.CodeMissingContextValue,
+			ce.MsgInternalServer,
+			errors.New("auth missing from context"),
+		).Bind(
+			ctx,
+		)
+		return
+	}
+
+	email, err := h.ac.ResendVerification(
+		metadata.ToOutgoingCtx(
+			ctx.Request.Context(),
+			metadata.NewPair(
+				constants.MDKeyAuthID,
+				strconv.FormatInt(authCtx.AuthID, 10),
+			),
+			metadata.NewPair(
+				constants.MDKeySchoolID,
+				strconv.FormatInt(authCtx.SchoolID, 10),
+			),
+			metadata.NewPair(
+				constants.MDKeyRole,
+				authCtx.Role,
+			),
+		),
+	)
+	if err != nil {
+		err.Bind(ctx)
+		return
+	}
+
+	utils.SetResponse(
+		ctx,
+		http.StatusOK,
+		"Verification resent successfully",
+		dtos.ResendVerificationResponse{
+			Email: email,
+		},
+	)
+}
+
 func (h *AuthHandler) VerifyEmail(ctx *gin.Context) {
 	var params dtos.VerifyEmailRequest
 	if err := ctx.ShouldBindQuery(&params); err != nil {

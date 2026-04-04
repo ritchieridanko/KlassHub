@@ -51,16 +51,32 @@ func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, ah 
 			email.GET("/available", ah.IsEmailAvailable)
 
 			// Email Verification
-			email.POST(
-				"/verification/confirm",
-				middlewares.Auth(j),
-				middlewares.Authz(
-					false,
-					[]string{constants.SubdomainAdmin},
-					constants.RoleSchool,
-				),
-				ah.VerifyEmail,
-			)
+			verification := email.Group("/verification")
+			{
+				// Resend
+				verification.POST(
+					"/resend",
+					middlewares.Auth(j),
+					middlewares.Authz(
+						false,
+						[]string{constants.SubdomainAdmin},
+						constants.RoleSchool,
+					),
+					ah.ResendVerification,
+				)
+
+				// Confirm
+				verification.POST(
+					"/confirm",
+					middlewares.Auth(j),
+					middlewares.Authz(
+						false,
+						[]string{constants.SubdomainAdmin},
+						constants.RoleSchool,
+					),
+					ah.VerifyEmail,
+				)
+			}
 		}
 	}
 

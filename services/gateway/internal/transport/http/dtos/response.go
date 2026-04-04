@@ -31,6 +31,10 @@ type LoginResponse struct {
 	AccessToken *AccessToken `json:"access_token,omitempty"`
 }
 
+type ResendVerificationResponse struct {
+	Email string `json:"email"`
+}
+
 type VerifyEmailResponse struct {
 	Auth        *Auth        `json:"auth,omitempty"`
 	AccessToken *AccessToken `json:"access_token,omitempty"`
