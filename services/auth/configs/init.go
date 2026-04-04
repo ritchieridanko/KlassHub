@@ -89,11 +89,17 @@ type Broker struct {
 	Brokers string `mapstructure:"brokers"`
 
 	Publisher struct {
-		AuthCreated struct {
+		AC struct {
 			Name         string        `mapstructure:"name"`
 			BatchSize    int           `mapstructure:"batch_size"`
 			BatchTimeout time.Duration `mapstructure:"batch_timeout"`
 		} `mapstructure:"auth_created"`
+
+		AVR struct {
+			Name         string        `mapstructure:"name"`
+			BatchSize    int           `mapstructure:"batch_size"`
+			BatchTimeout time.Duration `mapstructure:"batch_timeout"`
+		} `mapstructure:"auth_verification_requested"`
 	} `mapstructure:"publisher"`
 }
 
@@ -142,7 +148,8 @@ func Init(path string) (*Config, error) {
 		cfg.Database.SSLMode,
 	)
 
-	constants.EventTopicAC = cfg.Broker.Publisher.AuthCreated.Name
+	constants.EventTopicAC = cfg.Broker.Publisher.AC.Name
+	constants.EventTopicAVR = cfg.Broker.Publisher.AVR.Name
 
 	return &cfg, nil
 }

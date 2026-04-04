@@ -65,7 +65,7 @@ func (e *Error) ToGRPCStatus() error {
 		return status.Error(codes.NotFound, e.message)
 	case CodeEmailNotAvailable:
 		return status.Error(codes.AlreadyExists, e.message)
-	case CodeAuthNotVerified:
+	case CodeAuthAlreadyVerified, CodeAuthNotVerified, CodeEmailNotRegistered:
 		return status.Error(codes.FailedPrecondition, e.message)
 	case CodeBCryptHashingFailed, CodeCacheCommandExec, CodeCacheScriptExec,
 		CodeDBQueryExec, CodeDBTransaction, CodeEventPublishingFailed, CodeInternal,

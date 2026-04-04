@@ -7,6 +7,7 @@ done
 
 TOPICS=(
   "auth.created"
+  "auth.verification.requested"
 )
 
 # Create Kafka topics

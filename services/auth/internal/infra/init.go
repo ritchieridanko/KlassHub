@@ -23,6 +23,7 @@ type Infra struct {
 	logger   *zap.Logger
 	tracer   *tracer.Tracer
 	acp      *kafka.Writer
+	avrp     *kafka.Writer
 }
 
 func Init(cfg *configs.Config) (*Infra, error) {
@@ -49,12 +50,22 @@ func Init(cfg *configs.Config) (*Infra, error) {
 	// Publishers
 	acp := publisher.Init(
 		cfg.Broker.Brokers,
-		cfg.Broker.Publisher.AuthCreated.Name,
+		cfg.Broker.Publisher.AC.Name,
 		&kafka.Murmur2Balancer{
 			Consistent: true,
 		},
-		cfg.Broker.Publisher.AuthCreated.BatchSize,
-		cfg.Broker.Publisher.AuthCreated.BatchTimeout,
+		cfg.Broker.Publisher.AC.BatchSize,
+		cfg.Broker.Publisher.AC.BatchTimeout,
+		l,
+	)
+	avrp := publisher.Init(
+		cfg.Broker.Brokers,
+		cfg.Broker.Publisher.AVR.Name,
+		&kafka.Murmur2Balancer{
+			Consistent: true,
+		},
+		cfg.Broker.Publisher.AVR.BatchSize,
+		cfg.Broker.Publisher.AVR.BatchTimeout,
 		l,
 	)
 
@@ -65,6 +76,7 @@ func Init(cfg *configs.Config) (*Infra, error) {
 		logger:   l,
 		tracer:   t,
 		acp:      acp,
+		avrp:     avrp,
 	}, nil
 }
 
@@ -84,6 +96,10 @@ func (i *Infra) PublisherAC() *kafka.Writer {
 	return i.acp
 }
 
+func (i *Infra) PublisherAVR() *kafka.Writer {
+	return i.avrp
+}
+
 func (i *Infra) Close() error {
 	if err := i.cache.Close(); err != nil {
 		return fmt.Errorf("failed to close cache: %w", err)
@@ -96,6 +112,9 @@ func (i *Infra) Close() error {
 	}
 	if err := i.acp.Close(); err != nil {
 		return fmt.Errorf("failed to close publisher (topic: %s): %w", constants.EventTopicAC, err)
+	}
+	if err := i.avrp.Close(); err != nil {
+		return fmt.Errorf("failed to close publisher (topic: %s): %w", constants.EventTopicAVR, err)
 	}
 
 	i.database.Close()

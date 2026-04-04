@@ -13,6 +13,7 @@ import (
 
 type AuthDatabase interface {
 	Create(ctx context.Context, data *models.CreateAuthData) (a *models.Auth, err *ce.Error)
+	GetByID(ctx context.Context, authID int64) (a *models.Auth, err *ce.Error)
 	GetByIdentifier(ctx context.Context, identifier string) (a *models.Auth, err *ce.Error)
 	SetVerified(ctx context.Context, authID int64) (a *models.Auth, err *ce.Error)
 	IsEmailRegistered(ctx context.Context, email string) (exists bool, err *ce.Error)
@@ -56,6 +57,53 @@ func (d *authDatabase) Create(ctx context.Context, data *models.CreateAuthData) 
 			fmt.Errorf("failed to create auth: %w", err),
 			logger.NewField("school_id", data.SchoolID),
 			logger.NewField("role", data.Role),
+		)
+	}
+
+	return &a, nil
+}
+
+func (d *authDatabase) GetByID(ctx context.Context, authID int64) (*models.Auth, *ce.Error) {
+	query := `
+		SELECT
+			id, school_id, email, username,
+			role, verified_at, password_changed_at
+		FROM
+			auth
+		WHERE
+			id = $1
+			AND deleted_at IS NULL
+	`
+	if d.database.WithinTx(ctx) {
+		query += " FOR UPDATE"
+	}
+
+	var a models.Auth
+	err := d.database.Query(
+		ctx, query,
+		authID,
+	).Scan(
+		&a.ID, &a.SchoolID, &a.Email,
+		&a.Username, &a.Role, &a.VerifiedAt,
+		&a.PasswordChangedAt,
+	)
+	if err != nil {
+		wrappedErr := fmt.Errorf("failed to get auth by id: %w", err)
+		authIDField := logger.NewField("auth_id", authID)
+
+		if errors.Is(err, ce.ErrDBQueryNoRows) {
+			return nil, ce.NewError(
+				ce.CodeAuthNotFound,
+				ce.MsgAuthNotFound,
+				wrappedErr,
+				authIDField,
+			)
+		}
+		return nil, ce.NewError(
+			ce.CodeDBQueryExec,
+			ce.MsgInternalServer,
+			wrappedErr,
+			authIDField,
 		)
 	}
 

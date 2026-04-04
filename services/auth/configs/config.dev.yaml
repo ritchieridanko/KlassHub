@@ -51,6 +51,10 @@ broker:
       name: "auth.created"
       batch_size: 1
       batch_timeout: "5ms"
+    auth_verification_requested:
+      name: "auth.verification.requested"
+      batch_size: 1
+      batch_timeout: "5ms"
 
 tracer:
   host: "localhost"

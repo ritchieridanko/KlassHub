@@ -60,6 +60,16 @@ func (h *AuthHandler) CreateSchoolAuth(ctx context.Context, req *apis.CreateScho
 	}, nil
 }
 
+func (h *AuthHandler) ResendVerification(ctx context.Context, req *emptypb.Empty) (*apis.ResendVerificationResponse, error) {
+	email, err := h.au.ResendVerification(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &apis.ResendVerificationResponse{
+		Email: email,
+	}, nil
+}
+
 func (h *AuthHandler) VerifyEmail(ctx context.Context, req *apis.VerifyEmailRequest) (*apis.VerifyEmailResponse, error) {
 	a, at, err := h.au.VerifyEmail(
 		ctx,

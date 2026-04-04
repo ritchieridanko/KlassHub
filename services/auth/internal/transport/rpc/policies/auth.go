@@ -70,6 +70,17 @@ var AuthPolicies map[string]AuthPolicy = map[string]AuthPolicy{
 			constants.SubdomainAdmin: {},
 		},
 	},
+	"/auth.v1.AuthService/ResendVerification": AuthPolicy{
+		requireAuth:         true,
+		requireSchool:       true,
+		requireVerification: false,
+		roles: map[string]struct{}{
+			constants.RoleSchool: {},
+		},
+		subdomains: map[string]struct{}{
+			constants.SubdomainAdmin: {},
+		},
+	},
 	"/auth.v1.AuthService/VerifyEmail": AuthPolicy{
 		requireAuth:         true,
 		requireSchool:       true,

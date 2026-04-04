@@ -27,6 +27,7 @@ type AuthUsecase interface {
 	Login(ctx context.Context, req *models.LoginReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	Logout(ctx context.Context, refreshToken string) (err *ce.Error)
 	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	ResendVerification(ctx context.Context) (email string, err *ce.Error)
 	VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	IsEmailAvailable(ctx context.Context, email string) (available bool, err *ce.Error)
 }
@@ -39,12 +40,13 @@ type authUsecase struct {
 	tr                      repositories.TokenRepository
 	transactor              *database.Transactor
 	acp                     *publisher.Publisher
+	avrp                    *publisher.Publisher
 	validator               *validator.Validator
 	bcrypt                  *bcrypt.BCrypt
 	logger                  *logger.Logger
 }
 
-func NewAuthUsecase(appName string, verificationTokenExpiry time.Duration, su SessionUsecase, ar repositories.AuthRepository, tr repositories.TokenRepository, tx *database.Transactor, acp *publisher.Publisher, v *validator.Validator, b *bcrypt.BCrypt, l *logger.Logger) AuthUsecase {
+func NewAuthUsecase(appName string, verificationTokenExpiry time.Duration, su SessionUsecase, ar repositories.AuthRepository, tr repositories.TokenRepository, tx *database.Transactor, acp, avrp *publisher.Publisher, v *validator.Validator, b *bcrypt.BCrypt, l *logger.Logger) AuthUsecase {
 	return &authUsecase{
 		appName:                 appName,
 		verificationTokenExpiry: verificationTokenExpiry,
@@ -53,6 +55,7 @@ func NewAuthUsecase(appName string, verificationTokenExpiry time.Duration, su Se
 		tr:                      tr,
 		transactor:              tx,
 		acp:                     acp,
+		avrp:                    avrp,
 		validator:               v,
 		bcrypt:                  b,
 		logger:                  l,
@@ -245,6 +248,8 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 		return a, at, nil
 	}
 
+	eventTopicField := logger.NewField("event_topic", constants.EventTopicAC)
+
 	// Event Publishing
 	// NOTE: Fail to publish event does not fail create school auth process
 	pubErr := u.acp.Publish(
@@ -263,7 +268,7 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 			"created school auth. failed to publish event",
 			authIDField,
 			roleField,
-			logger.NewField("event_topic", constants.EventTopicAC),
+			eventTopicField,
 			logger.NewField("error_code", ce.CodeEventPublishingFailed),
 			logger.NewField("error", pubErr),
 		)
@@ -275,10 +280,116 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 		"EVENT PUBLISHED",
 		authIDField,
 		roleField,
-		logger.NewField("event_topic", constants.EventTopicAC),
+		eventTopicField,
 	)
 
 	return a, at, nil
+}
+
+func (u *authUsecase) ResendVerification(ctx context.Context) (string, *ce.Error) {
+	ctx, span := otel.Tracer(u.appName).Start(ctx, "auth.usecase.ResendVerification")
+	defer span.End()
+
+	authCtx := utils.CtxAuth(ctx)
+	if authCtx == nil {
+		return "", ce.NewError(
+			ce.CodeMissingContextValue,
+			ce.MsgInternalServer,
+			errors.New("failed to resend verification: auth missing from context"),
+		)
+	}
+
+	authIDField := logger.NewField("auth_id", authCtx.AuthID)
+	schoolIDField := logger.NewField("school_id", authCtx.SchoolID)
+	roleField := logger.NewField("role", authCtx.Role)
+
+	// Auth Fetching
+	// NOTE: Resend verification is only allowed if not yet verified
+	a, err := u.ar.GetByID(ctx, authCtx.AuthID)
+	if err != nil && err.Code() == ce.CodeAuthNotFound {
+		return "", ce.NewError(
+			ce.CodeAuthNotRegistered,
+			ce.MsgInvalidCredentials,
+			err.Unwrap(),
+			err.Append(
+				schoolIDField,
+				roleField,
+			).Fields()...,
+		)
+	}
+	if err != nil {
+		return "", err.Append(schoolIDField, roleField)
+	}
+	if a.IsVerified() {
+		return "", ce.NewError(
+			ce.CodeAuthAlreadyVerified,
+			ce.MsgAuthAlreadyVerified,
+			nil,
+			authIDField,
+			schoolIDField,
+			roleField,
+		)
+	}
+	if a.Email == nil {
+		return "", ce.NewError(
+			ce.CodeEmailNotRegistered,
+			ce.MsgEmailNotRegistered,
+			nil,
+			authIDField,
+			schoolIDField,
+			roleField,
+		)
+	}
+
+	// Verification Token Creation
+	token := utils.GenerateUUID()
+	err = u.tr.CreateVerification(
+		ctx,
+		&models.CreateVerificationTokenData{
+			AuthID:   a.ID,
+			Token:    token.String(),
+			Duration: u.verificationTokenExpiry,
+		},
+	)
+	if err != nil {
+		return "", err.Append(schoolIDField, roleField)
+	}
+
+	eventTopicField := logger.NewField("event_topic", constants.EventTopicAVR)
+
+	// Event Publishing
+	pubErr := u.avrp.Publish(
+		ctx,
+		"auth_"+strconv.FormatInt(a.ID, 10),
+		&events.AuthVerificationRequested{
+			EventId:           utils.GenerateUUID().String(),
+			Email:             *a.Email,
+			VerificationToken: token.String(),
+			CreatedAt:         timestamppb.New(time.Now().UTC()),
+		},
+	)
+	if pubErr != nil {
+		return "", ce.NewError(
+			ce.CodeEventPublishingFailed,
+			ce.MsgInternalServer,
+			fmt.Errorf("failed to resend verification: %w", pubErr),
+			authIDField,
+			schoolIDField,
+			roleField,
+			eventTopicField,
+		)
+	}
+
+	u.logger.Info(
+		ctx,
+		"EVENT PUBLISHED",
+		authIDField,
+		schoolIDField,
+		roleField,
+		eventTopicField,
+	)
+
+	return *a.Email, nil
 }
 
 func (u *authUsecase) VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (*models.Auth, *models.AuthToken, *ce.Error) {

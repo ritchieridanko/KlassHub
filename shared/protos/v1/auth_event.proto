@@ -12,3 +12,10 @@ message AuthCreated {
   string verification_token = 3;
   google.protobuf.Timestamp created_at = 4;
 }
+
+message AuthVerificationRequested {
+  string event_id = 1;
+  string email = 2;
+  string verification_token = 3;
+  google.protobuf.Timestamp created_at = 4;
+}

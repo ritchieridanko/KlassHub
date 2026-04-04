@@ -11,6 +11,7 @@ service AuthService {
   rpc Login (LoginRequest) returns (LoginResponse);
   rpc Logout (LogoutRequest) returns (google.protobuf.Empty);
   rpc CreateSchoolAuth (CreateSchoolAuthRequest) returns (CreateSchoolAuthResponse);
+  rpc ResendVerification (google.protobuf.Empty) returns (ResendVerificationResponse);
   rpc VerifyEmail (VerifyEmailRequest) returns (VerifyEmailResponse);
   rpc IsEmailAvailable (EmailAvailabilityCheckRequest) returns (EmailAvailabilityCheckResponse);
 }
@@ -61,6 +62,10 @@ message CreateSchoolAuthRequest {
 message CreateSchoolAuthResponse {
   Auth auth = 1;
   AuthToken auth_token = 2;
+}
+
+message ResendVerificationResponse {
+  string email = 1;
 }
 
 message VerifyEmailRequest {

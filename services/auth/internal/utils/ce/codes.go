@@ -17,6 +17,7 @@ var (
 
 // Internal Error Codes
 const (
+	CodeAuthAlreadyVerified     errCode = "ERR_AUTH_ALREADY_VERIFIED"
 	CodeAuthNotFound            errCode = "ERR_AUTH_NOT_FOUND"
 	CodeAuthNotRegistered       errCode = "ERR_AUTH_NOT_REGISTERED"
 	CodeAuthNotVerified         errCode = "ERR_AUTH_NOT_VERIFIED"
@@ -26,6 +27,7 @@ const (
 	CodeDBQueryExec             errCode = "ERR_DB_QUERY_EXECUTION"
 	CodeDBTransaction           errCode = "ERR_DB_TRANSACTION"
 	CodeEmailNotAvailable       errCode = "ERR_EMAIL_NOT_AVAILABLE"
+	CodeEmailNotRegistered      errCode = "ERR_EMAIL_NOT_REGISTERED"
 	CodeEventPublishingFailed   errCode = "ERR_EVENT_PUBLISHING_FAILED"
 	CodeIdentifierNotRegistered errCode = "ERR_IDENTIFIER_NOT_REGISTERED"
 	CodeInternal                errCode = "ERR_INTERNAL"
@@ -49,14 +51,16 @@ const (
 
 // External Error Messages
 const (
-	MsgAuthNotFound       string = "Auth not found"
-	MsgAuthNotVerified    string = "Require account verification"
-	MsgEmailNotAvailable  string = "Email is already registered"
-	MsgInternalServer     string = "Internal server error"
-	MsgInvalidCredentials string = "Invalid credentials"
-	MsgInvalidSession     string = "Invalid session"
-	MsgInvalidToken       string = "Invalid token"
-	MsgSessionNotFound    string = "Session not found"
-	MsgUnauthenticated    string = "Unauthenticated"
-	MsgUnauthorized       string = "Unauthorized"
+	MsgAuthAlreadyVerified string = "Account is already verified"
+	MsgAuthNotFound        string = "Auth not found"
+	MsgAuthNotVerified     string = "Require account verification"
+	MsgEmailNotAvailable   string = "Email is already registered"
+	MsgEmailNotRegistered  string = "Email is not registered"
+	MsgInternalServer      string = "Internal server error"
+	MsgInvalidCredentials  string = "Invalid credentials"
+	MsgInvalidSession      string = "Invalid session"
+	MsgInvalidToken        string = "Invalid token"
+	MsgSessionNotFound     string = "Session not found"
+	MsgUnauthenticated     string = "Unauthenticated"
+	MsgUnauthorized        string = "Unauthorized"
 )

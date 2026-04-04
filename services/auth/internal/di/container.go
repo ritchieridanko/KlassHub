@@ -31,7 +31,8 @@ type Container struct {
 	acc caches.AuthCache
 	tcc caches.TokenCache
 
-	acp *publisher.Publisher
+	acp  *publisher.Publisher
+	avrp *publisher.Publisher
 
 	ar repositories.AuthRepository
 	sr repositories.SessionRepository
@@ -65,6 +66,7 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 
 	// Publishers
 	acp := publisher.NewPublisher(inf.PublisherAC())
+	avrp := publisher.NewPublisher(inf.PublisherAVR())
 
 	// Repositories
 	ar := repositories.NewAuthRepository(adb, acc)
@@ -78,7 +80,7 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 
 	// Usecases
 	su := usecases.NewSessionUsecase(cfg.App.Name, cfg.Auth.JWT.Duration, cfg.Auth.Duration.Session, sr, tx, v, j)
-	au := usecases.NewAuthUsecase(cfg.App.Name, cfg.Auth.Duration.Verification, su, ar, tr, tx, acp, v, b, l)
+	au := usecases.NewAuthUsecase(cfg.App.Name, cfg.Auth.Duration.Verification, su, ar, tr, tx, acp, avrp, v, b, l)
 
 	// Handlers
 	ah := handlers.NewAuthHandler(au)
@@ -97,6 +99,7 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 		acc:        acc,
 		tcc:        tcc,
 		acp:        acp,
+		avrp:       avrp,
 		ar:         ar,
 		sr:         sr,
 		tr:         tr,

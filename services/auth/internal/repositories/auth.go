@@ -11,6 +11,7 @@ import (
 
 type AuthRepository interface {
 	Create(ctx context.Context, data *models.CreateAuthData) (a *models.Auth, err *ce.Error)
+	GetByID(ctx context.Context, authID int64) (a *models.Auth, err *ce.Error)
 	GetByIdentifier(ctx context.Context, identifier string) (a *models.Auth, err *ce.Error)
 	SetVerified(ctx context.Context, authID int64) (a *models.Auth, err *ce.Error)
 	IsEmailAvailable(ctx context.Context, email string) (available bool, err *ce.Error)
@@ -27,6 +28,10 @@ func NewAuthRepository(db databases.AuthDatabase, cc caches.AuthCache) AuthRepos
 
 func (r *authRepository) Create(ctx context.Context, data *models.CreateAuthData) (*models.Auth, *ce.Error) {
 	return r.database.Create(ctx, data)
+}
+
+func (r *authRepository) GetByID(ctx context.Context, authID int64) (*models.Auth, *ce.Error) {
+	return r.database.GetByID(ctx, authID)
 }
 
 func (r *authRepository) GetByIdentifier(ctx context.Context, identifier string) (*models.Auth, *ce.Error) {
