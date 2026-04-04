@@ -3,7 +3,6 @@ package usecases
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -27,6 +26,7 @@ type AuthUsecase interface {
 	Login(ctx context.Context, req *models.LoginReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	Logout(ctx context.Context, refreshToken string) (err *ce.Error)
 	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	ChangePassword(ctx context.Context, req *models.ChangePasswordReq) (a *models.Auth, err *ce.Error)
 	ResendVerification(ctx context.Context) (email string, err *ce.Error)
 	VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	IsEmailAvailable(ctx context.Context, email string) (available bool, err *ce.Error)
@@ -100,6 +100,7 @@ func (u *authUsecase) Login(ctx context.Context, req *models.LoginReq) (*models.
 			err,
 			authIDField,
 			schoolIDField,
+			roleField,
 		)
 	}
 
@@ -188,18 +189,12 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 		)
 		return err
 	})
-	if err != nil && err.Code() == ce.CodeDBTransaction {
-		return nil, nil, ce.NewError(
-			err.Code(),
-			err.Message(),
-			fmt.Errorf("failed to create school auth: %w", err.Unwrap()),
-		)
-	}
 	if err != nil {
 		return nil, nil, err
 	}
 
 	authIDField := logger.NewField("auth_id", a.ID)
+	schoolIDField := logger.NewField("school_id", a.SchoolID)
 	roleField := logger.NewField("role", a.Role)
 
 	// Session Creation
@@ -240,6 +235,7 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 			ctx,
 			"created school auth. failed to create verification token",
 			err.Append(
+				schoolIDField,
 				roleField,
 				logger.NewField("error_code", err.Code()),
 				logger.NewField("error", err.Unwrap()),
@@ -267,6 +263,7 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 			ctx,
 			"created school auth. failed to publish event",
 			authIDField,
+			schoolIDField,
 			roleField,
 			eventTopicField,
 			logger.NewField("error_code", ce.CodeEventPublishingFailed),
@@ -279,11 +276,106 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 		ctx,
 		"EVENT PUBLISHED",
 		authIDField,
+		schoolIDField,
 		roleField,
 		eventTopicField,
 	)
 
 	return a, at, nil
+}
+
+func (u *authUsecase) ChangePassword(ctx context.Context, req *models.ChangePasswordReq) (*models.Auth, *ce.Error) {
+	ctx, span := otel.Tracer(u.appName).Start(ctx, "auth.usecase.ChangePassword")
+	defer span.End()
+
+	authCtx := utils.CtxAuth(ctx)
+	if authCtx == nil {
+		return nil, ce.NewError(
+			ce.CodeMissingContextValue,
+			ce.MsgInternalServer,
+			errors.New("auth missing from context"),
+		)
+	}
+
+	authIDField := logger.NewField("auth_id", authCtx.AuthID)
+	schoolIDField := logger.NewField("school_id", authCtx.SchoolID)
+	roleField := logger.NewField("role", authCtx.Role)
+
+	// Data Validation
+	if ok, why := u.validator.Password(req.NewPassword); !ok {
+		return nil, ce.NewError(
+			ce.CodeInvalidPayload,
+			why,
+			nil,
+			authIDField,
+			schoolIDField,
+			roleField,
+		)
+	}
+
+	var a *models.Auth
+	err := u.transactor.WithTx(ctx, func(ctx context.Context) *ce.Error {
+		// Auth Fetching
+		auth, err := u.ar.GetByID(ctx, authCtx.AuthID)
+		if err != nil && err.Code() == ce.CodeAuthNotFound {
+			return ce.NewError(
+				ce.CodeAuthNotRegistered,
+				ce.MsgInvalidCredentials,
+				err.Unwrap(),
+				err.Append(
+					schoolIDField,
+					roleField,
+				).Fields()...,
+			)
+		}
+		if err != nil {
+			return err.Append(schoolIDField, roleField)
+		}
+
+		// Old Password Validation
+		if err := u.bcrypt.Validate(auth.Password, req.OldPassword); err != nil {
+			return ce.NewError(
+				ce.CodeWrongPassword,
+				ce.MsgInvalidCredentials,
+				err,
+				authIDField,
+				schoolIDField,
+				roleField,
+			)
+		}
+
+		// New Password Hashing
+		hash, hashErr := u.bcrypt.Hash(req.NewPassword)
+		if hashErr != nil {
+			return ce.NewError(
+				ce.CodeBCryptHashingFailed,
+				ce.MsgInternalServer,
+				hashErr,
+				authIDField,
+				schoolIDField,
+				roleField,
+			)
+		}
+
+		// Password Update
+		a, err = u.ar.UpdatePassword(ctx, auth.ID, hash)
+		if err != nil {
+			return err.Append(schoolIDField, roleField)
+		}
+		return nil
+	})
+	if err != nil && err.Code() == ce.CodeDBTransaction {
+		return nil, ce.NewError(
+			err.Code(),
+			err.Message(),
+			err.Unwrap(),
+			authIDField,
+			schoolIDField,
+			roleField,
+		)
+	}
+
+	return a, err
 }
 
 func (u *authUsecase) ResendVerification(ctx context.Context) (string, *ce.Error) {
@@ -295,7 +387,7 @@ func (u *authUsecase) ResendVerification(ctx context.Context) (string, *ce.Error
 		return "", ce.NewError(
 			ce.CodeMissingContextValue,
 			ce.MsgInternalServer,
-			errors.New("failed to resend verification: auth missing from context"),
+			errors.New("auth missing from context"),
 		)
 	}
 
@@ -372,7 +464,7 @@ func (u *authUsecase) ResendVerification(ctx context.Context) (string, *ce.Error
 		return "", ce.NewError(
 			ce.CodeEventPublishingFailed,
 			ce.MsgInternalServer,
-			fmt.Errorf("failed to resend verification: %w", pubErr),
+			pubErr,
 			authIDField,
 			schoolIDField,
 			roleField,
@@ -401,7 +493,7 @@ func (u *authUsecase) VerifyEmail(ctx context.Context, req *models.VerifyEmailRe
 		return nil, nil, ce.NewError(
 			ce.CodeMissingContextValue,
 			ce.MsgInternalServer,
-			errors.New("failed to verify email: auth missing from context"),
+			errors.New("auth missing from context"),
 		)
 	}
 
@@ -428,7 +520,7 @@ func (u *authUsecase) VerifyEmail(ctx context.Context, req *models.VerifyEmailRe
 		return nil, nil, ce.NewError(
 			ce.CodeUnauthenticated,
 			ce.MsgUnauthenticated,
-			errors.New("failed to verify email: refresh token is empty"),
+			errors.New("refresh token is empty"),
 			authIDField,
 			schoolIDField,
 			roleField,

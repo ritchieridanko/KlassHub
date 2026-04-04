@@ -47,8 +47,8 @@ var AuthPolicies map[string]AuthPolicy = map[string]AuthPolicy{
 		requireVerification: false,
 		roles:               map[string]struct{}{},
 		subdomains: map[string]struct{}{
-			constants.SubdomainLMS:   {},
 			constants.SubdomainAdmin: {},
+			constants.SubdomainLMS:   {},
 		},
 	},
 	"/auth.v1.AuthService/Logout": AuthPolicy{
@@ -57,8 +57,8 @@ var AuthPolicies map[string]AuthPolicy = map[string]AuthPolicy{
 		requireVerification: false,
 		roles:               map[string]struct{}{},
 		subdomains: map[string]struct{}{
-			constants.SubdomainLMS:   {},
 			constants.SubdomainAdmin: {},
+			constants.SubdomainLMS:   {},
 		},
 	},
 	"/auth.v1.AuthService/CreateSchoolAuth": AuthPolicy{
@@ -68,6 +68,21 @@ var AuthPolicies map[string]AuthPolicy = map[string]AuthPolicy{
 		roles:               map[string]struct{}{},
 		subdomains: map[string]struct{}{
 			constants.SubdomainAdmin: {},
+		},
+	},
+	"/auth.v1.AuthService/ChangePassword": AuthPolicy{
+		requireAuth:         true,
+		requireSchool:       true,
+		requireVerification: true,
+		roles: map[string]struct{}{
+			constants.RoleAdministrator: {},
+			constants.RoleInstructor:    {},
+			constants.RoleSchool:        {},
+			constants.RoleStudent:       {},
+		},
+		subdomains: map[string]struct{}{
+			constants.SubdomainAdmin: {},
+			constants.SubdomainLMS:   {},
 		},
 	},
 	"/auth.v1.AuthService/ResendVerification": AuthPolicy{

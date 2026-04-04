@@ -1,5 +1,10 @@
 package models
 
+type ChangePasswordReq struct {
+	OldPassword string
+	NewPassword string
+}
+
 type CreateSchoolAuthReq struct {
 	Email    string
 	Password string

@@ -3,7 +3,6 @@ package usecases
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/database"
@@ -77,7 +76,7 @@ func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSe
 			return ce.NewError(
 				ce.CodeMissingContextValue,
 				ce.MsgInternalServer,
-				errors.New("failed to create session: transport missing from context"),
+				errors.New("transport missing from context"),
 				authIDField,
 				schoolIDField,
 				roleField,
@@ -119,7 +118,7 @@ func (u *sessionUsecase) CreateSession(ctx context.Context, req *models.CreateSe
 		return nil, ce.NewError(
 			txErr.Code(),
 			txErr.Message(),
-			fmt.Errorf("failed to create session: %w", txErr.Unwrap()),
+			txErr.Unwrap(),
 			authIDField,
 			schoolIDField,
 			roleField,
@@ -215,7 +214,7 @@ func (u *sessionUsecase) RefreshSession(ctx context.Context, req *models.Refresh
 		return nil, ce.NewError(
 			txErr.Code(),
 			txErr.Message(),
-			fmt.Errorf("failed to refresh session: %w", txErr.Unwrap()),
+			txErr.Unwrap(),
 			authIDField,
 			schoolIDField,
 			roleField,

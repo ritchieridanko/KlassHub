@@ -60,6 +60,22 @@ func (h *AuthHandler) CreateSchoolAuth(ctx context.Context, req *apis.CreateScho
 	}, nil
 }
 
+func (h *AuthHandler) ChangePassword(ctx context.Context, req *apis.ChangePasswordRequest) (*apis.ChangePasswordResponse, error) {
+	a, err := h.au.ChangePassword(
+		ctx,
+		&models.ChangePasswordReq{
+			OldPassword: req.GetOldPassword(),
+			NewPassword: req.GetNewPassword(),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &apis.ChangePasswordResponse{
+		Auth: h.toAuth(a),
+	}, nil
+}
+
 func (h *AuthHandler) ResendVerification(ctx context.Context, req *emptypb.Empty) (*apis.ResendVerificationResponse, error) {
 	email, err := h.au.ResendVerification(ctx)
 	if err != nil {
