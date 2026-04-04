@@ -45,12 +45,13 @@ func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, ah 
 		auth.POST("/logout", middlewares.Auth(j), ah.Logout)
 		auth.POST("/register", ah.CreateSchoolAuth)
 
+		// Emails
 		email := auth.Group("/email")
 		{
-			// Email Availability
+			// Availability
 			email.GET("/available", ah.IsEmailAvailable)
 
-			// Email Verification
+			// Verifications
 			verification := email.Group("/verification")
 			{
 				// Resend
@@ -60,7 +61,7 @@ func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, ah 
 					middlewares.Authz(
 						false,
 						[]string{constants.SubdomainAdmin},
-						constants.RoleSchool,
+						[]string{constants.RoleSchool},
 					),
 					ah.ResendVerification,
 				)
@@ -72,11 +73,27 @@ func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, ah 
 					middlewares.Authz(
 						false,
 						[]string{constants.SubdomainAdmin},
-						constants.RoleSchool,
+						[]string{constants.RoleSchool},
 					),
 					ah.VerifyEmail,
 				)
 			}
+		}
+
+		// Passwords
+		password := auth.Group("/password")
+		{
+			// Change
+			password.PATCH(
+				"",
+				middlewares.Auth(j),
+				middlewares.Authz(
+					true,
+					constants.AllSubdomains,
+					constants.AllRoles,
+				),
+				ah.ChangePassword,
+			)
 		}
 	}
 

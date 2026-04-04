@@ -15,6 +15,7 @@ type AuthClient interface {
 	Login(ctx context.Context, req *models.LoginReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	Logout(ctx context.Context, refreshToken string) (err *ce.Error)
 	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	ChangePassword(ctx context.Context, req *models.ChangePasswordReq) (a *models.Auth, err *ce.Error)
 	ResendVerification(ctx context.Context) (email string, err *ce.Error)
 	VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	IsEmailAvailable(ctx context.Context, email string) (available bool, err *ce.Error)
@@ -79,6 +80,24 @@ func (c *authClient) CreateSchoolAuth(ctx context.Context, req *models.CreateSch
 		)
 	}
 	return c.toAuth(resp.GetAuth()), c.toAuthToken(resp.GetAuthToken()), nil
+}
+
+func (c *authClient) ChangePassword(ctx context.Context, req *models.ChangePasswordReq) (*models.Auth, *ce.Error) {
+	resp, err := c.client.ChangePassword(
+		ctx,
+		&apis.ChangePasswordRequest{
+			OldPassword: req.OldPassword,
+			NewPassword: req.NewPassword,
+		},
+	)
+	if err != nil {
+		return nil, ce.FromGRPCErr(
+			err,
+		).Append(
+			logger.NewField("service", "auth"),
+		)
+	}
+	return c.toAuth(resp.GetAuth()), nil
 }
 
 func (c *authClient) ResendVerification(ctx context.Context) (string, *ce.Error) {

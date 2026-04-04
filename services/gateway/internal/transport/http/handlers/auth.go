@@ -3,7 +3,6 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -124,10 +123,7 @@ func (h *AuthHandler) Logout(ctx *gin.Context) {
 	logoutErr := h.ac.Logout(
 		metadata.ToOutgoingCtx(
 			ctx.Request.Context(),
-			metadata.NewPair(
-				constants.MDKeyAuthID,
-				strconv.FormatInt(authCtx.AuthID, 10),
-			),
+			metadata.Auth(authCtx, true, false, false, false)...,
 		),
 		refreshToken,
 	)
@@ -187,6 +183,50 @@ func (h *AuthHandler) CreateSchoolAuth(ctx *gin.Context) {
 	)
 }
 
+func (h *AuthHandler) ChangePassword(ctx *gin.Context) {
+	var payload dtos.ChangePasswordRequest
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		ce.NewError(ce.CodeInvalidPayload, ce.MsgInvalidPayload, err).Bind(ctx)
+		return
+	}
+
+	authCtx := utils.CtxAuth(ctx.Request.Context())
+	if authCtx == nil {
+		ce.NewError(
+			ce.CodeMissingContextValue,
+			ce.MsgInternalServer,
+			errors.New("auth missing from context"),
+		).Bind(
+			ctx,
+		)
+		return
+	}
+
+	a, err := h.ac.ChangePassword(
+		metadata.ToOutgoingCtx(
+			ctx.Request.Context(),
+			metadata.Auth(authCtx, true, true, true, true)...,
+		),
+		&models.ChangePasswordReq{
+			OldPassword: payload.OldPassword,
+			NewPassword: payload.NewPassword,
+		},
+	)
+	if err != nil {
+		err.Bind(ctx)
+		return
+	}
+
+	utils.SetResponse(
+		ctx,
+		http.StatusOK,
+		"Password changed successfully",
+		dtos.ChangePasswordResponse{
+			Auth: h.toAuth(a),
+		},
+	)
+}
+
 func (h *AuthHandler) ResendVerification(ctx *gin.Context) {
 	authCtx := utils.CtxAuth(ctx.Request.Context())
 	if authCtx == nil {
@@ -203,18 +243,7 @@ func (h *AuthHandler) ResendVerification(ctx *gin.Context) {
 	email, err := h.ac.ResendVerification(
 		metadata.ToOutgoingCtx(
 			ctx.Request.Context(),
-			metadata.NewPair(
-				constants.MDKeyAuthID,
-				strconv.FormatInt(authCtx.AuthID, 10),
-			),
-			metadata.NewPair(
-				constants.MDKeySchoolID,
-				strconv.FormatInt(authCtx.SchoolID, 10),
-			),
-			metadata.NewPair(
-				constants.MDKeyRole,
-				authCtx.Role,
-			),
+			metadata.Auth(authCtx, true, true, true, false)...,
 		),
 	)
 	if err != nil {
@@ -270,18 +299,7 @@ func (h *AuthHandler) VerifyEmail(ctx *gin.Context) {
 	a, at, verifyErr := h.ac.VerifyEmail(
 		metadata.ToOutgoingCtx(
 			ctx.Request.Context(),
-			metadata.NewPair(
-				constants.MDKeyAuthID,
-				strconv.FormatInt(authCtx.AuthID, 10),
-			),
-			metadata.NewPair(
-				constants.MDKeySchoolID,
-				strconv.FormatInt(authCtx.SchoolID, 10),
-			),
-			metadata.NewPair(
-				constants.MDKeyRole,
-				authCtx.Role,
-			),
+			metadata.Auth(authCtx, true, true, true, false)...,
 		),
 		&models.VerifyEmailReq{
 			VerificationToken: params.VerificationToken,

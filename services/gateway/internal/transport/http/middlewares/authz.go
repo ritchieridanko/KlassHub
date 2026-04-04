@@ -10,12 +10,12 @@ import (
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils/ce"
 )
 
-func Authz(requireVerified bool, subdomains []string, allowedRoles ...string) gin.HandlerFunc {
+func Authz(requireVerified bool, allowedSubdomains []string, allowedRoles []string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// Check if subdomain authorization is required
-		if len(subdomains) != 0 {
+		if len(allowedSubdomains) != 0 {
 			subdomain := utils.CtxSubdomain(ctx.Request.Context())
-			if !slices.Contains(subdomains, subdomain) {
+			if !slices.Contains(allowedSubdomains, subdomain) {
 				ce.NewError(
 					ce.CodeNotFound,
 					ce.MsgResourceNotFound,

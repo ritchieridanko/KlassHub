@@ -8,19 +8,22 @@ const (
 )
 
 var (
-	RolesAll []string = []string{
+	// Roles: Administrator, Instructor, School, and Student
+	AllRoles []string = []string{
 		RoleAdministrator,
 		RoleInstructor,
 		RoleSchool,
 		RoleStudent,
 	}
 
-	RolesAdmin []string = []string{
+	// Roles: Administrator and School
+	AdminRoles []string = []string{
 		RoleAdministrator,
 		RoleSchool,
 	}
 
-	RolesLMS []string = []string{
+	// Roles: Instructor and Student
+	LMSRoles []string = []string{
 		RoleInstructor,
 		RoleStudent,
 	}

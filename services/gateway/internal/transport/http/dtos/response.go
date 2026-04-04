@@ -17,6 +17,10 @@ type ResponseMetadata struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
+type ChangePasswordResponse struct {
+	Auth *Auth `json:"auth,omitempty"`
+}
+
 type CreateSchoolAuthResponse struct {
 	Auth        *Auth        `json:"auth,omitempty"`
 	AccessToken *AccessToken `json:"access_token,omitempty"`
