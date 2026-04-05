@@ -6,7 +6,6 @@ import (
 	"runtime/debug"
 
 	"github.com/ritchieridanko/klasshub/services/school/internal/infra/logger"
-	"github.com/ritchieridanko/klasshub/services/school/internal/utils"
 	"github.com/ritchieridanko/klasshub/services/school/internal/utils/ce"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -25,7 +24,6 @@ func Recovery(l *logger.Logger) grpc.UnaryServerInterceptor {
 				l.Error(
 					ctx,
 					"PANIC RECOVERED",
-					logger.NewField("request_id", utils.CtxRequestID(ctx)),
 					logger.NewField("method", info.FullMethod),
 					logger.NewField("panic", fmt.Sprintf("%v", r)),
 					logger.NewField("stack_trace", debug.Stack()),

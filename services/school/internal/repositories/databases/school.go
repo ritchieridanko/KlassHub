@@ -33,10 +33,11 @@ func (d *schoolDatabase) Create(ctx context.Context, data *models.CreateSchoolDa
 			$10, $11, $12, $13, $14, $15, $16
 		)
 		RETURNING
-			npsn, npsn_verified_at, name, level, ownership,
+			id, npsn, npsn_verified_at, name, level, ownership,
 			profile_picture, profile_banner, accreditation,
 			established_at, province, city_regency, district,
-			subdistrict, street, postcode, phone, email, website, timezone
+			subdistrict, street, postcode, phone, email, website,
+			timezone, created_at
 	`
 
 	var s models.School
@@ -47,10 +48,10 @@ func (d *schoolDatabase) Create(ctx context.Context, data *models.CreateSchoolDa
 		data.Subdistrict, data.Street, data.Postcode, data.Phone, data.Email,
 		data.Website, data.Timezone,
 	).Scan(
-		&s.NPSN, &s.NPSNVerifiedAt, &s.Name, &s.Level, &s.Ownership,
+		&s.ID, &s.NPSN, &s.NPSNVerifiedAt, &s.Name, &s.Level, &s.Ownership,
 		&s.ProfilePicture, &s.ProfileBanner, &s.Accreditation, &s.EstablishedAt,
 		&s.Province, &s.CityRegency, &s.District, &s.Subdistrict, &s.Street,
-		&s.Postcode, &s.Phone, &s.Email, &s.Website, &s.Timezone,
+		&s.Postcode, &s.Phone, &s.Email, &s.Website, &s.Timezone, &s.CreatedAt,
 	)
 	if err != nil {
 		return nil, ce.NewError(

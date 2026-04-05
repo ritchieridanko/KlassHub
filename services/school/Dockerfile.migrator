@@ -18,6 +18,7 @@ COPY services/school/configs ./configs
 COPY services/school/internal/constants ./internal/constants
 COPY services/school/internal/infra/database ./internal/infra/database
 COPY services/school/internal/infra/logger ./internal/infra/logger
+COPY services/school/internal/models ./internal/models
 COPY services/school/internal/utils ./internal/utils
 COPY services/school/migrations ./migrations
 

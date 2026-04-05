@@ -56,7 +56,7 @@ func Init(cfg *configs.Config, inf *infra.Infra, sd *data.School) *Container {
 	sh := handlers.NewSchoolHandler(su)
 
 	// Server
-	srv := server.Init(&cfg.Server, cfg.App.Name, l, sh)
+	srv := server.Init(&cfg.Server, cfg.App.Name, v, l, sh)
 
 	return &Container{
 		config:     cfg,

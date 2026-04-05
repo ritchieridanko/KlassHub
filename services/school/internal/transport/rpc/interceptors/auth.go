@@ -11,11 +11,12 @@ import (
 	"github.com/ritchieridanko/klasshub/services/school/internal/models"
 	"github.com/ritchieridanko/klasshub/services/school/internal/transport/rpc/policies"
 	"github.com/ritchieridanko/klasshub/services/school/internal/utils/ce"
+	"github.com/ritchieridanko/klasshub/services/school/internal/utils/validator"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
-func Auth() grpc.UnaryServerInterceptor {
+func Auth(v *validator.Validator) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req any,
@@ -128,6 +129,15 @@ func Auth() grpc.UnaryServerInterceptor {
 					logger.NewField("role", role),
 				)
 			}
+			if subdomain != "" && !v.RoleAllowedSubdomain(role, subdomain) {
+				return nil, ce.NewError(
+					ce.CodeUnauthorizedSubdomain,
+					ce.MsgUnauthorized,
+					errors.New("role unauthorized by subdomain"),
+					logger.NewField("role", role),
+					logger.NewField("subdomain", subdomain),
+				)
+			}
 		}
 
 		// Check if policy requires verification
@@ -149,7 +159,8 @@ func Auth() grpc.UnaryServerInterceptor {
 					ce.MsgInternalServer,
 					fmt.Errorf("failed to convert is_verified (%v) to bool: %w", values[0], err),
 				)
-			} else if !verified {
+			}
+			if !verified {
 				return nil, ce.NewError(ce.CodeAuthNotVerified, ce.MsgAuthNotVerified, nil)
 			}
 

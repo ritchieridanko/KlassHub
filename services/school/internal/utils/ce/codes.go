@@ -19,6 +19,7 @@ const (
 	CodeDBTransaction         errCode = "ERR_DB_TRANSACTION"
 	CodeInvalidContextValue   errCode = "ERR_INVALID_CONTEXT_VALUE"
 	CodeInvalidPayload        errCode = "ERR_INVALID_PAYLOAD"
+	CodeMissingContextValue   errCode = "ERR_MISSING_CONTEXT_VALUE"
 	CodeMissingMetadata       errCode = "ERR_MISSING_METADATA"
 	CodeTypeConversionFailed  errCode = "ERR_TYPE_CONVERSION_FAILED"
 	CodeUnauthenticated       errCode = "ERR_UNAUTHENTICATED"

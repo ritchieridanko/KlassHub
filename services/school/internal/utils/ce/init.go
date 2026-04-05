@@ -63,7 +63,8 @@ func (e *Error) ToGRPCStatus() error {
 	case CodeAuthNotVerified:
 		return status.Error(codes.FailedPrecondition, e.message)
 	case CodeDBQueryExec, CodeDBTransaction, CodeInvalidContextValue,
-		CodeMissingMetadata, CodeTypeConversionFailed, CodeUnknown:
+		CodeMissingContextValue, CodeMissingMetadata, CodeTypeConversionFailed,
+		CodeUnknown:
 		return status.Error(codes.Internal, e.message)
 	default:
 		return status.Error(codes.Internal, e.message)

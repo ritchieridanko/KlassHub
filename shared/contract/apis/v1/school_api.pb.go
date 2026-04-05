@@ -43,6 +43,7 @@ type School struct {
 	Email          *string                `protobuf:"bytes,17,opt,name=email,proto3,oneof" json:"email,omitempty"`
 	Website        *string                `protobuf:"bytes,18,opt,name=website,proto3,oneof" json:"website,omitempty"`
 	Timezone       string                 `protobuf:"bytes,19,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	CreatedAt      *timestamppb.Timestamp `protobuf:"bytes,20,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -208,6 +209,13 @@ func (x *School) GetTimezone() string {
 		return x.Timezone
 	}
 	return ""
+}
+
+func (x *School) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
 }
 
 type CreateSchoolRequest struct {
@@ -376,7 +384,8 @@ func (x *CreateSchoolRequest) GetTimezone() string {
 
 type CreateSchoolResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	School        *School                `protobuf:"bytes,1,opt,name=school,proto3" json:"school,omitempty"`
+	SchoolId      int64                  `protobuf:"varint,1,opt,name=school_id,json=schoolId,proto3" json:"school_id,omitempty"`
+	School        *School                `protobuf:"bytes,2,opt,name=school,proto3" json:"school,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -411,6 +420,13 @@ func (*CreateSchoolResponse) Descriptor() ([]byte, []int) {
 	return file_v1_school_api_proto_rawDescGZIP(), []int{2}
 }
 
+func (x *CreateSchoolResponse) GetSchoolId() int64 {
+	if x != nil {
+		return x.SchoolId
+	}
+	return 0
+}
+
 func (x *CreateSchoolResponse) GetSchool() *School {
 	if x != nil {
 		return x.School
@@ -422,7 +438,7 @@ var File_v1_school_api_proto protoreflect.FileDescriptor
 
 const file_v1_school_api_proto_rawDesc = "" +
 	"\n" +
-	"\x13v1/school_api.proto\x12\tschool.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x84\x06\n" +
+	"\x13v1/school_api.proto\x12\tschool.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xbf\x06\n" +
 	"\x06School\x12\x1a\n" +
 	"\an_p_s_n\x18\x01 \x01(\tH\x00R\x04nPSN\x88\x01\x01\x12G\n" +
 	"\x13n_p_s_n_verified_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x0enPSNVerifiedAt\x12\x12\n" +
@@ -443,7 +459,9 @@ const file_v1_school_api_proto_rawDesc = "" +
 	"\x05phone\x18\x10 \x01(\tH\x04R\x05phone\x88\x01\x01\x12\x19\n" +
 	"\x05email\x18\x11 \x01(\tH\x05R\x05email\x88\x01\x01\x12\x1d\n" +
 	"\awebsite\x18\x12 \x01(\tH\x06R\awebsite\x88\x01\x01\x12\x1a\n" +
-	"\btimezone\x18\x13 \x01(\tR\btimezoneB\n" +
+	"\btimezone\x18\x13 \x01(\tR\btimezone\x129\n" +
+	"\n" +
+	"created_at\x18\x14 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtB\n" +
 	"\n" +
 	"\b_n_p_s_nB\x12\n" +
 	"\x10_profile_pictureB\x11\n" +
@@ -477,9 +495,10 @@ const file_v1_school_api_proto_rawDesc = "" +
 	"\x06_phoneB\b\n" +
 	"\x06_emailB\n" +
 	"\n" +
-	"\b_website\"A\n" +
-	"\x14CreateSchoolResponse\x12)\n" +
-	"\x06school\x18\x01 \x01(\v2\x11.school.v1.SchoolR\x06school2`\n" +
+	"\b_website\"^\n" +
+	"\x14CreateSchoolResponse\x12\x1b\n" +
+	"\tschool_id\x18\x01 \x01(\x03R\bschoolId\x12)\n" +
+	"\x06school\x18\x02 \x01(\v2\x11.school.v1.SchoolR\x06school2`\n" +
 	"\rSchoolService\x12O\n" +
 	"\fCreateSchool\x12\x1e.school.v1.CreateSchoolRequest\x1a\x1f.school.v1.CreateSchoolResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
 
@@ -505,15 +524,16 @@ var file_v1_school_api_proto_goTypes = []any{
 var file_v1_school_api_proto_depIdxs = []int32{
 	3, // 0: school.v1.School.n_p_s_n_verified_at:type_name -> google.protobuf.Timestamp
 	3, // 1: school.v1.School.established_at:type_name -> google.protobuf.Timestamp
-	3, // 2: school.v1.CreateSchoolRequest.established_at:type_name -> google.protobuf.Timestamp
-	0, // 3: school.v1.CreateSchoolResponse.school:type_name -> school.v1.School
-	1, // 4: school.v1.SchoolService.CreateSchool:input_type -> school.v1.CreateSchoolRequest
-	2, // 5: school.v1.SchoolService.CreateSchool:output_type -> school.v1.CreateSchoolResponse
-	5, // [5:6] is the sub-list for method output_type
-	4, // [4:5] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	3, // 2: school.v1.School.created_at:type_name -> google.protobuf.Timestamp
+	3, // 3: school.v1.CreateSchoolRequest.established_at:type_name -> google.protobuf.Timestamp
+	0, // 4: school.v1.CreateSchoolResponse.school:type_name -> school.v1.School
+	1, // 5: school.v1.SchoolService.CreateSchool:input_type -> school.v1.CreateSchoolRequest
+	2, // 6: school.v1.SchoolService.CreateSchool:output_type -> school.v1.CreateSchoolResponse
+	6, // [6:7] is the sub-list for method output_type
+	5, // [5:6] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_v1_school_api_proto_init() }

@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/ritchieridanko/klasshub/services/school/internal/infra/logger"
@@ -35,8 +36,18 @@ func (u *schoolUsecase) CreateSchool(ctx context.Context, req *models.CreateScho
 	ctx, span := otel.Tracer(u.appName).Start(ctx, "school.usecase.CreateSchool")
 	defer span.End()
 
-	auth := utils.CtxAuth(ctx)
-	authIDField := logger.NewField("auth_id", auth.AuthID)
+	authCtx := utils.CtxAuth(ctx)
+	if authCtx == nil {
+		return nil, ce.NewError(
+			ce.CodeMissingContextValue,
+			ce.MsgInternalServer,
+			errors.New("auth missing from context"),
+		)
+	}
+
+	authIDField := logger.NewField("auth_id", authCtx.AuthID)
+	roleField := logger.NewField("role", authCtx.Role)
+	authFields := []logger.Field{authIDField, roleField}
 
 	// Data Normalization
 	npsn := utils.NormalizeStringPtr(req.NPSN)
@@ -58,52 +69,52 @@ func (u *schoolUsecase) CreateSchool(ctx context.Context, req *models.CreateScho
 	// Data Validation
 	if npsn != nil {
 		if ok, why := u.validator.NPSN(*npsn); !ok {
-			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authFields...)
 		}
 	}
 	if ok, why := u.validator.SchoolName(name); !ok {
-		return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+		return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authFields...)
 	}
 	if ok, why := u.validator.SchoolLevel(level); !ok {
-		return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+		return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authFields...)
 	}
 	if ok, why := u.validator.SchoolOwnership(ownership); !ok {
-		return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+		return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authFields...)
 	}
 	if accreditation != nil {
 		if ok, why := u.validator.SchoolAccreditation(*accreditation); !ok {
-			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authFields...)
 		}
 	}
 	if req.EstablishedAt != nil {
 		if ok, why := u.validator.SchoolEstablishedAt(*req.EstablishedAt); !ok {
-			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authFields...)
 		}
 	}
 	if ok, why := u.validator.Street(street); !ok {
-		return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+		return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authFields...)
 	}
 	if ok, why := u.validator.Postcode(postcode); !ok {
-		return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+		return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authFields...)
 	}
 	if phone != nil {
 		if ok, why := u.validator.Phone(*phone); !ok {
-			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authFields...)
 		}
 	}
 	if email != nil {
 		if ok, why := u.validator.Email(*email); !ok {
-			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authFields...)
 		}
 	}
 	if website != nil {
 		if ok, why := u.validator.URL(*website); !ok {
-			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authIDField)
+			return nil, ce.NewError(ce.CodeInvalidPayload, why, nil, authFields...)
 		}
 	}
 
 	// School Creation
-	s, createErr := u.sr.Create(
+	s, err := u.sr.Create(
 		ctx,
 		&models.CreateSchoolData{
 			NPSN:          npsn,
@@ -124,8 +135,8 @@ func (u *schoolUsecase) CreateSchool(ctx context.Context, req *models.CreateScho
 			Timezone:      timezone,
 		},
 	)
-	if createErr != nil {
-		return nil, createErr.Append(authIDField)
+	if err != nil {
+		return nil, err.Append(authFields...)
 	}
 
 	return s, nil

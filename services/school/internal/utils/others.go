@@ -53,7 +53,7 @@ func NormalizeStringPtr(s *string) *string {
 	return &res
 }
 
-// Convert timestamp value to time
+// Convert timestamp to time
 func ToTime(ts *timestamp.Timestamp) *time.Time {
 	if ts == nil {
 		return nil
@@ -62,7 +62,7 @@ func ToTime(ts *timestamp.Timestamp) *time.Time {
 	return &t
 }
 
-// Convert time value to timestamp
+// Convert time to timestamp
 func ToTimestamp(t *time.Time) *timestamppb.Timestamp {
 	if t == nil {
 		return nil

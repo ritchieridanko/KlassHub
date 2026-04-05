@@ -43,7 +43,10 @@ func (h *SchoolHandler) CreateSchool(ctx context.Context, req *apis.CreateSchool
 	if err != nil {
 		return nil, err
 	}
-	return &apis.CreateSchoolResponse{School: h.toSchool(s)}, nil
+	return &apis.CreateSchoolResponse{
+		SchoolId: s.ID,
+		School:   h.toSchool(s),
+	}, nil
 }
 
 func (h *SchoolHandler) toSchool(s *models.School) *apis.School {
@@ -70,5 +73,6 @@ func (h *SchoolHandler) toSchool(s *models.School) *apis.School {
 		Email:          s.Email,
 		Website:        s.Website,
 		Timezone:       s.Timezone,
+		CreatedAt:      utils.ToTimestamp(&s.CreatedAt),
 	}
 }

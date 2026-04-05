@@ -124,3 +124,11 @@ func (v *Validator) URL(value string) (bool, string) {
 	}
 	return true, ""
 }
+
+func (v *Validator) RoleAllowedSubdomain(role, subdomain string) bool {
+	sd, ok := roleAllowedSubdomains[role]
+	if !ok || subdomain != sd {
+		return false
+	}
+	return true
+}
