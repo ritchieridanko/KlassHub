@@ -332,6 +332,54 @@ func (h *AuthHandler) VerifyEmail(ctx *gin.Context) {
 	)
 }
 
+func (h *AuthHandler) RotateAuthToken(ctx *gin.Context) {
+	refreshToken, err := ctx.Cookie(constants.CookieKeyRefreshToken)
+	if errors.Is(err, ce.ErrCookieNotFound) {
+		ce.NewError(ce.CodeRefreshTokenNotFound, ce.MsgInvalidSession, err).Bind(ctx)
+		return
+	}
+	if err != nil {
+		ce.NewError(ce.CodeInternal, ce.MsgInternalServer, err).Bind(ctx)
+		return
+	}
+
+	refreshToken = strings.TrimSpace(refreshToken)
+	if refreshToken == "" {
+		ce.NewError(ce.CodeRefreshTokenNotFound, ce.MsgInvalidSession, nil).Bind(ctx)
+		return
+	}
+
+	at, rotateErr := h.ac.RotateAuthToken(
+		metadata.ToOutgoingCtx(
+			ctx.Request.Context(),
+		),
+		refreshToken,
+	)
+	if rotateErr != nil {
+		rotateErr.Bind(ctx)
+		return
+	}
+
+	if at != nil && at.RefreshToken != nil {
+		h.cookie.Set(
+			ctx,
+			constants.CookieKeyRefreshToken,
+			at.RefreshToken.Token,
+			"/",
+			int(at.RefreshToken.ExpiresIn),
+		)
+	}
+
+	utils.SetResponse(
+		ctx,
+		http.StatusOK,
+		"Token refreshed successfully",
+		dtos.RotateAuthTokenResponse{
+			AccessToken: h.toAccessToken(at),
+		},
+	)
+}
+
 func (h *AuthHandler) IsEmailAvailable(ctx *gin.Context) {
 	var params dtos.EmailAvailabilityCheckRequest
 	if err := ctx.ShouldBindQuery(&params); err != nil {

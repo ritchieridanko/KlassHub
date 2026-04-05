@@ -44,6 +44,7 @@ func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, ah 
 		auth.POST("/login", ah.Login)
 		auth.POST("/logout", middlewares.Auth(j), ah.Logout)
 		auth.POST("/register", ah.CreateSchoolAuth)
+		auth.POST("/refresh", ah.RotateAuthToken)
 
 		// Emails
 		email := auth.Group("/email")

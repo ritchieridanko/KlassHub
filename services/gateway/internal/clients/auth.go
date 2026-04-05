@@ -18,6 +18,7 @@ type AuthClient interface {
 	ChangePassword(ctx context.Context, req *models.ChangePasswordReq) (a *models.Auth, err *ce.Error)
 	ResendVerification(ctx context.Context) (email string, err *ce.Error)
 	VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	RotateAuthToken(ctx context.Context, refreshToken string) (at *models.AuthToken, err *ce.Error)
 	IsEmailAvailable(ctx context.Context, email string) (available bool, err *ce.Error)
 }
 
@@ -128,6 +129,23 @@ func (c *authClient) VerifyEmail(ctx context.Context, req *models.VerifyEmailReq
 		)
 	}
 	return c.toAuth(resp.GetAuth()), c.toAuthToken(resp.GetAuthToken()), nil
+}
+
+func (c *authClient) RotateAuthToken(ctx context.Context, refreshToken string) (*models.AuthToken, *ce.Error) {
+	resp, err := c.client.RotateAuthToken(
+		ctx,
+		&apis.RotateAuthTokenRequest{
+			RefreshToken: refreshToken,
+		},
+	)
+	if err != nil {
+		return nil, ce.FromGRPCErr(
+			err,
+		).Append(
+			logger.NewField("service", "auth"),
+		)
+	}
+	return c.toAuthToken(resp.GetAuthToken()), nil
 }
 
 func (c *authClient) IsEmailAvailable(ctx context.Context, email string) (bool, *ce.Error) {
