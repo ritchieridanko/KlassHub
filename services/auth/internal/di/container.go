@@ -86,7 +86,7 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	ah := handlers.NewAuthHandler(au)
 
 	// Server
-	srv := server.Init(&cfg.Server, cfg.App.Name, l, ah)
+	srv := server.Init(&cfg.Server, cfg.App.Name, v, l, ah)
 
 	return &Container{
 		config:     cfg,

@@ -9,6 +9,7 @@ import (
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/transport/rpc/handlers"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/transport/rpc/interceptors"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/utils/validator"
 	"github.com/ritchieridanko/klasshub/shared/contract/apis/v1"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
@@ -21,7 +22,7 @@ type Server struct {
 	ah     *handlers.AuthHandler
 }
 
-func Init(cfg *configs.Server, name string, l *logger.Logger, ah *handlers.AuthHandler) *Server {
+func Init(cfg *configs.Server, name string, v *validator.Validator, l *logger.Logger, ah *handlers.AuthHandler) *Server {
 	srv := grpc.NewServer(
 		grpc.StatsHandler(
 			otelgrpc.NewServerHandler(),
@@ -30,7 +31,7 @@ func Init(cfg *configs.Server, name string, l *logger.Logger, ah *handlers.AuthH
 			interceptors.Request(),
 			interceptors.Recovery(l),
 			interceptors.Logging(l),
-			interceptors.Auth(),
+			interceptors.Auth(v),
 		),
 	)
 

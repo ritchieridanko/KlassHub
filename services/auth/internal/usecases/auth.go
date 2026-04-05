@@ -29,6 +29,7 @@ type AuthUsecase interface {
 	ChangePassword(ctx context.Context, req *models.ChangePasswordReq) (a *models.Auth, err *ce.Error)
 	ResendVerification(ctx context.Context) (email string, err *ce.Error)
 	VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	RotateAuthToken(ctx context.Context, refreshToken string) (at *models.AuthToken, err *ce.Error)
 	IsEmailAvailable(ctx context.Context, email string) (available bool, err *ce.Error)
 }
 
@@ -612,6 +613,71 @@ func (u *authUsecase) VerifyEmail(ctx context.Context, req *models.VerifyEmailRe
 	}
 
 	return a, at, nil
+}
+
+func (u *authUsecase) RotateAuthToken(ctx context.Context, refreshToken string) (*models.AuthToken, *ce.Error) {
+	ctx, span := otel.Tracer(u.appName).Start(ctx, "auth.usecase.RotateAuthToken")
+	defer span.End()
+
+	// Data Normalization And Validation
+	token := strings.TrimSpace(refreshToken)
+	if token == "" {
+		return nil, ce.NewError(
+			ce.CodeUnauthenticated,
+			ce.MsgUnauthenticated,
+			errors.New("refresh token is empty"),
+		)
+	}
+
+	var at *models.AuthToken
+	err := u.transactor.WithTx(ctx, func(ctx context.Context) *ce.Error {
+		// Session Fetching
+		s, err := u.su.GetSession(ctx, token)
+		if err != nil {
+			return err
+		}
+
+		authIDField := logger.NewField("auth_id", s.AuthID)
+
+		// Session Expiration Check
+		if s.ExpiresAt.Before(time.Now().UTC()) {
+			return ce.NewError(
+				ce.CodeSessionExpired,
+				ce.MsgSessionExpired,
+				nil,
+				authIDField,
+			)
+		}
+
+		// Auth Fetching
+		a, err := u.ar.GetByID(ctx, s.AuthID)
+		if err != nil && err.Code() == ce.CodeAuthNotFound {
+			return ce.NewError(
+				ce.CodeAuthNotRegistered,
+				ce.MsgInvalidCredentials,
+				err.Unwrap(),
+				err.Fields()...,
+			)
+		}
+		if err != nil {
+			return err
+		}
+
+		// Session Refresh
+		at, err = u.su.RefreshSession(
+			ctx,
+			&models.RefreshSessionReq{
+				AuthID:       a.ID,
+				SchoolID:     a.SchoolID,
+				Role:         a.Role,
+				IsVerified:   a.IsVerified(),
+				RefreshToken: token,
+			},
+		)
+		return err
+	})
+
+	return at, err
 }
 
 func (u *authUsecase) IsEmailAvailable(ctx context.Context, email string) (bool, *ce.Error) {

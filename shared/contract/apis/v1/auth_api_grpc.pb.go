@@ -26,6 +26,7 @@ const (
 	AuthService_ChangePassword_FullMethodName     = "/auth.v1.AuthService/ChangePassword"
 	AuthService_ResendVerification_FullMethodName = "/auth.v1.AuthService/ResendVerification"
 	AuthService_VerifyEmail_FullMethodName        = "/auth.v1.AuthService/VerifyEmail"
+	AuthService_RotateAuthToken_FullMethodName    = "/auth.v1.AuthService/RotateAuthToken"
 	AuthService_IsEmailAvailable_FullMethodName   = "/auth.v1.AuthService/IsEmailAvailable"
 )
 
@@ -39,6 +40,7 @@ type AuthServiceClient interface {
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error)
 	ResendVerification(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ResendVerificationResponse, error)
 	VerifyEmail(ctx context.Context, in *VerifyEmailRequest, opts ...grpc.CallOption) (*VerifyEmailResponse, error)
+	RotateAuthToken(ctx context.Context, in *RotateAuthTokenRequest, opts ...grpc.CallOption) (*RotateAuthTokenResponse, error)
 	IsEmailAvailable(ctx context.Context, in *EmailAvailabilityCheckRequest, opts ...grpc.CallOption) (*EmailAvailabilityCheckResponse, error)
 }
 
@@ -110,6 +112,16 @@ func (c *authServiceClient) VerifyEmail(ctx context.Context, in *VerifyEmailRequ
 	return out, nil
 }
 
+func (c *authServiceClient) RotateAuthToken(ctx context.Context, in *RotateAuthTokenRequest, opts ...grpc.CallOption) (*RotateAuthTokenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RotateAuthTokenResponse)
+	err := c.cc.Invoke(ctx, AuthService_RotateAuthToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authServiceClient) IsEmailAvailable(ctx context.Context, in *EmailAvailabilityCheckRequest, opts ...grpc.CallOption) (*EmailAvailabilityCheckResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(EmailAvailabilityCheckResponse)
@@ -130,6 +142,7 @@ type AuthServiceServer interface {
 	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error)
 	ResendVerification(context.Context, *emptypb.Empty) (*ResendVerificationResponse, error)
 	VerifyEmail(context.Context, *VerifyEmailRequest) (*VerifyEmailResponse, error)
+	RotateAuthToken(context.Context, *RotateAuthTokenRequest) (*RotateAuthTokenResponse, error)
 	IsEmailAvailable(context.Context, *EmailAvailabilityCheckRequest) (*EmailAvailabilityCheckResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
@@ -158,6 +171,9 @@ func (UnimplementedAuthServiceServer) ResendVerification(context.Context, *empty
 }
 func (UnimplementedAuthServiceServer) VerifyEmail(context.Context, *VerifyEmailRequest) (*VerifyEmailResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyEmail not implemented")
+}
+func (UnimplementedAuthServiceServer) RotateAuthToken(context.Context, *RotateAuthTokenRequest) (*RotateAuthTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RotateAuthToken not implemented")
 }
 func (UnimplementedAuthServiceServer) IsEmailAvailable(context.Context, *EmailAvailabilityCheckRequest) (*EmailAvailabilityCheckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsEmailAvailable not implemented")
@@ -291,6 +307,24 @@ func _AuthService_VerifyEmail_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_RotateAuthToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RotateAuthTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).RotateAuthToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_RotateAuthToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).RotateAuthToken(ctx, req.(*RotateAuthTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthService_IsEmailAvailable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EmailAvailabilityCheckRequest)
 	if err := dec(in); err != nil {
@@ -339,6 +373,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "VerifyEmail",
 			Handler:    _AuthService_VerifyEmail_Handler,
+		},
+		{
+			MethodName: "RotateAuthToken",
+			Handler:    _AuthService_RotateAuthToken_Handler,
 		},
 		{
 			MethodName: "IsEmailAvailable",

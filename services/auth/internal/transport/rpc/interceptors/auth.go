@@ -11,11 +11,12 @@ import (
 	"github.com/ritchieridanko/klasshub/services/auth/internal/models"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/transport/rpc/policies"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/utils/ce"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/utils/validator"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
-func Auth() grpc.UnaryServerInterceptor {
+func Auth(v *validator.Validator) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req any,
@@ -35,6 +36,7 @@ func Auth() grpc.UnaryServerInterceptor {
 		}
 
 		// Check if policy requires subdomain authorization
+		var subdomain string
 		if policy.RequireSubdomain() {
 			values := md.Get(constants.MDKeySubdomain)
 			if len(values) == 0 {
@@ -45,7 +47,7 @@ func Auth() grpc.UnaryServerInterceptor {
 				)
 			}
 
-			subdomain := values[0]
+			subdomain = values[0]
 			if !policy.IsSubdomainAuthorized(subdomain) {
 				return nil, ce.NewError(
 					ce.CodeUnauthorizedSubdomain,
@@ -125,6 +127,15 @@ func Auth() grpc.UnaryServerInterceptor {
 					ce.MsgUnauthorized,
 					errors.New("role unauthorized"),
 					logger.NewField("role", role),
+				)
+			}
+			if subdomain != "" && !v.RoleAllowedSubdomain(role, subdomain) {
+				return nil, ce.NewError(
+					ce.CodeUnauthorizedSubdomain,
+					ce.MsgUnauthorized,
+					errors.New("role unauthorized by subdomain"),
+					logger.NewField("role", role),
+					logger.NewField("subdomain", subdomain),
 				)
 			}
 		}

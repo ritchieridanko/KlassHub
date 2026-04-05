@@ -17,8 +17,8 @@ var (
 	roleAllowedSubdomains = map[string]string{
 		constants.RoleAdministrator: constants.SubdomainAdmin,
 		constants.RoleSchool:        constants.SubdomainAdmin,
-		constants.RoleStudent:       constants.SubdomainLMS,
 		constants.RoleInstructor:    constants.SubdomainLMS,
+		constants.RoleStudent:       constants.SubdomainLMS,
 	}
 )
 

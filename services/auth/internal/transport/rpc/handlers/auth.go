@@ -103,6 +103,16 @@ func (h *AuthHandler) VerifyEmail(ctx context.Context, req *apis.VerifyEmailRequ
 	}, nil
 }
 
+func (h *AuthHandler) RotateAuthToken(ctx context.Context, req *apis.RotateAuthTokenRequest) (*apis.RotateAuthTokenResponse, error) {
+	at, err := h.au.RotateAuthToken(ctx, req.GetRefreshToken())
+	if err != nil {
+		return nil, err
+	}
+	return &apis.RotateAuthTokenResponse{
+		AuthToken: h.toAuthToken(at),
+	}, nil
+}
+
 func (h *AuthHandler) IsEmailAvailable(ctx context.Context, req *apis.EmailAvailabilityCheckRequest) (*apis.EmailAvailabilityCheckResponse, error) {
 	available, err := h.au.IsEmailAvailable(ctx, req.GetEmail())
 	if err != nil {
