@@ -26,6 +26,9 @@ services:
       - SERVICE_ACCOUNT_NAME=${ACCOUNT_SERVICE_HOST}
       - SERVICE_ACCOUNT_HOST=${ACCOUNT_SERVICE_HOST}
       - SERVICE_ACCOUNT_PORT=${ACCOUNT_SERVICE_PORT}
+      - SERVICE_SCHOOL_NAME=${SCHOOL_SERVICE_HOST}
+      - SERVICE_SCHOOL_HOST=${SCHOOL_SERVICE_HOST}
+      - SERVICE_SCHOOL_PORT=${SCHOOL_SERVICE_PORT}
       - TRACER_PORT=${TRACER_GRPC_PORT}
       - JWT_SECRET=${AUTH_JWT_SECRET}
     depends_on:
@@ -34,6 +37,8 @@ services:
       auth-service:
         condition: service_started
       account-service:
+        condition: service_started
+      school-service:
         condition: service_started
 
   auth-service:

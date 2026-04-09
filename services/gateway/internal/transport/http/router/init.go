@@ -17,7 +17,7 @@ type Router struct {
 	router *gin.Engine
 }
 
-func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, auh *handlers.AuthHandler, ach *handlers.AccountHandler) *Router {
+func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, auh *handlers.AuthHandler, ach *handlers.AccountHandler, sh *handlers.SchoolHandler) *Router {
 	r := gin.New()
 	r.ContextWithFallback = true
 
@@ -127,6 +127,18 @@ func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, auh
 				[]string{constants.RoleSchool},
 			),
 			ach.CreateSchoolProfile,
+		)
+
+		// Fetch Me
+		school.GET(
+			"/me",
+			middlewares.Auth(j),
+			middlewares.Authz(
+				false,
+				constants.AllSubdomains,
+				constants.AllRoles,
+			),
+			sh.GetMe,
 		)
 	}
 

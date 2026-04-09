@@ -5,3 +5,7 @@ type CreateSchoolProfileResponse struct {
 	Auth        *Auth        `json:"auth,omitempty"`
 	AccessToken *AccessToken `json:"access_token,omitempty"`
 }
+
+type SchoolGetMeResponse struct {
+	School *School `json:"school,omitempty"`
+}
