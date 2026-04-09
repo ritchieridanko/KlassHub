@@ -17,6 +17,7 @@ service AuthService {
   rpc VerifyEmail (VerifyEmailRequest) returns (VerifyEmailResponse);
   rpc RotateAuthToken (RotateAuthTokenRequest) returns (RotateAuthTokenResponse);
   rpc IsEmailAvailable (EmailAvailabilityCheckRequest) returns (EmailAvailabilityCheckResponse);
+  rpc IsUsernameAvailable (UsernameAvailabilityCheckRequest) returns (UsernameAvailabilityCheckResponse);
 }
 
 message Auth {
@@ -113,5 +114,13 @@ message EmailAvailabilityCheckRequest {
 }
 
 message EmailAvailabilityCheckResponse {
+  bool is_available = 1;
+}
+
+message UsernameAvailabilityCheckRequest {
+  string username = 1;
+}
+
+message UsernameAvailabilityCheckResponse {
   bool is_available = 1;
 }

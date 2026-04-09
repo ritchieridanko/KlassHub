@@ -32,6 +32,7 @@ type AuthUsecase interface {
 	VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	RotateAuthToken(ctx context.Context, refreshToken string) (at *models.AuthToken, err *ce.Error)
 	IsEmailAvailable(ctx context.Context, email string) (available bool, err *ce.Error)
+	IsUsernameAvailable(ctx context.Context, username string) (available bool, err *ce.Error)
 }
 
 type authUsecase struct {
@@ -785,4 +786,18 @@ func (u *authUsecase) IsEmailAvailable(ctx context.Context, email string) (bool,
 
 	// Email Availability Check
 	return u.ar.IsEmailAvailable(ctx, em)
+}
+
+func (u *authUsecase) IsUsernameAvailable(ctx context.Context, username string) (bool, *ce.Error) {
+	ctx, span := otel.Tracer(u.appName).Start(ctx, "auth.usecase.IsUsernameAvailable")
+	defer span.End()
+
+	// Data Normalization & Validation
+	un := utils.NormalizeString(username)
+	if ok, why := u.validator.Username(un); !ok {
+		return false, ce.NewError(ce.CodeInvalidPayload, why, nil)
+	}
+
+	// Username Availability Check
+	return u.ar.IsUsernameAvailable(ctx, un)
 }

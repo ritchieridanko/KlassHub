@@ -20,15 +20,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Login_FullMethodName              = "/auth.v1.AuthService/Login"
-	AuthService_Logout_FullMethodName             = "/auth.v1.AuthService/Logout"
-	AuthService_CreateSchoolAuth_FullMethodName   = "/auth.v1.AuthService/CreateSchoolAuth"
-	AuthService_UpdateSchool_FullMethodName       = "/auth.v1.AuthService/UpdateSchool"
-	AuthService_ChangePassword_FullMethodName     = "/auth.v1.AuthService/ChangePassword"
-	AuthService_ResendVerification_FullMethodName = "/auth.v1.AuthService/ResendVerification"
-	AuthService_VerifyEmail_FullMethodName        = "/auth.v1.AuthService/VerifyEmail"
-	AuthService_RotateAuthToken_FullMethodName    = "/auth.v1.AuthService/RotateAuthToken"
-	AuthService_IsEmailAvailable_FullMethodName   = "/auth.v1.AuthService/IsEmailAvailable"
+	AuthService_Login_FullMethodName               = "/auth.v1.AuthService/Login"
+	AuthService_Logout_FullMethodName              = "/auth.v1.AuthService/Logout"
+	AuthService_CreateSchoolAuth_FullMethodName    = "/auth.v1.AuthService/CreateSchoolAuth"
+	AuthService_UpdateSchool_FullMethodName        = "/auth.v1.AuthService/UpdateSchool"
+	AuthService_ChangePassword_FullMethodName      = "/auth.v1.AuthService/ChangePassword"
+	AuthService_ResendVerification_FullMethodName  = "/auth.v1.AuthService/ResendVerification"
+	AuthService_VerifyEmail_FullMethodName         = "/auth.v1.AuthService/VerifyEmail"
+	AuthService_RotateAuthToken_FullMethodName     = "/auth.v1.AuthService/RotateAuthToken"
+	AuthService_IsEmailAvailable_FullMethodName    = "/auth.v1.AuthService/IsEmailAvailable"
+	AuthService_IsUsernameAvailable_FullMethodName = "/auth.v1.AuthService/IsUsernameAvailable"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -44,6 +45,7 @@ type AuthServiceClient interface {
 	VerifyEmail(ctx context.Context, in *VerifyEmailRequest, opts ...grpc.CallOption) (*VerifyEmailResponse, error)
 	RotateAuthToken(ctx context.Context, in *RotateAuthTokenRequest, opts ...grpc.CallOption) (*RotateAuthTokenResponse, error)
 	IsEmailAvailable(ctx context.Context, in *EmailAvailabilityCheckRequest, opts ...grpc.CallOption) (*EmailAvailabilityCheckResponse, error)
+	IsUsernameAvailable(ctx context.Context, in *UsernameAvailabilityCheckRequest, opts ...grpc.CallOption) (*UsernameAvailabilityCheckResponse, error)
 }
 
 type authServiceClient struct {
@@ -144,6 +146,16 @@ func (c *authServiceClient) IsEmailAvailable(ctx context.Context, in *EmailAvail
 	return out, nil
 }
 
+func (c *authServiceClient) IsUsernameAvailable(ctx context.Context, in *UsernameAvailabilityCheckRequest, opts ...grpc.CallOption) (*UsernameAvailabilityCheckResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UsernameAvailabilityCheckResponse)
+	err := c.cc.Invoke(ctx, AuthService_IsUsernameAvailable_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -157,6 +169,7 @@ type AuthServiceServer interface {
 	VerifyEmail(context.Context, *VerifyEmailRequest) (*VerifyEmailResponse, error)
 	RotateAuthToken(context.Context, *RotateAuthTokenRequest) (*RotateAuthTokenResponse, error)
 	IsEmailAvailable(context.Context, *EmailAvailabilityCheckRequest) (*EmailAvailabilityCheckResponse, error)
+	IsUsernameAvailable(context.Context, *UsernameAvailabilityCheckRequest) (*UsernameAvailabilityCheckResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -193,6 +206,9 @@ func (UnimplementedAuthServiceServer) RotateAuthToken(context.Context, *RotateAu
 }
 func (UnimplementedAuthServiceServer) IsEmailAvailable(context.Context, *EmailAvailabilityCheckRequest) (*EmailAvailabilityCheckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsEmailAvailable not implemented")
+}
+func (UnimplementedAuthServiceServer) IsUsernameAvailable(context.Context, *UsernameAvailabilityCheckRequest) (*UsernameAvailabilityCheckResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsUsernameAvailable not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -377,6 +393,24 @@ func _AuthService_IsEmailAvailable_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_IsUsernameAvailable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UsernameAvailabilityCheckRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).IsUsernameAvailable(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_IsUsernameAvailable_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).IsUsernameAvailable(ctx, req.(*UsernameAvailabilityCheckRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -419,6 +453,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IsEmailAvailable",
 			Handler:    _AuthService_IsEmailAvailable_Handler,
+		},
+		{
+			MethodName: "IsUsernameAvailable",
+			Handler:    _AuthService_IsUsernameAvailable_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

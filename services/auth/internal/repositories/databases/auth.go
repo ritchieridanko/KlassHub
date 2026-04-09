@@ -19,6 +19,7 @@ type AuthDatabase interface {
 	UpdatePassword(ctx context.Context, authID int64, newPassword string) (a *models.Auth, err *ce.Error)
 	SetVerified(ctx context.Context, authID int64) (a *models.Auth, err *ce.Error)
 	IsEmailRegistered(ctx context.Context, email string) (exists bool, err *ce.Error)
+	IsUsernameRegistered(ctx context.Context, username string) (exists bool, err *ce.Error)
 }
 
 type authDatabase struct {
@@ -309,6 +310,33 @@ func (d *authDatabase) IsEmailRegistered(ctx context.Context, email string) (boo
 			ce.CodeDBQueryExec,
 			ce.MsgInternalServer,
 			fmt.Errorf("failed to check if email is registered: %w", err),
+		)
+	}
+
+	return true, nil
+}
+
+func (d *authDatabase) IsUsernameRegistered(ctx context.Context, username string) (bool, *ce.Error) {
+	query := "SELECT 1 FROM auth WHERE username = $1 AND deleted_at IS NULL"
+	if d.database.WithinTx(ctx) {
+		query += " FOR UPDATE"
+	}
+
+	var exists int
+	err := d.database.Query(
+		ctx, query,
+		username,
+	).Scan(
+		&exists,
+	)
+	if err != nil {
+		if errors.Is(err, ce.ErrDBQueryNoRows) {
+			return false, nil
+		}
+		return false, ce.NewError(
+			ce.CodeDBQueryExec,
+			ce.MsgInternalServer,
+			fmt.Errorf("failed to check if username is registered: %w", err),
 		)
 	}
 

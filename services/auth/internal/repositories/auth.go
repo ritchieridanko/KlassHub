@@ -17,6 +17,7 @@ type AuthRepository interface {
 	UpdatePassword(ctx context.Context, authID int64, newPassword string) (a *models.Auth, err *ce.Error)
 	SetVerified(ctx context.Context, authID int64) (a *models.Auth, err *ce.Error)
 	IsEmailAvailable(ctx context.Context, email string) (available bool, err *ce.Error)
+	IsUsernameAvailable(ctx context.Context, username string) (available bool, err *ce.Error)
 }
 
 type authRepository struct {
@@ -66,4 +67,12 @@ func (r *authRepository) IsEmailAvailable(ctx context.Context, email string) (bo
 		return false, err
 	}
 	return !reserved, nil
+}
+
+func (r *authRepository) IsUsernameAvailable(ctx context.Context, username string) (bool, *ce.Error) {
+	registered, err := r.database.IsUsernameRegistered(ctx, username)
+	if err != nil {
+		return false, err
+	}
+	return !registered, nil
 }

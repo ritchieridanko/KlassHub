@@ -140,6 +140,16 @@ func (h *AuthHandler) IsEmailAvailable(ctx context.Context, req *apis.EmailAvail
 	}, nil
 }
 
+func (h *AuthHandler) IsUsernameAvailable(ctx context.Context, req *apis.UsernameAvailabilityCheckRequest) (*apis.UsernameAvailabilityCheckResponse, error) {
+	available, err := h.au.IsUsernameAvailable(ctx, req.GetUsername())
+	if err != nil {
+		return nil, err
+	}
+	return &apis.UsernameAvailabilityCheckResponse{
+		IsAvailable: available,
+	}, nil
+}
+
 func (h *AuthHandler) toAuth(a *models.Auth) *apis.Auth {
 	if a == nil {
 		return nil
