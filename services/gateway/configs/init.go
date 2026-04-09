@@ -48,6 +48,13 @@ type Service struct {
 		Host string `mapstructure:"host"`
 		Port int    `mapstructure:"port"`
 	} `mapstructure:"auth"`
+
+	Account struct {
+		Name string `mapstructure:"name"`
+		Addr string
+		Host string `mapstructure:"host"`
+		Port int    `mapstructure:"port"`
+	} `mapstructure:"account"`
 }
 
 type Tracer struct {
@@ -88,6 +95,7 @@ func Init(path string) (*Config, error) {
 	cfg.App.Env = env
 	cfg.Server.Addr = fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	cfg.Service.Auth.Addr = fmt.Sprintf("%s:%d", cfg.Service.Auth.Host, cfg.Service.Auth.Port)
+	cfg.Service.Account.Addr = fmt.Sprintf("%s:%d", cfg.Service.Account.Host, cfg.Service.Account.Port)
 	cfg.Tracer.Addr = fmt.Sprintf("%s:%d", cfg.Tracer.Host, cfg.Tracer.Port)
 
 	return &cfg, nil

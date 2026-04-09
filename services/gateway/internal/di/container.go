@@ -16,11 +16,13 @@ import (
 type Container struct {
 	config    *configs.Config
 	logger    *logger.Logger
-	ac        clients.AuthClient
+	auc       clients.AuthClient
+	acc       clients.AccountClient
 	cookie    *cookie.Cookie
 	jwt       *jwt.JWT
 	validator *validator.Validator
-	ah        *handlers.AuthHandler
+	auh       *handlers.AuthHandler
+	ach       *handlers.AccountHandler
 	router    *router.Router
 	server    *server.Server
 }
@@ -30,7 +32,8 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	l := logger.NewLogger(inf.Logger())
 
 	// Clients
-	ac := clients.NewAuthClient(inf.AuthService())
+	auc := clients.NewAuthClient(inf.AuthService())
+	acc := clients.NewAccountClient(inf.AccountService())
 
 	// Utils
 	c := cookie.Init(cfg.App.Env, "")
@@ -38,10 +41,11 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	v := validator.Init()
 
 	// Handlers
-	ah := handlers.NewAuthHandler(ac, v, c)
+	auh := handlers.NewAuthHandler(auc, v, c)
+	ach := handlers.NewAccountHandler(acc, c)
 
 	// Router
-	r := router.Init(&cfg.Client, cfg.App.Name, j, l, ah)
+	r := router.Init(&cfg.Client, cfg.App.Name, j, l, auh, ach)
 
 	// Server
 	srv := server.Init(&cfg.Server, r, l)
@@ -49,11 +53,13 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	return &Container{
 		config:    cfg,
 		logger:    l,
-		ac:        ac,
+		auc:       auc,
+		acc:       acc,
 		cookie:    c,
 		jwt:       j,
 		validator: v,
-		ah:        ah,
+		auh:       auh,
+		ach:       ach,
 		router:    r,
 		server:    srv,
 	}

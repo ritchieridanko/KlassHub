@@ -17,7 +17,7 @@ type Router struct {
 	router *gin.Engine
 }
 
-func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, ah *handlers.AuthHandler) *Router {
+func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, auh *handlers.AuthHandler, ach *handlers.AccountHandler) *Router {
 	r := gin.New()
 	r.ContextWithFallback = true
 
@@ -41,16 +41,16 @@ func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, ah 
 	auth := v1.Group("/auth")
 	{
 		// Authentications
-		auth.POST("/login", ah.Login)
-		auth.POST("/logout", middlewares.Auth(j), ah.Logout)
-		auth.POST("/register", ah.CreateSchoolAuth)
-		auth.POST("/refresh", ah.RotateAuthToken)
+		auth.POST("/login", auh.Login)
+		auth.POST("/logout", middlewares.Auth(j), auh.Logout)
+		auth.POST("/register", auh.CreateSchoolAuth)
+		auth.POST("/refresh", auh.RotateAuthToken)
 
 		// Emails
 		email := auth.Group("/email")
 		{
 			// Availability
-			email.GET("/available", ah.IsEmailAvailable)
+			email.GET("/available", auh.IsEmailAvailable)
 
 			// Verifications
 			verification := email.Group("/verification")
@@ -64,7 +64,7 @@ func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, ah 
 						[]string{constants.SubdomainAdmin},
 						[]string{constants.RoleSchool},
 					),
-					ah.ResendVerification,
+					auh.ResendVerification,
 				)
 
 				// Confirm
@@ -76,7 +76,7 @@ func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, ah 
 						[]string{constants.SubdomainAdmin},
 						[]string{constants.RoleSchool},
 					),
-					ah.VerifyEmail,
+					auh.VerifyEmail,
 				)
 			}
 		}
@@ -93,9 +93,25 @@ func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, ah 
 					constants.AllSubdomains,
 					constants.AllRoles,
 				),
-				ah.ChangePassword,
+				auh.ChangePassword,
 			)
 		}
+	}
+
+	// SCHOOL ENDPOINTS
+	school := v1.Group("/schools")
+	{
+		// Create
+		school.POST(
+			"",
+			middlewares.Auth(j),
+			middlewares.Authz(
+				true,
+				[]string{constants.SubdomainAdmin},
+				[]string{constants.RoleSchool},
+			),
+			ach.CreateSchoolProfile,
+		)
 	}
 
 	return &Router{router: r}

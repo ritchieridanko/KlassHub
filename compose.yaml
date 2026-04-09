@@ -23,12 +23,17 @@ services:
       - SERVICE_AUTH_NAME=${AUTH_SERVICE_HOST}
       - SERVICE_AUTH_HOST=${AUTH_SERVICE_HOST}
       - SERVICE_AUTH_PORT=${AUTH_SERVICE_PORT}
+      - SERVICE_ACCOUNT_NAME=${ACCOUNT_SERVICE_HOST}
+      - SERVICE_ACCOUNT_HOST=${ACCOUNT_SERVICE_HOST}
+      - SERVICE_ACCOUNT_PORT=${ACCOUNT_SERVICE_PORT}
       - TRACER_PORT=${TRACER_GRPC_PORT}
       - JWT_SECRET=${AUTH_JWT_SECRET}
     depends_on:
       jaeger:
         condition: service_started
       auth-service:
+        condition: service_started
+      account-service:
         condition: service_started
 
   auth-service:
@@ -140,6 +145,36 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+
+  account-service:
+    image: klasshub-account-service
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: services/account/Dockerfile.app
+    container_name: ${ACCOUNT_SERVICE_HOST}
+    networks:
+      - klasshub-net
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - APP_NAME=${ACCOUNT_SERVICE_HOST}
+      - SERVER_HOST=${ACCOUNT_SERVICE_HOST}
+      - SERVER_PORT=${ACCOUNT_SERVICE_PORT}
+      - SERVER_TIMEOUT_SHUTDOWN=${ACCOUNT_SERVICE_TIMEOUT_SHUTDOWN}
+      - SERVICE_AUTH_NAME=${AUTH_SERVICE_HOST}
+      - SERVICE_AUTH_HOST=${AUTH_SERVICE_HOST}
+      - SERVICE_AUTH_PORT=${AUTH_SERVICE_PORT}
+      - SERVICE_SCHOOL_NAME=${SCHOOL_SERVICE_HOST}
+      - SERVICE_SCHOOL_HOST=${SCHOOL_SERVICE_HOST}
+      - SERVICE_SCHOOL_PORT=${SCHOOL_SERVICE_PORT}
+      - TRACER_PORT=${TRACER_GRPC_PORT}
+    depends_on:
+      auth-service:
+        condition: service_started
+      school-service:
+        condition: service_started
 
   user-service:
     image: klasshub-user-service

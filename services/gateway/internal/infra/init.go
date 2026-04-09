@@ -15,7 +15,8 @@ type Infra struct {
 	config *configs.Config
 	logger *zap.Logger
 	tracer *tracer.Tracer
-	as     *services.AuthService
+	aus    *services.AuthService
+	acs    *services.AccountService
 }
 
 func Init(cfg *configs.Config) (*Infra, error) {
@@ -30,7 +31,11 @@ func Init(cfg *configs.Config) (*Infra, error) {
 	}
 
 	// Services
-	as, err := services.NewAuthService(&cfg.Service, l)
+	aus, err := services.NewAuthService(&cfg.Service, l)
+	if err != nil {
+		return nil, err
+	}
+	acs, err := services.NewAccountService(&cfg.Service, l)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +44,8 @@ func Init(cfg *configs.Config) (*Infra, error) {
 		config: cfg,
 		logger: l,
 		tracer: t,
-		as:     as,
+		aus:    aus,
+		acs:    acs,
 	}, nil
 }
 
@@ -48,7 +54,11 @@ func (i *Infra) Logger() *zap.Logger {
 }
 
 func (i *Infra) AuthService() apis.AuthServiceClient {
-	return i.as.Client()
+	return i.aus.Client()
+}
+
+func (i *Infra) AccountService() apis.AccountServiceClient {
+	return i.acs.Client()
 }
 
 func (i *Infra) Close() error {
@@ -58,8 +68,11 @@ func (i *Infra) Close() error {
 	if err := i.tracer.Shutdown(); err != nil {
 		return fmt.Errorf("failed to close tracer: %w", err)
 	}
-	if err := i.as.Close(); err != nil {
+	if err := i.aus.Close(); err != nil {
 		return fmt.Errorf("failed to close auth service connection: %w", err)
+	}
+	if err := i.acs.Close(); err != nil {
+		return fmt.Errorf("failed to close account service connection: %w", err)
 	}
 	return nil
 }

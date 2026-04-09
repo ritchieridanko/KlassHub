@@ -18,14 +18,14 @@ import (
 )
 
 type AuthHandler struct {
-	ac        clients.AuthClient
+	auc       clients.AuthClient
 	validator *validator.Validator
 	cookie    *cookie.Cookie
 }
 
-func NewAuthHandler(ac clients.AuthClient, v *validator.Validator, c *cookie.Cookie) *AuthHandler {
+func NewAuthHandler(auc clients.AuthClient, v *validator.Validator, c *cookie.Cookie) *AuthHandler {
 	return &AuthHandler{
-		ac:        ac,
+		auc:       auc,
 		validator: v,
 		cookie:    c,
 	}
@@ -48,7 +48,7 @@ func (h *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	a, at, err := h.ac.Login(
+	a, at, err := h.auc.Login(
 		metadata.ToOutgoingCtx(
 			ctx.Request.Context(),
 			metadata.NewPair(
@@ -120,7 +120,7 @@ func (h *AuthHandler) Logout(ctx *gin.Context) {
 		return
 	}
 
-	logoutErr := h.ac.Logout(
+	logoutErr := h.auc.Logout(
 		metadata.ToOutgoingCtx(
 			ctx.Request.Context(),
 			metadata.Auth(authCtx, true, false, false, false)...,
@@ -148,7 +148,7 @@ func (h *AuthHandler) CreateSchoolAuth(ctx *gin.Context) {
 		return
 	}
 
-	a, at, err := h.ac.CreateSchoolAuth(
+	a, at, err := h.auc.CreateSchoolAuth(
 		metadata.ToOutgoingCtx(
 			ctx.Request.Context(),
 		),
@@ -202,7 +202,7 @@ func (h *AuthHandler) ChangePassword(ctx *gin.Context) {
 		return
 	}
 
-	a, err := h.ac.ChangePassword(
+	a, err := h.auc.ChangePassword(
 		metadata.ToOutgoingCtx(
 			ctx.Request.Context(),
 			metadata.Auth(authCtx, true, true, true, true)...,
@@ -240,7 +240,7 @@ func (h *AuthHandler) ResendVerification(ctx *gin.Context) {
 		return
 	}
 
-	email, err := h.ac.ResendVerification(
+	email, err := h.auc.ResendVerification(
 		metadata.ToOutgoingCtx(
 			ctx.Request.Context(),
 			metadata.Auth(authCtx, true, true, true, false)...,
@@ -296,7 +296,7 @@ func (h *AuthHandler) VerifyEmail(ctx *gin.Context) {
 		return
 	}
 
-	a, at, verifyErr := h.ac.VerifyEmail(
+	a, at, verifyErr := h.auc.VerifyEmail(
 		metadata.ToOutgoingCtx(
 			ctx.Request.Context(),
 			metadata.Auth(authCtx, true, true, true, false)...,
@@ -349,7 +349,7 @@ func (h *AuthHandler) RotateAuthToken(ctx *gin.Context) {
 		return
 	}
 
-	at, rotateErr := h.ac.RotateAuthToken(
+	at, rotateErr := h.auc.RotateAuthToken(
 		metadata.ToOutgoingCtx(
 			ctx.Request.Context(),
 		),
@@ -387,7 +387,7 @@ func (h *AuthHandler) IsEmailAvailable(ctx *gin.Context) {
 		return
 	}
 
-	available, err := h.ac.IsEmailAvailable(
+	available, err := h.auc.IsEmailAvailable(
 		metadata.ToOutgoingCtx(
 			ctx.Request.Context(),
 		),
