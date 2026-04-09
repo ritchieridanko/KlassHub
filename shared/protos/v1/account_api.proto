@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package account.v1;
+
+import "google/protobuf/timestamp.proto";
+import "v1/auth_api.proto";
+import "v1/school_api.proto";
+
+option go_package = "github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apis";
+
+service AccountService {
+  rpc CreateSchoolProfile (CreateSchoolProfileRequest) returns (CreateSchoolProfileResponse);
+}
+
+message CreateSchoolProfileRequest {
+  optional string n_p_s_n = 1;
+  string name = 2;
+  string level = 3;
+  string ownership = 4;
+  optional string accreditation = 5;
+  google.protobuf.Timestamp established_at = 6;
+  string province = 7;
+  string city_regency = 8;
+  string district = 9;
+  string subdistrict = 10;
+  string street = 11;
+  string postcode = 12;
+  optional string phone = 13;
+  optional string email = 14;
+  optional string website = 15;
+  string timezone = 16;
+  string refresh_token = 17;
+}
+
+message CreateSchoolProfileResponse {
+  school.v1.School school = 1;
+  auth.v1.Auth auth = 2;
+  auth.v1.AuthToken auth_token = 3;
+}
