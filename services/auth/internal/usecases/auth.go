@@ -26,6 +26,7 @@ type AuthUsecase interface {
 	Login(ctx context.Context, req *models.LoginReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	Logout(ctx context.Context, refreshToken string) (err *ce.Error)
 	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	UpdateSchool(ctx context.Context, req *models.UpdateSchoolReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	ChangePassword(ctx context.Context, req *models.ChangePasswordReq) (a *models.Auth, err *ce.Error)
 	ResendVerification(ctx context.Context) (email string, err *ce.Error)
 	VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
@@ -285,6 +286,87 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 	return a, at, nil
 }
 
+func (u *authUsecase) UpdateSchool(ctx context.Context, req *models.UpdateSchoolReq) (*models.Auth, *models.AuthToken, *ce.Error) {
+	ctx, span := otel.Tracer(u.appName).Start(ctx, "auth.usecase.UpdateSchool")
+	defer span.End()
+
+	authCtx := utils.CtxAuth(ctx)
+	if authCtx == nil {
+		return nil, nil, ce.NewError(
+			ce.CodeMissingContextValue,
+			ce.MsgInternalServer,
+			errors.New("auth missing from context"),
+		)
+	}
+
+	authIDField := logger.NewField("auth_id", authCtx.AuthID)
+	oldSchoolIDField := logger.NewField("old_school_id", authCtx.SchoolID)
+	newSchoolIDField := logger.NewField("new_school_id", req.SchoolID)
+	roleField := logger.NewField("role", authCtx.Role)
+	authFields := []logger.Field{authIDField, oldSchoolIDField, newSchoolIDField, roleField}
+
+	// Data Normalization And Validation
+	refreshToken := strings.TrimSpace(req.RefreshToken)
+	if refreshToken == "" {
+		return nil, nil, ce.NewError(
+			ce.CodeUnauthenticated,
+			ce.MsgUnauthenticated,
+			errors.New("refresh token is empty"),
+			authFields...,
+		)
+	}
+
+	var a *models.Auth
+	var at *models.AuthToken
+	err := u.transactor.WithTx(ctx, func(ctx context.Context) *ce.Error {
+		// Auth School Update
+		auth, err := u.ar.UpdateSchool(ctx, authCtx.AuthID, req.SchoolID)
+		if err != nil && err.Code() == ce.CodeAuthNotFound {
+			return ce.NewError(
+				ce.CodeAuthNotRegistered,
+				ce.MsgInvalidCredentials,
+				err.Unwrap(),
+				err.Append(
+					oldSchoolIDField,
+					roleField,
+				).Fields()...,
+			)
+		}
+		if err != nil {
+			return err.Append(oldSchoolIDField, roleField)
+		}
+
+		// Session Refresh
+		authToken, err := u.su.RefreshSession(
+			ctx,
+			&models.RefreshSessionReq{
+				AuthID:       auth.ID,
+				SchoolID:     auth.SchoolID,
+				Role:         auth.Role,
+				IsVerified:   auth.IsVerified(),
+				RefreshToken: refreshToken,
+			},
+		)
+		if err != nil {
+			return err
+		}
+
+		a = auth
+		at = authToken
+		return nil
+	})
+	if err != nil && err.Code() == ce.CodeDBTransaction {
+		return nil, nil, ce.NewError(
+			err.Code(),
+			err.Message(),
+			err.Unwrap(),
+			authFields...,
+		)
+	}
+
+	return a, at, err
+}
+
 func (u *authUsecase) ChangePassword(ctx context.Context, req *models.ChangePasswordReq) (*models.Auth, *ce.Error) {
 	ctx, span := otel.Tracer(u.appName).Start(ctx, "auth.usecase.ChangePassword")
 	defer span.End()
@@ -360,6 +442,17 @@ func (u *authUsecase) ChangePassword(ctx context.Context, req *models.ChangePass
 
 		// Password Update
 		a, err = u.ar.UpdatePassword(ctx, auth.ID, hash)
+		if err != nil && err.Code() == ce.CodeAuthNotFound {
+			return ce.NewError(
+				ce.CodeAuthNotRegistered,
+				ce.MsgInvalidCredentials,
+				err.Unwrap(),
+				err.Append(
+					schoolIDField,
+					roleField,
+				).Fields()...,
+			)
+		}
 		if err != nil {
 			return err.Append(schoolIDField, roleField)
 		}

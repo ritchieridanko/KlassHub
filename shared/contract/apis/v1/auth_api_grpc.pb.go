@@ -23,6 +23,7 @@ const (
 	AuthService_Login_FullMethodName              = "/auth.v1.AuthService/Login"
 	AuthService_Logout_FullMethodName             = "/auth.v1.AuthService/Logout"
 	AuthService_CreateSchoolAuth_FullMethodName   = "/auth.v1.AuthService/CreateSchoolAuth"
+	AuthService_UpdateSchool_FullMethodName       = "/auth.v1.AuthService/UpdateSchool"
 	AuthService_ChangePassword_FullMethodName     = "/auth.v1.AuthService/ChangePassword"
 	AuthService_ResendVerification_FullMethodName = "/auth.v1.AuthService/ResendVerification"
 	AuthService_VerifyEmail_FullMethodName        = "/auth.v1.AuthService/VerifyEmail"
@@ -37,6 +38,7 @@ type AuthServiceClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CreateSchoolAuth(ctx context.Context, in *CreateSchoolAuthRequest, opts ...grpc.CallOption) (*CreateSchoolAuthResponse, error)
+	UpdateSchool(ctx context.Context, in *UpdateSchoolRequest, opts ...grpc.CallOption) (*UpdateSchoolResponse, error)
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error)
 	ResendVerification(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ResendVerificationResponse, error)
 	VerifyEmail(ctx context.Context, in *VerifyEmailRequest, opts ...grpc.CallOption) (*VerifyEmailResponse, error)
@@ -76,6 +78,16 @@ func (c *authServiceClient) CreateSchoolAuth(ctx context.Context, in *CreateScho
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateSchoolAuthResponse)
 	err := c.cc.Invoke(ctx, AuthService_CreateSchoolAuth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) UpdateSchool(ctx context.Context, in *UpdateSchoolRequest, opts ...grpc.CallOption) (*UpdateSchoolResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateSchoolResponse)
+	err := c.cc.Invoke(ctx, AuthService_UpdateSchool_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -139,6 +151,7 @@ type AuthServiceServer interface {
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Logout(context.Context, *LogoutRequest) (*emptypb.Empty, error)
 	CreateSchoolAuth(context.Context, *CreateSchoolAuthRequest) (*CreateSchoolAuthResponse, error)
+	UpdateSchool(context.Context, *UpdateSchoolRequest) (*UpdateSchoolResponse, error)
 	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error)
 	ResendVerification(context.Context, *emptypb.Empty) (*ResendVerificationResponse, error)
 	VerifyEmail(context.Context, *VerifyEmailRequest) (*VerifyEmailResponse, error)
@@ -162,6 +175,9 @@ func (UnimplementedAuthServiceServer) Logout(context.Context, *LogoutRequest) (*
 }
 func (UnimplementedAuthServiceServer) CreateSchoolAuth(context.Context, *CreateSchoolAuthRequest) (*CreateSchoolAuthResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSchoolAuth not implemented")
+}
+func (UnimplementedAuthServiceServer) UpdateSchool(context.Context, *UpdateSchoolRequest) (*UpdateSchoolResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSchool not implemented")
 }
 func (UnimplementedAuthServiceServer) ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
@@ -249,6 +265,24 @@ func _AuthService_CreateSchoolAuth_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServiceServer).CreateSchoolAuth(ctx, req.(*CreateSchoolAuthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_UpdateSchool_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSchoolRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).UpdateSchool(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_UpdateSchool_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).UpdateSchool(ctx, req.(*UpdateSchoolRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -361,6 +395,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateSchoolAuth",
 			Handler:    _AuthService_CreateSchoolAuth_Handler,
+		},
+		{
+			MethodName: "UpdateSchool",
+			Handler:    _AuthService_UpdateSchool_Handler,
 		},
 		{
 			MethodName: "ChangePassword",

@@ -60,6 +60,23 @@ func (h *AuthHandler) CreateSchoolAuth(ctx context.Context, req *apis.CreateScho
 	}, nil
 }
 
+func (h *AuthHandler) UpdateSchool(ctx context.Context, req *apis.UpdateSchoolRequest) (*apis.UpdateSchoolResponse, error) {
+	a, at, err := h.au.UpdateSchool(
+		ctx,
+		&models.UpdateSchoolReq{
+			SchoolID:     req.GetSchoolId(),
+			RefreshToken: req.GetRefreshToken(),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &apis.UpdateSchoolResponse{
+		Auth:      h.toAuth(a),
+		AuthToken: h.toAuthToken(at),
+	}, nil
+}
+
 func (h *AuthHandler) ChangePassword(ctx context.Context, req *apis.ChangePasswordRequest) (*apis.ChangePasswordResponse, error) {
 	a, err := h.au.ChangePassword(
 		ctx,

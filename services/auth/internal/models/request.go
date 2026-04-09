@@ -30,6 +30,11 @@ type RefreshSessionReq struct {
 	RefreshToken string
 }
 
+type UpdateSchoolReq struct {
+	SchoolID     int64
+	RefreshToken string
+}
+
 type VerifyEmailReq struct {
 	VerificationToken string
 	RefreshToken      string
