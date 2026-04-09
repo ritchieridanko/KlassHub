@@ -20,6 +20,7 @@ type AuthClient interface {
 	VerifyEmail(ctx context.Context, req *models.VerifyEmailReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	RotateAuthToken(ctx context.Context, refreshToken string) (at *models.AuthToken, err *ce.Error)
 	IsEmailAvailable(ctx context.Context, email string) (available bool, err *ce.Error)
+	IsUsernameAvailable(ctx context.Context, username string) (available bool, err *ce.Error)
 }
 
 type authClient struct {
@@ -153,6 +154,23 @@ func (c *authClient) IsEmailAvailable(ctx context.Context, email string) (bool, 
 		ctx,
 		&apis.EmailAvailabilityCheckRequest{
 			Email: email,
+		},
+	)
+	if err != nil {
+		return false, ce.FromGRPCErr(
+			err,
+		).Append(
+			logger.NewField("service", "auth"),
+		)
+	}
+	return resp.GetIsAvailable(), nil
+}
+
+func (c *authClient) IsUsernameAvailable(ctx context.Context, username string) (bool, *ce.Error) {
+	resp, err := c.client.IsUsernameAvailable(
+		ctx,
+		&apis.UsernameAvailabilityCheckRequest{
+			Username: username,
 		},
 	)
 	if err != nil {

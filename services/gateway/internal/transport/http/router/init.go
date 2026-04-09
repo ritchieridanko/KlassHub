@@ -46,6 +46,22 @@ func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, auh
 		auth.POST("/register", auh.CreateSchoolAuth)
 		auth.POST("/refresh", auh.RotateAuthToken)
 
+		// Usernames
+		username := auth.Group("/username")
+		{
+			// Availability
+			username.GET(
+				"/available",
+				middlewares.Auth(j),
+				middlewares.Authz(
+					false,
+					[]string{constants.SubdomainAdmin},
+					constants.AdminRoles,
+				),
+				auh.IsUsernameAvailable,
+			)
+		}
+
 		// Emails
 		email := auth.Group("/email")
 		{

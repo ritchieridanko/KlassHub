@@ -26,6 +26,10 @@ type RotateAuthTokenResponse struct {
 	AccessToken *AccessToken `json:"access_token,omitempty"`
 }
 
+type UsernameAvailabilityCheckResponse struct {
+	IsAvailable bool `json:"is_available"`
+}
+
 type VerifyEmailResponse struct {
 	Auth        *Auth        `json:"auth,omitempty"`
 	AccessToken *AccessToken `json:"access_token,omitempty"`

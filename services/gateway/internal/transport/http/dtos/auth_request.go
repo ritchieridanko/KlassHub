@@ -19,6 +19,10 @@ type LoginRequest struct {
 	Password   string `json:"password" binding:"required"`
 }
 
+type UsernameAvailabilityCheckRequest struct {
+	Username string `form:"username" binding:"required"`
+}
+
 type VerifyEmailRequest struct {
 	VerificationToken string `form:"token" binding:"required"`
 }

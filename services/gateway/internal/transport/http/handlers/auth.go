@@ -408,6 +408,50 @@ func (h *AuthHandler) IsEmailAvailable(ctx *gin.Context) {
 	)
 }
 
+func (h *AuthHandler) IsUsernameAvailable(ctx *gin.Context) {
+	var params dtos.UsernameAvailabilityCheckRequest
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		ce.NewError(ce.CodeInvalidParams, ce.MsgInvalidParams, err).Bind(ctx)
+		return
+	}
+
+	authCtx := utils.CtxAuth(ctx.Request.Context())
+	if authCtx == nil {
+		ce.NewError(
+			ce.CodeMissingContextValue,
+			ce.MsgInternalServer,
+			errors.New("auth missing from context"),
+		).Bind(
+			ctx,
+		)
+		return
+	}
+
+	available, err := h.auc.IsUsernameAvailable(
+		metadata.ToOutgoingCtx(
+			ctx.Request.Context(),
+			metadata.NewPair(
+				constants.MDKeyRole,
+				authCtx.Role,
+			),
+		),
+		params.Username,
+	)
+	if err != nil {
+		err.Bind(ctx)
+		return
+	}
+
+	utils.SetResponse(
+		ctx,
+		http.StatusOK,
+		"OK",
+		dtos.UsernameAvailabilityCheckResponse{
+			IsAvailable: available,
+		},
+	)
+}
+
 func (h *AuthHandler) toAuth(a *models.Auth) *dtos.Auth {
 	if a == nil {
 		return nil
