@@ -2,15 +2,18 @@ package databases
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/ritchieridanko/klasshub/services/school/internal/infra/database"
+	"github.com/ritchieridanko/klasshub/services/school/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/school/internal/models"
 	"github.com/ritchieridanko/klasshub/services/school/internal/utils/ce"
 )
 
 type SchoolDatabase interface {
 	Create(ctx context.Context, data *models.CreateSchoolData) (s *models.School, err *ce.Error)
+	Delete(ctx context.Context, schoolID int64) (err *ce.Error)
 }
 
 type schoolDatabase struct {
@@ -62,4 +65,34 @@ func (d *schoolDatabase) Create(ctx context.Context, data *models.CreateSchoolDa
 	}
 
 	return &s, nil
+}
+
+func (d *schoolDatabase) Delete(ctx context.Context, schoolID int64) *ce.Error {
+	query := "DELETE FROM schools WHERE id = $1"
+
+	err := d.database.Execute(
+		ctx, query,
+		schoolID,
+	)
+	if err != nil {
+		wrappedErr := fmt.Errorf("failed to delete school: %w", err)
+		schoolIDField := logger.NewField("school_id", schoolID)
+
+		if errors.Is(err, ce.ErrDBAffectNoRows) {
+			return ce.NewError(
+				ce.CodeSchoolNotFound,
+				ce.MsgSchoolNotFound,
+				wrappedErr,
+				schoolIDField,
+			)
+		}
+		return ce.NewError(
+			ce.CodeDBQueryExec,
+			ce.MsgInternalServer,
+			wrappedErr,
+			schoolIDField,
+		)
+	}
+
+	return nil
 }

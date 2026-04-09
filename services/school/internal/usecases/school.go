@@ -16,6 +16,9 @@ import (
 
 type SchoolUsecase interface {
 	CreateSchool(ctx context.Context, req *models.CreateSchoolReq) (s *models.School, err *ce.Error)
+
+	// Event Usecases
+	OnAuthSchoolUpdateFailed(ctx context.Context, schoolID int64) (err *ce.Error)
 }
 
 type schoolUsecase struct {

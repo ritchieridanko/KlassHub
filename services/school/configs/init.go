@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ritchieridanko/klasshub/services/school/internal/constants"
 	"github.com/ritchieridanko/klasshub/services/school/internal/utils"
 	"github.com/spf13/viper"
 )
@@ -14,6 +15,7 @@ type Config struct {
 	App      App      `mapstructure:"app"`
 	Server   Server   `mapstructure:"server"`
 	Database Database `mapstructure:"database"`
+	Broker   Broker   `mapstructure:"broker"`
 	Tracer   Tracer   `mapstructure:"tracer"`
 }
 
@@ -44,6 +46,20 @@ type Database struct {
 	MinConns        int           `mapstructure:"min_conns"`
 	MaxConnLifetime time.Duration `mapstructure:"max_conn_lifetime"`
 	MaxConnIdleTime time.Duration `mapstructure:"max_conn_idle_time"`
+}
+
+type Broker struct {
+	Brokers string `mapstructure:"brokers"`
+
+	Subscriber struct {
+		ASUF struct {
+			Name           string        `mapstructure:"name"`
+			MaxBytes       int           `mapstructure:"max_bytes"`
+			MaxWait        time.Duration `mapstructure:"max_wait"`
+			CommitInterval time.Duration `mapstructure:"commit_interval"`
+			ProcessTimeout time.Duration `mapstructure:"process_timeout"`
+		} `mapstructure:"auth_school_update_failed"`
+	} `mapstructure:"subscriber"`
 }
 
 type Tracer struct {
@@ -89,6 +105,8 @@ func Init(path string) (*Config, error) {
 		cfg.Database.Name,
 		cfg.Database.SSLMode,
 	)
+
+	constants.EventTopicASUF = cfg.Broker.Subscriber.ASUF.Name
 
 	return &cfg, nil
 }
