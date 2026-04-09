@@ -13,6 +13,7 @@ import (
 
 type SchoolDatabase interface {
 	Create(ctx context.Context, data *models.CreateSchoolData) (s *models.School, err *ce.Error)
+	GetByID(ctx context.Context, schoolID int64) (s *models.School, err *ce.Error)
 	Delete(ctx context.Context, schoolID int64) (err *ce.Error)
 }
 
@@ -61,6 +62,58 @@ func (d *schoolDatabase) Create(ctx context.Context, data *models.CreateSchoolDa
 			ce.CodeDBQueryExec,
 			ce.MsgInternalServer,
 			fmt.Errorf("failed to create school: %w", err),
+		)
+	}
+
+	return &s, nil
+}
+
+func (d *schoolDatabase) GetByID(ctx context.Context, schoolID int64) (*models.School, *ce.Error) {
+	query := `
+		SELECT
+			npsn, npsn_verified_at, name, level, ownership,
+			profile_picture, profile_banner, accreditation,
+			established_at, province, city_regency, district,
+			subdistrict, street, postcode, phone, email, website,
+			timezone, created_at
+		FROM
+			schools
+		WHERE
+			id = $1
+			AND deleted_at IS NULL
+	`
+	if d.database.WithinTx(ctx) {
+		query += " FOR UPDATE"
+	}
+
+	var s models.School
+	err := d.database.Query(
+		ctx, query,
+		schoolID,
+	).Scan(
+		&s.NPSN, &s.NPSNVerifiedAt, &s.Name, &s.Level, &s.Ownership,
+		&s.ProfilePicture, &s.ProfileBanner, &s.Accreditation,
+		&s.EstablishedAt, &s.Province, &s.CityRegency, &s.District,
+		&s.Subdistrict, &s.Street, &s.Postcode, &s.Phone, &s.Email,
+		&s.Website, &s.Timezone, &s.CreatedAt,
+	)
+	if err != nil {
+		wrappedErr := fmt.Errorf("failed to get school by id: %w", err)
+		schoolIDField := logger.NewField("school_id", schoolID)
+
+		if errors.Is(err, ce.ErrDBQueryNoRows) {
+			return nil, ce.NewError(
+				ce.CodeSchoolNotFound,
+				ce.MsgSchoolNotFound,
+				wrappedErr,
+				schoolIDField,
+			)
+		}
+		return nil, ce.NewError(
+			ce.CodeDBQueryExec,
+			ce.MsgInternalServer,
+			wrappedErr,
+			schoolIDField,
 		)
 	}
 

@@ -9,6 +9,7 @@ package apis
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
@@ -434,11 +435,55 @@ func (x *CreateSchoolResponse) GetSchool() *School {
 	return nil
 }
 
+type SchoolGetMeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	School        *School                `protobuf:"bytes,1,opt,name=school,proto3" json:"school,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SchoolGetMeResponse) Reset() {
+	*x = SchoolGetMeResponse{}
+	mi := &file_v1_school_api_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SchoolGetMeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SchoolGetMeResponse) ProtoMessage() {}
+
+func (x *SchoolGetMeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_school_api_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SchoolGetMeResponse.ProtoReflect.Descriptor instead.
+func (*SchoolGetMeResponse) Descriptor() ([]byte, []int) {
+	return file_v1_school_api_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *SchoolGetMeResponse) GetSchool() *School {
+	if x != nil {
+		return x.School
+	}
+	return nil
+}
+
 var File_v1_school_api_proto protoreflect.FileDescriptor
 
 const file_v1_school_api_proto_rawDesc = "" +
 	"\n" +
-	"\x13v1/school_api.proto\x12\tschool.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xbf\x06\n" +
+	"\x13v1/school_api.proto\x12\tschool.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xbf\x06\n" +
 	"\x06School\x12\x1a\n" +
 	"\an_p_s_n\x18\x01 \x01(\tH\x00R\x04nPSN\x88\x01\x01\x12G\n" +
 	"\x13n_p_s_n_verified_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x0enPSNVerifiedAt\x12\x12\n" +
@@ -498,9 +543,12 @@ const file_v1_school_api_proto_rawDesc = "" +
 	"\b_website\"^\n" +
 	"\x14CreateSchoolResponse\x12\x1b\n" +
 	"\tschool_id\x18\x01 \x01(\x03R\bschoolId\x12)\n" +
-	"\x06school\x18\x02 \x01(\v2\x11.school.v1.SchoolR\x06school2`\n" +
+	"\x06school\x18\x02 \x01(\v2\x11.school.v1.SchoolR\x06school\"@\n" +
+	"\x13SchoolGetMeResponse\x12)\n" +
+	"\x06school\x18\x01 \x01(\v2\x11.school.v1.SchoolR\x06school2\xa1\x01\n" +
 	"\rSchoolService\x12O\n" +
-	"\fCreateSchool\x12\x1e.school.v1.CreateSchoolRequest\x1a\x1f.school.v1.CreateSchoolResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
+	"\fCreateSchool\x12\x1e.school.v1.CreateSchoolRequest\x1a\x1f.school.v1.CreateSchoolResponse\x12?\n" +
+	"\x05GetMe\x12\x16.google.protobuf.Empty\x1a\x1e.school.v1.SchoolGetMeResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
 
 var (
 	file_v1_school_api_proto_rawDescOnce sync.Once
@@ -514,26 +562,31 @@ func file_v1_school_api_proto_rawDescGZIP() []byte {
 	return file_v1_school_api_proto_rawDescData
 }
 
-var file_v1_school_api_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_v1_school_api_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_v1_school_api_proto_goTypes = []any{
 	(*School)(nil),                // 0: school.v1.School
 	(*CreateSchoolRequest)(nil),   // 1: school.v1.CreateSchoolRequest
 	(*CreateSchoolResponse)(nil),  // 2: school.v1.CreateSchoolResponse
-	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*SchoolGetMeResponse)(nil),   // 3: school.v1.SchoolGetMeResponse
+	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),         // 5: google.protobuf.Empty
 }
 var file_v1_school_api_proto_depIdxs = []int32{
-	3, // 0: school.v1.School.n_p_s_n_verified_at:type_name -> google.protobuf.Timestamp
-	3, // 1: school.v1.School.established_at:type_name -> google.protobuf.Timestamp
-	3, // 2: school.v1.School.created_at:type_name -> google.protobuf.Timestamp
-	3, // 3: school.v1.CreateSchoolRequest.established_at:type_name -> google.protobuf.Timestamp
+	4, // 0: school.v1.School.n_p_s_n_verified_at:type_name -> google.protobuf.Timestamp
+	4, // 1: school.v1.School.established_at:type_name -> google.protobuf.Timestamp
+	4, // 2: school.v1.School.created_at:type_name -> google.protobuf.Timestamp
+	4, // 3: school.v1.CreateSchoolRequest.established_at:type_name -> google.protobuf.Timestamp
 	0, // 4: school.v1.CreateSchoolResponse.school:type_name -> school.v1.School
-	1, // 5: school.v1.SchoolService.CreateSchool:input_type -> school.v1.CreateSchoolRequest
-	2, // 6: school.v1.SchoolService.CreateSchool:output_type -> school.v1.CreateSchoolResponse
-	6, // [6:7] is the sub-list for method output_type
-	5, // [5:6] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	0, // 5: school.v1.SchoolGetMeResponse.school:type_name -> school.v1.School
+	1, // 6: school.v1.SchoolService.CreateSchool:input_type -> school.v1.CreateSchoolRequest
+	5, // 7: school.v1.SchoolService.GetMe:input_type -> google.protobuf.Empty
+	2, // 8: school.v1.SchoolService.CreateSchool:output_type -> school.v1.CreateSchoolResponse
+	3, // 9: school.v1.SchoolService.GetMe:output_type -> school.v1.SchoolGetMeResponse
+	8, // [8:10] is the sub-list for method output_type
+	6, // [6:8] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_v1_school_api_proto_init() }
@@ -549,7 +602,7 @@ func file_v1_school_api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_school_api_proto_rawDesc), len(file_v1_school_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -16,6 +16,7 @@ import (
 
 type SchoolUsecase interface {
 	CreateSchool(ctx context.Context, req *models.CreateSchoolReq) (s *models.School, err *ce.Error)
+	GetMe(ctx context.Context) (s *models.School, err *ce.Error)
 
 	// Event Usecases
 	OnAuthSchoolUpdateFailed(ctx context.Context, schoolID int64) (err *ce.Error)
@@ -142,5 +143,29 @@ func (u *schoolUsecase) CreateSchool(ctx context.Context, req *models.CreateScho
 		return nil, err.Append(authFields...)
 	}
 
+	return s, nil
+}
+
+func (u *schoolUsecase) GetMe(ctx context.Context) (*models.School, *ce.Error) {
+	ctx, span := otel.Tracer(u.appName).Start(ctx, "school.usecase.GetMe")
+	defer span.End()
+
+	authCtx := utils.CtxAuth(ctx)
+	if authCtx == nil {
+		return nil, ce.NewError(
+			ce.CodeMissingContextValue,
+			ce.MsgInternalServer,
+			errors.New("auth missing from context"),
+		)
+	}
+
+	// School Fetching
+	s, err := u.sr.GetByID(ctx, authCtx.SchoolID)
+	if err != nil {
+		return nil, err.Append(
+			logger.NewField("auth_id", authCtx.AuthID),
+			logger.NewField("role", authCtx.Role),
+		)
+	}
 	return s, nil
 }

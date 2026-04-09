@@ -7,6 +7,7 @@ import (
 	"github.com/ritchieridanko/klasshub/services/school/internal/usecases"
 	"github.com/ritchieridanko/klasshub/services/school/internal/utils"
 	"github.com/ritchieridanko/klasshub/shared/contract/apis/v1"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type SchoolHandler struct {
@@ -46,6 +47,16 @@ func (h *SchoolHandler) CreateSchool(ctx context.Context, req *apis.CreateSchool
 	return &apis.CreateSchoolResponse{
 		SchoolId: s.ID,
 		School:   h.toSchool(s),
+	}, nil
+}
+
+func (h *SchoolHandler) GetMe(ctx context.Context, req *emptypb.Empty) (*apis.SchoolGetMeResponse, error) {
+	s, err := h.su.GetMe(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &apis.SchoolGetMeResponse{
+		School: h.toSchool(s),
 	}, nil
 }
 

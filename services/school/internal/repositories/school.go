@@ -10,6 +10,7 @@ import (
 
 type SchoolRepository interface {
 	Create(ctx context.Context, data *models.CreateSchoolData) (s *models.School, err *ce.Error)
+	GetByID(ctx context.Context, schoolID int64) (s *models.School, err *ce.Error)
 	Delete(ctx context.Context, schoolID int64) (err *ce.Error)
 }
 
@@ -23,6 +24,10 @@ func NewSchoolRepository(db databases.SchoolDatabase) SchoolRepository {
 
 func (r *schoolRepository) Create(ctx context.Context, data *models.CreateSchoolData) (*models.School, *ce.Error) {
 	return r.database.Create(ctx, data)
+}
+
+func (r *schoolRepository) GetByID(ctx context.Context, schoolID int64) (*models.School, *ce.Error) {
+	return r.database.GetByID(ctx, schoolID)
 }
 
 func (r *schoolRepository) Delete(ctx context.Context, schoolID int64) *ce.Error {
