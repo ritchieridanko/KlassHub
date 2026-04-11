@@ -3,6 +3,7 @@ package databases
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/ritchieridanko/klasshub/services/user/internal/infra/database"
 	"github.com/ritchieridanko/klasshub/services/user/internal/infra/logger"
@@ -11,8 +12,8 @@ import (
 )
 
 type UserDatabase interface {
-	Get(ctx context.Context, params *models.GetUser) (u *models.User, err *ce.Error)
-	GetAuthInfo(ctx context.Context, params *models.GetUserAuthInfo) (uai *models.UserAuthInfo, err *ce.Error)
+	Create(ctx context.Context, data *models.CreateUserData) (u *models.User, err *ce.Error)
+	GetByAuthID(ctx context.Context, authID int64) (u *models.User, err *ce.Error)
 }
 
 type userDatabase struct {
@@ -23,16 +24,59 @@ func NewUserDatabase(db *database.Database) UserDatabase {
 	return &userDatabase{database: db}
 }
 
-func (d *userDatabase) Get(ctx context.Context, params *models.GetUser) (*models.User, *ce.Error) {
+func (d *userDatabase) Create(ctx context.Context, data *models.CreateUserData) (*models.User, *ce.Error) {
+	query := `
+		INSERT INTO users (
+			id, auth_id, school_id, school_user_id, role,
+			name, birthplace, birthdate, sex, created_by
+		)
+		VALUES (
+			$1, $2, $3, $4, $5,
+			$6, $7, $8, $9, $10
+		)
+		RETURNING
+			id, school_user_id, role, name, nickname,
+			birthplace, birthdate, sex, phone,
+			profile_picture, profile_banner,
+			created_by, created_at, updated_at
+	`
+
+	var u models.User
+	err := d.database.Query(
+		ctx, query,
+		data.ID, data.AuthID, data.SchoolID, data.SchoolUserID,
+		data.Role, data.Name, data.Birthplace, data.Birthdate,
+		data.Sex, data.CreatedBy,
+	).Scan(
+		&u.ID, &u.SchoolUserID, &u.Role, &u.Name, &u.Nickname,
+		&u.Birthplace, &u.Birthdate, &u.Sex, &u.Phone,
+		&u.ProfilePicture, &u.ProfileBanner, &u.CreatedBy,
+		&u.CreatedAt, &u.UpdatedAt,
+	)
+	if err != nil {
+		return nil, ce.NewError(
+			ce.CodeDBQueryExec,
+			ce.MsgInternalServer,
+			fmt.Errorf("failed to create user: %w", err),
+			logger.NewField("auth_id", data.AuthID),
+			logger.NewField("school_id", data.SchoolID),
+			logger.NewField("role", data.Role),
+		)
+	}
+
+	return &u, nil
+}
+
+func (d *userDatabase) GetByAuthID(ctx context.Context, authID int64) (*models.User, *ce.Error) {
 	query := `
 		SELECT
-			id, school_user_id, role, name, nickname, birthplace,
-			birthdate, sex, phone, profile_picture, profile_banner
+			id, school_user_id, role, name, nickname,
+			birthplace, birthdate, sex, phone,
+			profile_picture, profile_banner
 		FROM
 			users
 		WHERE
 			auth_id = $1
-			AND school_id = $2
 			AND deleted_at IS NULL
 	`
 	if d.database.WithinTx(ctx) {
@@ -42,75 +86,31 @@ func (d *userDatabase) Get(ctx context.Context, params *models.GetUser) (*models
 	var u models.User
 	err := d.database.Query(
 		ctx, query,
-		params.AuthID, params.SchoolID,
+		authID,
 	).Scan(
-		&u.ID, &u.SchoolUserID, &u.Role, &u.Name,
-		&u.Nickname, &u.Birthplace, &u.Birthdate,
-		&u.Sex, &u.Phone, &u.ProfilePicture, &u.ProfileBanner,
+		&u.ID, &u.SchoolUserID, &u.Role, &u.Name, &u.Nickname,
+		&u.Birthplace, &u.Birthdate, &u.Sex, &u.Phone,
+		&u.ProfilePicture, &u.ProfileBanner,
 	)
 	if err != nil {
-		authIDField := logger.NewField("auth_id", params.AuthID)
-		schoolIDField := logger.NewField("school_id", params.SchoolID)
+		wrappedErr := fmt.Errorf("failed to get user by auth id: %w", err)
+		authIDField := logger.NewField("auth_id", authID)
 
 		if errors.Is(err, ce.ErrDBQueryNoRows) {
 			return nil, ce.NewError(
 				ce.CodeUserNotFound,
 				ce.MsgUserNotFound,
-				err,
+				wrappedErr,
 				authIDField,
-				schoolIDField,
 			)
 		}
 		return nil, ce.NewError(
 			ce.CodeDBQueryExec,
 			ce.MsgInternalServer,
-			err,
+			wrappedErr,
 			authIDField,
-			schoolIDField,
 		)
 	}
 
 	return &u, nil
-}
-
-func (d *userDatabase) GetAuthInfo(ctx context.Context, params *models.GetUserAuthInfo) (*models.UserAuthInfo, *ce.Error) {
-	query := `
-		SELECT school_id, role
-		FROM users
-		WHERE
-			auth_id = $1
-			AND deleted_at IS NULL
-	`
-	if d.database.WithinTx(ctx) {
-		query += " FOR UPDATE"
-	}
-
-	var i models.UserAuthInfo
-	err := d.database.Query(
-		ctx, query,
-		params.AuthID,
-	).Scan(
-		&i.SchoolID,
-		&i.Role,
-	)
-	if err != nil {
-		authIDField := logger.NewField("auth_id", params.AuthID)
-
-		if errors.Is(err, ce.ErrDBQueryNoRows) {
-			return nil, ce.NewError(
-				ce.CodeUserNotFound,
-				ce.MsgUserNotFound,
-				err,
-				authIDField,
-			)
-		}
-		return nil, ce.NewError(
-			ce.CodeDBQueryExec,
-			ce.MsgInternalServer,
-			err,
-			authIDField,
-		)
-	}
-
-	return &i, nil
 }

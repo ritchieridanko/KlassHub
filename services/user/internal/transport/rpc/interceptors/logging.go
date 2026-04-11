@@ -36,9 +36,9 @@ func Logging(l *logger.Logger) grpc.UnaryServerInterceptor {
 		if errors.As(err, &e) {
 			grpcErr := e.ToGRPCStatus()
 			st, _ := status.FromError(grpcErr)
-			status := st.Code()
+			code := st.Code()
 
-			fields = append(fields, logger.NewField("status", status.String()))
+			fields = append(fields, logger.NewField("status", code.String()))
 			fields = append(fields, e.Fields()...)
 			fields = append(
 				fields,
@@ -46,7 +46,7 @@ func Logging(l *logger.Logger) grpc.UnaryServerInterceptor {
 				logger.NewField("error", e.Error()),
 			)
 
-			switch status {
+			switch code {
 			case codes.Aborted, codes.AlreadyExists, codes.Canceled,
 				codes.FailedPrecondition, codes.InvalidArgument, codes.NotFound,
 				codes.OutOfRange, codes.PermissionDenied, codes.Unauthenticated:
@@ -60,7 +60,7 @@ func Logging(l *logger.Logger) grpc.UnaryServerInterceptor {
 		// Fallback
 		fields = append(
 			fields,
-			logger.NewField("status", codes.Internal.String()),
+			logger.NewField("status", codes.Unknown.String()),
 			logger.NewField("error_code", ce.CodeUnknown),
 			logger.NewField("error", err.Error()),
 		)

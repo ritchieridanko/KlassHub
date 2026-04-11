@@ -11,5 +11,5 @@ CREATE TABLE user_notifications(
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Index records by auth id
+-- Index records by auth
 CREATE INDEX idx_user_notifications_auth ON user_notifications(auth_id);

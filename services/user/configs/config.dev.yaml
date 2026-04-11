@@ -3,7 +3,7 @@ app:
 
 server:
   host: "localhost"
-  port: 50052
+  port: 50054
   timeout:
     shutdown: "10s"
 

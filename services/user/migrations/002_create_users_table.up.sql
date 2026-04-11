@@ -3,8 +3,8 @@ CREATE TABLE users(
   auth_id BIGINT NOT NULL,
   school_id BIGINT NOT NULL,
 
-  school_user_id VARCHAR,
-  role VARCHAR NOT NULL, -- e.g. student, instructor, staff, administrator, etc.
+  school_user_id VARCHAR, -- school-assigned id (if any)
+  role VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
   nickname VARCHAR,
   birthplace VARCHAR NOT NULL,
@@ -15,7 +15,6 @@ CREATE TABLE users(
   profile_banner VARCHAR,
 
   created_by UUID,
-  created_by_name VARCHAR,
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -24,16 +23,16 @@ CREATE TABLE users(
   FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Enforce uniqueness of auth id for active (not deleted) records
+-- Unique auth for active (not deleted) records
 CREATE UNIQUE INDEX idx_users_unique_auth ON users(auth_id) WHERE deleted_at IS NULL;
 
--- Enforce uniqueness of school user id for active (not deleted) records
+-- Unique school user for active (not deleted) records
 CREATE UNIQUE INDEX idx_users_unique_school_user ON users(school_id, school_user_id) WHERE school_user_id IS NOT NULL AND deleted_at IS NULL;
 
--- Index records by school id if active (not deleted)
+-- Index records by school if active (not deleted)
 CREATE INDEX idx_users_school ON users(school_id) WHERE deleted_at IS NULL;
 
--- Index records by school id and role if active (not deleted)
+-- Index records by school and role if active (not deleted)
 CREATE INDEX idx_users_school_role ON users(school_id, role) WHERE deleted_at IS NULL;
 
 -- Index records by name if active (not deleted)

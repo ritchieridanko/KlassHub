@@ -3,7 +3,7 @@ CREATE TABLE user_preferences(
 
   theme VARCHAR NOT NULL DEFAULT 'system',
   language VARCHAR NOT NULL DEFAULT 'en',
-  timezone VARCHAR NOT NULL DEFAULT 'Asia/Jakarta',
+  timezone VARCHAR NOT NULL DEFAULT 'asia/jakarta',
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

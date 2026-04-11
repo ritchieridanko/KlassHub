@@ -1,5 +1,5 @@
 # ---------- Build Stage ----------
-FROM golang:1.24.2-alpine3.20 AS builder
+FROM golang:1.25.0-alpine3.22 AS builder
 
 # Install build dependencies
 RUN apk add --no-cache git
@@ -17,11 +17,11 @@ COPY services/user/cmd/app ./cmd/app
 COPY services/user/configs ./configs
 COPY services/user/internal ./internal
 
-# Build app
+# Build binary
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/app cmd/app/main.go
 
 # ---------- Runtime Stage ----------
-FROM alpine:3.20
+FROM alpine:3.22
 
 # Install runtime dependencies
 RUN apk add --no-cache ca-certificates
@@ -34,7 +34,7 @@ COPY --from=builder /app/services/user/bin ./bin
 COPY --from=builder /app/services/user/configs ./configs
 
 # Expose port
-EXPOSE 50052
+EXPOSE 50054
 
 # Set entry point
 ENTRYPOINT ["./bin/app"]

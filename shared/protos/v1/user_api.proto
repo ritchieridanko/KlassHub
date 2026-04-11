@@ -7,11 +7,10 @@ import "google/protobuf/timestamp.proto";
 option go_package = "github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apis";
 
 service UserService {
-  rpc GetUser(GetUserRequest) returns (GetUserResponse);
-  rpc GetUserAuthInfo(GetUserAuthInfoRequest) returns (GetUserAuthInfoResponse);
+  rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
 }
 
-message User {
+message UserAdmin {
   string id = 1;
   optional string school_user_id = 2;
   string role = 3;
@@ -23,26 +22,22 @@ message User {
   optional string phone = 9;
   optional string profile_picture = 10;
   optional string profile_banner = 11;
+  optional string created_by = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
 }
 
-message UserAuthInfo {
-  int64 school_id = 1;
-  string role = 2;
-}
-
-message GetUserRequest {
+message CreateUserRequest {
   int64 auth_id = 1;
   int64 school_id = 2;
+  optional string school_user_id = 3;
+  string role = 4;
+  string name = 5;
+  string birthplace = 6;
+  google.protobuf.Timestamp birthdate = 7;
+  string sex = 8;
 }
 
-message GetUserResponse {
-  User user = 1;
-}
-
-message GetUserAuthInfoRequest {
-  int64 auth_id = 1;
-}
-
-message GetUserAuthInfoResponse {
-  UserAuthInfo auth_info = 1;
+message CreateUserResponse {
+  UserAdmin user = 1;
 }

@@ -29,7 +29,7 @@ func Init(cfg *configs.Config) (*Infra, error) {
 		return nil, err
 	}
 
-	t, err := tracer.Init(cfg.App.Name, cfg.Tracer.Addr, l)
+	t, err := tracer.Init(cfg.App.Env, cfg.App.Name, cfg.Tracer.Addr, l)
 	if err != nil {
 		return nil, err
 	}
@@ -54,8 +54,10 @@ func (i *Infra) Close() error {
 	if err := i.logger.Sync(); err != nil {
 		return fmt.Errorf("failed to close logger: %w", err)
 	}
+	if err := i.tracer.Shutdown(); err != nil {
+		return fmt.Errorf("failed to close tracer: %w", err)
+	}
 
 	i.database.Close()
-	i.tracer.Cleanup()
 	return nil
 }

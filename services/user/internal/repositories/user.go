@@ -9,8 +9,8 @@ import (
 )
 
 type UserRepository interface {
-	Get(ctx context.Context, params *models.GetUser) (u *models.User, err *ce.Error)
-	GetAuthInfo(ctx context.Context, params *models.GetUserAuthInfo) (uai *models.UserAuthInfo, err *ce.Error)
+	Create(ctx context.Context, data *models.CreateUserData) (u *models.User, err *ce.Error)
+	GetByAuthID(ctx context.Context, authID int64) (u *models.User, err *ce.Error)
 }
 
 type userRepository struct {
@@ -21,10 +21,10 @@ func NewUserRepository(db databases.UserDatabase) UserRepository {
 	return &userRepository{database: db}
 }
 
-func (r *userRepository) Get(ctx context.Context, params *models.GetUser) (*models.User, *ce.Error) {
-	return r.database.Get(ctx, params)
+func (r *userRepository) Create(ctx context.Context, data *models.CreateUserData) (*models.User, *ce.Error) {
+	return r.database.Create(ctx, data)
 }
 
-func (r *userRepository) GetAuthInfo(ctx context.Context, params *models.GetUserAuthInfo) (*models.UserAuthInfo, *ce.Error) {
-	return r.database.GetAuthInfo(ctx, params)
+func (r *userRepository) GetByAuthID(ctx context.Context, authID int64) (*models.User, *ce.Error) {
+	return r.database.GetByAuthID(ctx, authID)
 }

@@ -1,8 +1,13 @@
 package models
 
-import "time"
+import (
+	"time"
 
-type CreateUserReq struct {
+	"github.com/google/uuid"
+)
+
+type CreateUserData struct {
+	ID           uuid.UUID
 	AuthID       int64
 	SchoolID     int64
 	SchoolUserID *string
@@ -11,4 +16,5 @@ type CreateUserReq struct {
 	Birthplace   string
 	Birthdate    time.Time
 	Sex          string
+	CreatedBy    *uuid.UUID
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/ritchieridanko/klasshub/services/user/internal/transport/rpc/handlers"
 	"github.com/ritchieridanko/klasshub/services/user/internal/transport/rpc/server"
 	"github.com/ritchieridanko/klasshub/services/user/internal/usecases"
+	"github.com/ritchieridanko/klasshub/services/user/internal/utils/validator"
 )
 
 type Container struct {
@@ -21,6 +22,8 @@ type Container struct {
 	udb databases.UserDatabase
 
 	ur repositories.UserRepository
+
+	validator *validator.Validator
 
 	uu usecases.UserUsecase
 
@@ -40,14 +43,17 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	// Repositories
 	ur := repositories.NewUserRepository(udb)
 
+	// Utils
+	v := validator.Init()
+
 	// Usecases
-	uu := usecases.NewUserUsecase(ur)
+	uu := usecases.NewUserUsecase(cfg.App.Name, ur, v)
 
 	// Handlers
 	uh := handlers.NewUserHandler(uu)
 
 	// Server
-	srv := server.Init(&cfg.Server, cfg.App.Name, l, uh)
+	srv := server.Init(&cfg.Server, cfg.App.Name, v, l, uh)
 
 	return &Container{
 		config:     cfg,
@@ -56,6 +62,7 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 		logger:     l,
 		udb:        udb,
 		ur:         ur,
+		validator:  v,
 		uu:         uu,
 		uh:         uh,
 		server:     srv,

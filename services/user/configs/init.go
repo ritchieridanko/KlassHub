@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ritchieridanko/klasshub/services/user/internal/utils"
 	"github.com/spf13/viper"
 )
 
@@ -52,8 +53,8 @@ type Tracer struct {
 }
 
 func Init(path string) (*Config, error) {
-	env := os.Getenv("APP_ENV")
-	if env == "" {
+	env := utils.NormalizeString(os.Getenv("APP_ENV"))
+	if env != "dev" && env != "prod" {
 		env = "dev"
 	}
 	if path == "" {
