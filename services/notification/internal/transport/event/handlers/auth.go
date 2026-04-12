@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 
-	"github.com/ritchieridanko/klasshub/services/notification/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/notification/internal/models"
 	"github.com/ritchieridanko/klasshub/services/notification/internal/usecases"
 	"github.com/ritchieridanko/klasshub/services/notification/internal/utils"
@@ -26,19 +25,11 @@ func (h *AuthHandler) OnAuthCreated(ctx context.Context, msg kafka.Message) *ce.
 	if err := proto.Unmarshal(msg.Value, &evt); err != nil {
 		return ce.NewError(ce.CodeProtobufParsingFailed, err)
 	}
-
-	eventID, err := utils.ToUUID(evt.GetEventId())
-	if err != nil {
-		return ce.NewError(
-			ce.CodeTypeConversionFailed,
-			err,
-			logger.NewField("event_id", evt.GetEventId()),
-		)
-	}
 	return h.au.OnAuthCreated(
 		ctx,
 		&models.ACEventReq{
-			ID:                eventID,
+			ID:                utils.ToUUIDMust(evt.GetEventId()),
+			Role:              evt.GetRole(),
 			Email:             evt.GetEmail(),
 			VerificationToken: evt.GetVerificationToken(),
 			CreatedAt:         utils.ToTime(evt.GetCreatedAt()),
@@ -51,19 +42,11 @@ func (h *AuthHandler) OnAuthVerificationRequested(ctx context.Context, msg kafka
 	if err := proto.Unmarshal(msg.Value, &evt); err != nil {
 		return ce.NewError(ce.CodeProtobufParsingFailed, err)
 	}
-
-	eventID, err := utils.ToUUID(evt.GetEventId())
-	if err != nil {
-		return ce.NewError(
-			ce.CodeTypeConversionFailed,
-			err,
-			logger.NewField("event_id", evt.GetEventId()),
-		)
-	}
 	return h.au.OnAuthVerificationRequested(
 		ctx,
 		&models.AVREventReq{
-			ID:                eventID,
+			ID:                utils.ToUUIDMust(evt.GetEventId()),
+			Role:              evt.GetRole(),
 			Email:             evt.GetEmail(),
 			VerificationToken: evt.GetVerificationToken(),
 			CreatedAt:         utils.ToTime(evt.GetCreatedAt()),

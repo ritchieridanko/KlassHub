@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ritchieridanko/klasshub/services/notification/configs"
+	"github.com/ritchieridanko/klasshub/services/notification/internal/constants"
 	"github.com/ritchieridanko/klasshub/services/notification/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/notification/internal/infra/mailer"
 	"github.com/ritchieridanko/klasshub/services/notification/internal/models"
@@ -52,8 +53,13 @@ func (c *emailChannel) SendVerification(ctx context.Context, msg *models.Verific
 	}
 
 	// Template Building
+	template := "verification_school"
+	if msg.Role != constants.RoleSchool {
+		template = "verification_user"
+	}
+
 	body, buildErr := c.buildTemplate(
-		"verification",
+		template,
 		map[string]any{
 			"Subject":   "Verify Your Email!",
 			"Recipient": msg.Recipient,
@@ -82,8 +88,13 @@ func (c *emailChannel) SendWelcome(ctx context.Context, msg *models.WelcomeEmail
 	}
 
 	// Template Building
+	template := "welcome_school"
+	if msg.Role != constants.RoleSchool {
+		template = "welcome_user"
+	}
+
 	body, buildErr := c.buildTemplate(
-		"welcome",
+		template,
 		map[string]any{
 			"Subject":   "Welcome Aboard!",
 			"Recipient": msg.Recipient,

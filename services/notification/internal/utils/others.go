@@ -85,7 +85,8 @@ func ToTime(ts *timestamppb.Timestamp) *time.Time {
 	return &t
 }
 
-// Convert string to UUID
-func ToUUID(value string) (uuid.UUID, error) {
-	return uuid.Parse(value)
+// Must convert value to UUID
+// NOTE: Panic if value cannot be converted
+func ToUUIDMust(value string) uuid.UUID {
+	return uuid.MustParse(value)
 }

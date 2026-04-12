@@ -92,6 +92,7 @@ func (u *authUsecase) OnAuthCreated(ctx context.Context, req *models.ACEventReq)
 		&models.WelcomeEmailMsg{
 			Recipient:         req.Email,
 			VerificationToken: req.VerificationToken,
+			Role:              req.Role,
 		},
 	)
 	if err != nil {
@@ -159,6 +160,7 @@ func (u *authUsecase) OnAuthVerificationRequested(ctx context.Context, req *mode
 		&models.VerificationEmailMsg{
 			Recipient:         req.Email,
 			VerificationToken: req.VerificationToken,
+			Role:              req.Role,
 		},
 	)
 	if err != nil {

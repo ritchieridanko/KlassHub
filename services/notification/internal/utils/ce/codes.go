@@ -26,6 +26,5 @@ const (
 	CodeJSONRawEncodingFailed errCode = "ERR_JSON_RAW_ENCODING_FAILED"
 	CodePanicOccurred         errCode = "ERR_PANIC_OCCURRED"
 	CodeProtobufParsingFailed errCode = "ERR_PROTOBUF_PARSING_FAILED"
-	CodeTypeConversionFailed  errCode = "ERR_TYPE_CONVERSION_FAILED"
 	CodeURLGenerationFailed   errCode = "ERR_URL_GENERATION_FAILED"
 )

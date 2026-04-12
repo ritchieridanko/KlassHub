@@ -161,9 +161,10 @@ func (x *AuthSchoolUpdateFailed) GetCreatedAt() *timestamppb.Timestamp {
 type AuthVerificationRequested struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	EventId           string                 `protobuf:"bytes,1,opt,name=event_id,json=eventId,proto3" json:"event_id,omitempty"`
-	Email             string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
-	VerificationToken string                 `protobuf:"bytes,3,opt,name=verification_token,json=verificationToken,proto3" json:"verification_token,omitempty"`
-	CreatedAt         *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Role              string                 `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"`
+	Email             string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	VerificationToken string                 `protobuf:"bytes,4,opt,name=verification_token,json=verificationToken,proto3" json:"verification_token,omitempty"`
+	CreatedAt         *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -205,6 +206,13 @@ func (x *AuthVerificationRequested) GetEventId() string {
 	return ""
 }
 
+func (x *AuthVerificationRequested) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
 func (x *AuthVerificationRequested) GetEmail() string {
 	if x != nil {
 		return x.Email
@@ -242,13 +250,14 @@ const file_v1_auth_event_proto_rawDesc = "" +
 	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12\x1b\n" +
 	"\tschool_id\x18\x02 \x01(\x03R\bschoolId\x129\n" +
 	"\n" +
-	"created_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\xb6\x01\n" +
+	"created_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\xca\x01\n" +
 	"\x19AuthVerificationRequested\x12\x19\n" +
-	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12\x14\n" +
-	"\x05email\x18\x02 \x01(\tR\x05email\x12-\n" +
-	"\x12verification_token\x18\x03 \x01(\tR\x11verificationToken\x129\n" +
+	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12\x12\n" +
+	"\x04role\x18\x02 \x01(\tR\x04role\x12\x14\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12-\n" +
+	"\x12verification_token\x18\x04 \x01(\tR\x11verificationToken\x129\n" +
 	"\n" +
-	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtBEZCgithub.com/ritchieridanko/klasshub/shared/contract/events/v1;eventsb\x06proto3"
+	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtBEZCgithub.com/ritchieridanko/klasshub/shared/contract/events/v1;eventsb\x06proto3"
 
 var (
 	file_v1_auth_event_proto_rawDescOnce sync.Once
