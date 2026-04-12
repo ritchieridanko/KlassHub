@@ -10,6 +10,7 @@ option go_package = "github.com/ritchieridanko/klasshub/shared/contract/apis/v1;
 service SchoolService {
   rpc CreateSchool (CreateSchoolRequest) returns (CreateSchoolResponse);
   rpc GetMe (google.protobuf.Empty) returns (SchoolGetMeResponse);
+  rpc SchoolExists (SchoolExistenceCheckRequest) returns (SchoolExistenceCheckResponse);
 }
 
 message School {
@@ -61,4 +62,12 @@ message CreateSchoolResponse {
 
 message SchoolGetMeResponse {
   School school = 1;
+}
+
+message SchoolExistenceCheckRequest {
+  int64 school_id = 1;
+}
+
+message SchoolExistenceCheckResponse {
+  bool exists = 1;
 }

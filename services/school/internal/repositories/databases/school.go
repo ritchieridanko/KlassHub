@@ -15,6 +15,7 @@ type SchoolDatabase interface {
 	Create(ctx context.Context, data *models.CreateSchoolData) (s *models.School, err *ce.Error)
 	GetByID(ctx context.Context, schoolID int64) (s *models.School, err *ce.Error)
 	Delete(ctx context.Context, schoolID int64) (err *ce.Error)
+	Exists(ctx context.Context, schoolID int64) (exists bool, err *ce.Error)
 }
 
 type schoolDatabase struct {
@@ -148,4 +149,32 @@ func (d *schoolDatabase) Delete(ctx context.Context, schoolID int64) *ce.Error {
 	}
 
 	return nil
+}
+
+func (d *schoolDatabase) Exists(ctx context.Context, schoolID int64) (bool, *ce.Error) {
+	query := "SELECT 1 FROM schools WHERE id = $1 AND deleted_at IS NULL"
+	if d.database.WithinTx(ctx) {
+		query += " FOR UPDATE"
+	}
+
+	var exists int
+	err := d.database.Query(
+		ctx, query,
+		schoolID,
+	).Scan(
+		&exists,
+	)
+	if err != nil {
+		if errors.Is(err, ce.ErrDBQueryNoRows) {
+			return false, nil
+		}
+		return false, ce.NewError(
+			ce.CodeDBQueryExec,
+			ce.MsgInternalServer,
+			fmt.Errorf("failed to check if school exists: %w", err),
+			logger.NewField("school_id", schoolID),
+		)
+	}
+
+	return true, nil
 }

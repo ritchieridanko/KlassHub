@@ -12,6 +12,7 @@ type SchoolRepository interface {
 	Create(ctx context.Context, data *models.CreateSchoolData) (s *models.School, err *ce.Error)
 	GetByID(ctx context.Context, schoolID int64) (s *models.School, err *ce.Error)
 	Delete(ctx context.Context, schoolID int64) (err *ce.Error)
+	Exists(ctx context.Context, schoolID int64) (exists bool, err *ce.Error)
 }
 
 type schoolRepository struct {
@@ -32,4 +33,8 @@ func (r *schoolRepository) GetByID(ctx context.Context, schoolID int64) (*models
 
 func (r *schoolRepository) Delete(ctx context.Context, schoolID int64) *ce.Error {
 	return r.database.Delete(ctx, schoolID)
+}
+
+func (r *schoolRepository) Exists(ctx context.Context, schoolID int64) (bool, *ce.Error) {
+	return r.database.Exists(ctx, schoolID)
 }

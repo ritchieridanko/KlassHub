@@ -22,6 +22,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	SchoolService_CreateSchool_FullMethodName = "/school.v1.SchoolService/CreateSchool"
 	SchoolService_GetMe_FullMethodName        = "/school.v1.SchoolService/GetMe"
+	SchoolService_SchoolExists_FullMethodName = "/school.v1.SchoolService/SchoolExists"
 )
 
 // SchoolServiceClient is the client API for SchoolService service.
@@ -30,6 +31,7 @@ const (
 type SchoolServiceClient interface {
 	CreateSchool(ctx context.Context, in *CreateSchoolRequest, opts ...grpc.CallOption) (*CreateSchoolResponse, error)
 	GetMe(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*SchoolGetMeResponse, error)
+	SchoolExists(ctx context.Context, in *SchoolExistenceCheckRequest, opts ...grpc.CallOption) (*SchoolExistenceCheckResponse, error)
 }
 
 type schoolServiceClient struct {
@@ -60,12 +62,23 @@ func (c *schoolServiceClient) GetMe(ctx context.Context, in *emptypb.Empty, opts
 	return out, nil
 }
 
+func (c *schoolServiceClient) SchoolExists(ctx context.Context, in *SchoolExistenceCheckRequest, opts ...grpc.CallOption) (*SchoolExistenceCheckResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SchoolExistenceCheckResponse)
+	err := c.cc.Invoke(ctx, SchoolService_SchoolExists_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SchoolServiceServer is the server API for SchoolService service.
 // All implementations must embed UnimplementedSchoolServiceServer
 // for forward compatibility.
 type SchoolServiceServer interface {
 	CreateSchool(context.Context, *CreateSchoolRequest) (*CreateSchoolResponse, error)
 	GetMe(context.Context, *emptypb.Empty) (*SchoolGetMeResponse, error)
+	SchoolExists(context.Context, *SchoolExistenceCheckRequest) (*SchoolExistenceCheckResponse, error)
 	mustEmbedUnimplementedSchoolServiceServer()
 }
 
@@ -81,6 +94,9 @@ func (UnimplementedSchoolServiceServer) CreateSchool(context.Context, *CreateSch
 }
 func (UnimplementedSchoolServiceServer) GetMe(context.Context, *emptypb.Empty) (*SchoolGetMeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMe not implemented")
+}
+func (UnimplementedSchoolServiceServer) SchoolExists(context.Context, *SchoolExistenceCheckRequest) (*SchoolExistenceCheckResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SchoolExists not implemented")
 }
 func (UnimplementedSchoolServiceServer) mustEmbedUnimplementedSchoolServiceServer() {}
 func (UnimplementedSchoolServiceServer) testEmbeddedByValue()                       {}
@@ -139,6 +155,24 @@ func _SchoolService_GetMe_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SchoolService_SchoolExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SchoolExistenceCheckRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SchoolServiceServer).SchoolExists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SchoolService_SchoolExists_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SchoolServiceServer).SchoolExists(ctx, req.(*SchoolExistenceCheckRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SchoolService_ServiceDesc is the grpc.ServiceDesc for SchoolService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -153,6 +187,10 @@ var SchoolService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMe",
 			Handler:    _SchoolService_GetMe_Handler,
+		},
+		{
+			MethodName: "SchoolExists",
+			Handler:    _SchoolService_SchoolExists_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

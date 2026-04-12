@@ -60,6 +60,16 @@ func (h *SchoolHandler) GetMe(ctx context.Context, req *emptypb.Empty) (*apis.Sc
 	}, nil
 }
 
+func (h *SchoolHandler) SchoolExists(ctx context.Context, req *apis.SchoolExistenceCheckRequest) (*apis.SchoolExistenceCheckResponse, error) {
+	exists, err := h.su.SchoolExists(ctx, req.GetSchoolId())
+	if err != nil {
+		return nil, err
+	}
+	return &apis.SchoolExistenceCheckResponse{
+		Exists: exists,
+	}, nil
+}
+
 func (h *SchoolHandler) toSchool(s *models.School) *apis.School {
 	if s == nil {
 		return nil

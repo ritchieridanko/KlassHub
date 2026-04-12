@@ -479,6 +479,94 @@ func (x *SchoolGetMeResponse) GetSchool() *School {
 	return nil
 }
 
+type SchoolExistenceCheckRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SchoolId      int64                  `protobuf:"varint,1,opt,name=school_id,json=schoolId,proto3" json:"school_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SchoolExistenceCheckRequest) Reset() {
+	*x = SchoolExistenceCheckRequest{}
+	mi := &file_v1_school_api_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SchoolExistenceCheckRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SchoolExistenceCheckRequest) ProtoMessage() {}
+
+func (x *SchoolExistenceCheckRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_school_api_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SchoolExistenceCheckRequest.ProtoReflect.Descriptor instead.
+func (*SchoolExistenceCheckRequest) Descriptor() ([]byte, []int) {
+	return file_v1_school_api_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SchoolExistenceCheckRequest) GetSchoolId() int64 {
+	if x != nil {
+		return x.SchoolId
+	}
+	return 0
+}
+
+type SchoolExistenceCheckResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Exists        bool                   `protobuf:"varint,1,opt,name=exists,proto3" json:"exists,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SchoolExistenceCheckResponse) Reset() {
+	*x = SchoolExistenceCheckResponse{}
+	mi := &file_v1_school_api_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SchoolExistenceCheckResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SchoolExistenceCheckResponse) ProtoMessage() {}
+
+func (x *SchoolExistenceCheckResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_school_api_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SchoolExistenceCheckResponse.ProtoReflect.Descriptor instead.
+func (*SchoolExistenceCheckResponse) Descriptor() ([]byte, []int) {
+	return file_v1_school_api_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SchoolExistenceCheckResponse) GetExists() bool {
+	if x != nil {
+		return x.Exists
+	}
+	return false
+}
+
 var File_v1_school_api_proto protoreflect.FileDescriptor
 
 const file_v1_school_api_proto_rawDesc = "" +
@@ -545,10 +633,15 @@ const file_v1_school_api_proto_rawDesc = "" +
 	"\tschool_id\x18\x01 \x01(\x03R\bschoolId\x12)\n" +
 	"\x06school\x18\x02 \x01(\v2\x11.school.v1.SchoolR\x06school\"@\n" +
 	"\x13SchoolGetMeResponse\x12)\n" +
-	"\x06school\x18\x01 \x01(\v2\x11.school.v1.SchoolR\x06school2\xa1\x01\n" +
+	"\x06school\x18\x01 \x01(\v2\x11.school.v1.SchoolR\x06school\":\n" +
+	"\x1bSchoolExistenceCheckRequest\x12\x1b\n" +
+	"\tschool_id\x18\x01 \x01(\x03R\bschoolId\"6\n" +
+	"\x1cSchoolExistenceCheckResponse\x12\x16\n" +
+	"\x06exists\x18\x01 \x01(\bR\x06exists2\x82\x02\n" +
 	"\rSchoolService\x12O\n" +
 	"\fCreateSchool\x12\x1e.school.v1.CreateSchoolRequest\x1a\x1f.school.v1.CreateSchoolResponse\x12?\n" +
-	"\x05GetMe\x12\x16.google.protobuf.Empty\x1a\x1e.school.v1.SchoolGetMeResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
+	"\x05GetMe\x12\x16.google.protobuf.Empty\x1a\x1e.school.v1.SchoolGetMeResponse\x12_\n" +
+	"\fSchoolExists\x12&.school.v1.SchoolExistenceCheckRequest\x1a'.school.v1.SchoolExistenceCheckResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
 
 var (
 	file_v1_school_api_proto_rawDescOnce sync.Once
@@ -562,28 +655,32 @@ func file_v1_school_api_proto_rawDescGZIP() []byte {
 	return file_v1_school_api_proto_rawDescData
 }
 
-var file_v1_school_api_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_v1_school_api_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_v1_school_api_proto_goTypes = []any{
-	(*School)(nil),                // 0: school.v1.School
-	(*CreateSchoolRequest)(nil),   // 1: school.v1.CreateSchoolRequest
-	(*CreateSchoolResponse)(nil),  // 2: school.v1.CreateSchoolResponse
-	(*SchoolGetMeResponse)(nil),   // 3: school.v1.SchoolGetMeResponse
-	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),         // 5: google.protobuf.Empty
+	(*School)(nil),                       // 0: school.v1.School
+	(*CreateSchoolRequest)(nil),          // 1: school.v1.CreateSchoolRequest
+	(*CreateSchoolResponse)(nil),         // 2: school.v1.CreateSchoolResponse
+	(*SchoolGetMeResponse)(nil),          // 3: school.v1.SchoolGetMeResponse
+	(*SchoolExistenceCheckRequest)(nil),  // 4: school.v1.SchoolExistenceCheckRequest
+	(*SchoolExistenceCheckResponse)(nil), // 5: school.v1.SchoolExistenceCheckResponse
+	(*timestamppb.Timestamp)(nil),        // 6: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),                // 7: google.protobuf.Empty
 }
 var file_v1_school_api_proto_depIdxs = []int32{
-	4, // 0: school.v1.School.n_p_s_n_verified_at:type_name -> google.protobuf.Timestamp
-	4, // 1: school.v1.School.established_at:type_name -> google.protobuf.Timestamp
-	4, // 2: school.v1.School.created_at:type_name -> google.protobuf.Timestamp
-	4, // 3: school.v1.CreateSchoolRequest.established_at:type_name -> google.protobuf.Timestamp
+	6, // 0: school.v1.School.n_p_s_n_verified_at:type_name -> google.protobuf.Timestamp
+	6, // 1: school.v1.School.established_at:type_name -> google.protobuf.Timestamp
+	6, // 2: school.v1.School.created_at:type_name -> google.protobuf.Timestamp
+	6, // 3: school.v1.CreateSchoolRequest.established_at:type_name -> google.protobuf.Timestamp
 	0, // 4: school.v1.CreateSchoolResponse.school:type_name -> school.v1.School
 	0, // 5: school.v1.SchoolGetMeResponse.school:type_name -> school.v1.School
 	1, // 6: school.v1.SchoolService.CreateSchool:input_type -> school.v1.CreateSchoolRequest
-	5, // 7: school.v1.SchoolService.GetMe:input_type -> google.protobuf.Empty
-	2, // 8: school.v1.SchoolService.CreateSchool:output_type -> school.v1.CreateSchoolResponse
-	3, // 9: school.v1.SchoolService.GetMe:output_type -> school.v1.SchoolGetMeResponse
-	8, // [8:10] is the sub-list for method output_type
-	6, // [6:8] is the sub-list for method input_type
+	7, // 7: school.v1.SchoolService.GetMe:input_type -> google.protobuf.Empty
+	4, // 8: school.v1.SchoolService.SchoolExists:input_type -> school.v1.SchoolExistenceCheckRequest
+	2, // 9: school.v1.SchoolService.CreateSchool:output_type -> school.v1.CreateSchoolResponse
+	3, // 10: school.v1.SchoolService.GetMe:output_type -> school.v1.SchoolGetMeResponse
+	5, // 11: school.v1.SchoolService.SchoolExists:output_type -> school.v1.SchoolExistenceCheckResponse
+	9, // [9:12] is the sub-list for method output_type
+	6, // [6:9] is the sub-list for method input_type
 	6, // [6:6] is the sub-list for extension type_name
 	6, // [6:6] is the sub-list for extension extendee
 	0, // [0:6] is the sub-list for field type_name
@@ -602,7 +699,7 @@ func file_v1_school_api_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_school_api_proto_rawDesc), len(file_v1_school_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

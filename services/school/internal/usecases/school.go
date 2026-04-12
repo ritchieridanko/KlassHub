@@ -17,6 +17,7 @@ import (
 type SchoolUsecase interface {
 	CreateSchool(ctx context.Context, req *models.CreateSchoolReq) (s *models.School, err *ce.Error)
 	GetMe(ctx context.Context) (s *models.School, err *ce.Error)
+	SchoolExists(ctx context.Context, schoolID int64) (exists bool, err *ce.Error)
 
 	// Event Usecases
 	OnAuthSchoolUpdateFailed(ctx context.Context, schoolID int64) (err *ce.Error)
@@ -168,4 +169,8 @@ func (u *schoolUsecase) GetMe(ctx context.Context) (*models.School, *ce.Error) {
 		)
 	}
 	return s, nil
+}
+
+func (u *schoolUsecase) SchoolExists(ctx context.Context, schoolID int64) (bool, *ce.Error) {
+	return u.sr.Exists(ctx, schoolID)
 }
