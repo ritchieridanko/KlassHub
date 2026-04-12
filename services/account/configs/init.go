@@ -48,17 +48,36 @@ type Service struct {
 		Host string `mapstructure:"host"`
 		Port int    `mapstructure:"port"`
 	} `mapstructure:"school"`
+
+	User struct {
+		Name string `mapstructure:"name"`
+		Addr string
+		Host string `mapstructure:"host"`
+		Port int    `mapstructure:"port"`
+	} `mapstructure:"user"`
 }
 
 type Broker struct {
 	Brokers string `mapstructure:"brokers"`
 
 	Publisher struct {
+		AC struct {
+			Name         string        `mapstructure:"name"`
+			BatchSize    int           `mapstructure:"batch_size"`
+			BatchTimeout time.Duration `mapstructure:"batch_timeout"`
+		} `mapstructure:"auth_created"`
+
 		ASUF struct {
 			Name         string        `mapstructure:"name"`
 			BatchSize    int           `mapstructure:"batch_size"`
 			BatchTimeout time.Duration `mapstructure:"batch_timeout"`
 		} `mapstructure:"auth_school_update_failed"`
+
+		UCF struct {
+			Name         string        `mapstructure:"name"`
+			BatchSize    int           `mapstructure:"batch_size"`
+			BatchTimeout time.Duration `mapstructure:"batch_timeout"`
+		} `mapstructure:"user_creation_failed"`
 	} `mapstructure:"publisher"`
 }
 
@@ -97,9 +116,12 @@ func Init(path string) (*Config, error) {
 	cfg.Server.Addr = fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	cfg.Service.Auth.Addr = fmt.Sprintf("%s:%d", cfg.Service.Auth.Host, cfg.Service.Auth.Port)
 	cfg.Service.School.Addr = fmt.Sprintf("%s:%d", cfg.Service.School.Host, cfg.Service.School.Port)
+	cfg.Service.User.Addr = fmt.Sprintf("%s:%d", cfg.Service.User.Host, cfg.Service.User.Port)
 	cfg.Tracer.Addr = fmt.Sprintf("%s:%d", cfg.Tracer.Host, cfg.Tracer.Port)
 
+	constants.EventTopicAC = cfg.Broker.Publisher.AC.Name
 	constants.EventTopicASUF = cfg.Broker.Publisher.ASUF.Name
+	constants.EventTopicUCF = cfg.Broker.Publisher.UCF.Name
 
 	return &cfg, nil
 }

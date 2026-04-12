@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	AccountService_CreateSchoolProfile_FullMethodName = "/account.v1.AccountService/CreateSchoolProfile"
+	AccountService_CreateUserAccount_FullMethodName   = "/account.v1.AccountService/CreateUserAccount"
 )
 
 // AccountServiceClient is the client API for AccountService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AccountServiceClient interface {
 	CreateSchoolProfile(ctx context.Context, in *CreateSchoolProfileRequest, opts ...grpc.CallOption) (*CreateSchoolProfileResponse, error)
+	CreateUserAccount(ctx context.Context, in *CreateUserAccountRequest, opts ...grpc.CallOption) (*CreateUserAccountResponse, error)
 }
 
 type accountServiceClient struct {
@@ -47,11 +49,22 @@ func (c *accountServiceClient) CreateSchoolProfile(ctx context.Context, in *Crea
 	return out, nil
 }
 
+func (c *accountServiceClient) CreateUserAccount(ctx context.Context, in *CreateUserAccountRequest, opts ...grpc.CallOption) (*CreateUserAccountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateUserAccountResponse)
+	err := c.cc.Invoke(ctx, AccountService_CreateUserAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AccountServiceServer is the server API for AccountService service.
 // All implementations must embed UnimplementedAccountServiceServer
 // for forward compatibility.
 type AccountServiceServer interface {
 	CreateSchoolProfile(context.Context, *CreateSchoolProfileRequest) (*CreateSchoolProfileResponse, error)
+	CreateUserAccount(context.Context, *CreateUserAccountRequest) (*CreateUserAccountResponse, error)
 	mustEmbedUnimplementedAccountServiceServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedAccountServiceServer struct{}
 
 func (UnimplementedAccountServiceServer) CreateSchoolProfile(context.Context, *CreateSchoolProfileRequest) (*CreateSchoolProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSchoolProfile not implemented")
+}
+func (UnimplementedAccountServiceServer) CreateUserAccount(context.Context, *CreateUserAccountRequest) (*CreateUserAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateUserAccount not implemented")
 }
 func (UnimplementedAccountServiceServer) mustEmbedUnimplementedAccountServiceServer() {}
 func (UnimplementedAccountServiceServer) testEmbeddedByValue()                        {}
@@ -104,6 +120,24 @@ func _AccountService_CreateSchoolProfile_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AccountService_CreateUserAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateUserAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).CreateUserAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_CreateUserAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).CreateUserAccount(ctx, req.(*CreateUserAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AccountService_ServiceDesc is the grpc.ServiceDesc for AccountService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateSchoolProfile",
 			Handler:    _AccountService_CreateSchoolProfile_Handler,
+		},
+		{
+			MethodName: "CreateUserAccount",
+			Handler:    _AccountService_CreateUserAccount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

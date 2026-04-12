@@ -56,16 +56,16 @@ func (e *Error) ToGRPCStatus() error {
 	switch e.code {
 	case CodeInvalidArgument:
 		return status.Error(codes.InvalidArgument, e.message)
-	case CodeUnauthenticated:
-		return status.Error(codes.Unauthenticated, e.message)
-	case CodePermissionDenied, CodeUnauthorizedRole, CodeUnauthorizedSubdomain:
-		return status.Error(codes.PermissionDenied, e.message)
 	case CodeNotFound:
 		return status.Error(codes.NotFound, e.message)
 	case CodeAlreadyExists:
 		return status.Error(codes.AlreadyExists, e.message)
+	case CodePermissionDenied, CodeUnauthorizedRole, CodeUnauthorizedSubdomain:
+		return status.Error(codes.PermissionDenied, e.message)
 	case CodeAuthNotVerified, CodeFailedPrecondition:
 		return status.Error(codes.FailedPrecondition, e.message)
+	case CodeSchoolNotRegistered, CodeUnauthenticated:
+		return status.Error(codes.Unauthenticated, e.message)
 	case CodeEventPublishingFailed, CodeInternal, CodeMissingContextValue,
 		CodeMissingMetadata, CodeTypeConversionFailed, CodeUnknown:
 		return status.Error(codes.Internal, e.message)

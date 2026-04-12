@@ -12,6 +12,7 @@ import (
 
 type SchoolClient interface {
 	CreateSchool(ctx context.Context, req *models.CreateSchoolReq) (schoolID int64, s *models.School, err *ce.Error)
+	SchoolExists(ctx context.Context, schoolID int64) (exists bool, err *ce.Error)
 }
 
 type schoolClient struct {
@@ -52,6 +53,23 @@ func (c *schoolClient) CreateSchool(ctx context.Context, req *models.CreateSchoo
 		)
 	}
 	return resp.GetSchoolId(), c.toSchool(resp.GetSchool()), nil
+}
+
+func (c *schoolClient) SchoolExists(ctx context.Context, schoolID int64) (bool, *ce.Error) {
+	resp, err := c.client.SchoolExists(
+		ctx,
+		&apis.SchoolExistenceCheckRequest{
+			SchoolId: schoolID,
+		},
+	)
+	if err != nil {
+		return false, ce.FromGRPCErr(
+			err,
+		).Append(
+			logger.NewField("service", "school"),
+		)
+	}
+	return resp.GetExists(), nil
 }
 
 func (c *schoolClient) toSchool(s *apis.School) *models.School {

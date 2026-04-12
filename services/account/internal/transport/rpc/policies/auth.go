@@ -52,4 +52,16 @@ var AuthPolicies map[string]AuthPolicy = map[string]AuthPolicy{
 			constants.SubdomainAdmin: {},
 		},
 	},
+	"/account.v1.AccountService/CreateUserAccount": AuthPolicy{
+		requireAuth:         true,
+		requireSchool:       true,
+		requireVerification: true,
+		roles: map[string]struct{}{
+			constants.RoleAdministrator: {},
+			constants.RoleSchool:        {},
+		},
+		subdomains: map[string]struct{}{
+			constants.SubdomainAdmin: {},
+		},
+	},
 }

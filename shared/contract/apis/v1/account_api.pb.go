@@ -254,12 +254,174 @@ func (x *CreateSchoolProfileResponse) GetAuthToken() *AuthToken {
 	return nil
 }
 
+type CreateUserAccountRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Auth
+	Email    *string `protobuf:"bytes,1,opt,name=email,proto3,oneof" json:"email,omitempty"`
+	Username *string `protobuf:"bytes,2,opt,name=username,proto3,oneof" json:"username,omitempty"`
+	Password string  `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	Role     string  `protobuf:"bytes,4,opt,name=role,proto3" json:"role,omitempty"`
+	// User
+	SchoolUserId  *string                `protobuf:"bytes,5,opt,name=school_user_id,json=schoolUserId,proto3,oneof" json:"school_user_id,omitempty"`
+	Name          string                 `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`
+	Birthplace    string                 `protobuf:"bytes,7,opt,name=birthplace,proto3" json:"birthplace,omitempty"`
+	Birthdate     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=birthdate,proto3" json:"birthdate,omitempty"`
+	Sex           string                 `protobuf:"bytes,9,opt,name=sex,proto3" json:"sex,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateUserAccountRequest) Reset() {
+	*x = CreateUserAccountRequest{}
+	mi := &file_v1_account_api_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateUserAccountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateUserAccountRequest) ProtoMessage() {}
+
+func (x *CreateUserAccountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_account_api_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateUserAccountRequest.ProtoReflect.Descriptor instead.
+func (*CreateUserAccountRequest) Descriptor() ([]byte, []int) {
+	return file_v1_account_api_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *CreateUserAccountRequest) GetEmail() string {
+	if x != nil && x.Email != nil {
+		return *x.Email
+	}
+	return ""
+}
+
+func (x *CreateUserAccountRequest) GetUsername() string {
+	if x != nil && x.Username != nil {
+		return *x.Username
+	}
+	return ""
+}
+
+func (x *CreateUserAccountRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+func (x *CreateUserAccountRequest) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *CreateUserAccountRequest) GetSchoolUserId() string {
+	if x != nil && x.SchoolUserId != nil {
+		return *x.SchoolUserId
+	}
+	return ""
+}
+
+func (x *CreateUserAccountRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *CreateUserAccountRequest) GetBirthplace() string {
+	if x != nil {
+		return x.Birthplace
+	}
+	return ""
+}
+
+func (x *CreateUserAccountRequest) GetBirthdate() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Birthdate
+	}
+	return nil
+}
+
+func (x *CreateUserAccountRequest) GetSex() string {
+	if x != nil {
+		return x.Sex
+	}
+	return ""
+}
+
+type CreateUserAccountResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Auth          *AuthAdmin             `protobuf:"bytes,1,opt,name=auth,proto3" json:"auth,omitempty"`
+	User          *UserAdmin             `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateUserAccountResponse) Reset() {
+	*x = CreateUserAccountResponse{}
+	mi := &file_v1_account_api_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateUserAccountResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateUserAccountResponse) ProtoMessage() {}
+
+func (x *CreateUserAccountResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_account_api_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateUserAccountResponse.ProtoReflect.Descriptor instead.
+func (*CreateUserAccountResponse) Descriptor() ([]byte, []int) {
+	return file_v1_account_api_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *CreateUserAccountResponse) GetAuth() *AuthAdmin {
+	if x != nil {
+		return x.Auth
+	}
+	return nil
+}
+
+func (x *CreateUserAccountResponse) GetUser() *UserAdmin {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
 var File_v1_account_api_proto protoreflect.FileDescriptor
 
 const file_v1_account_api_proto_rawDesc = "" +
 	"\n" +
 	"\x14v1/account_api.proto\x12\n" +
-	"account.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x11v1/auth_api.proto\x1a\x13v1/school_api.proto\"\xf3\x04\n" +
+	"account.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x11v1/auth_api.proto\x1a\x13v1/school_api.proto\x1a\x11v1/user_api.proto\"\xf3\x04\n" +
 	"\x1aCreateSchoolProfileRequest\x12\x1a\n" +
 	"\an_p_s_n\x18\x01 \x01(\tH\x00R\x04nPSN\x88\x01\x01\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
@@ -290,9 +452,28 @@ const file_v1_account_api_proto_rawDesc = "" +
 	"\x06school\x18\x01 \x01(\v2\x11.school.v1.SchoolR\x06school\x12!\n" +
 	"\x04auth\x18\x02 \x01(\v2\r.auth.v1.AuthR\x04auth\x121\n" +
 	"\n" +
-	"auth_token\x18\x03 \x01(\v2\x12.auth.v1.AuthTokenR\tauthToken2x\n" +
+	"auth_token\x18\x03 \x01(\v2\x12.auth.v1.AuthTokenR\tauthToken\"\xdb\x02\n" +
+	"\x18CreateUserAccountRequest\x12\x19\n" +
+	"\x05email\x18\x01 \x01(\tH\x00R\x05email\x88\x01\x01\x12\x1f\n" +
+	"\busername\x18\x02 \x01(\tH\x01R\busername\x88\x01\x01\x12\x1a\n" +
+	"\bpassword\x18\x03 \x01(\tR\bpassword\x12\x12\n" +
+	"\x04role\x18\x04 \x01(\tR\x04role\x12)\n" +
+	"\x0eschool_user_id\x18\x05 \x01(\tH\x02R\fschoolUserId\x88\x01\x01\x12\x12\n" +
+	"\x04name\x18\x06 \x01(\tR\x04name\x12\x1e\n" +
+	"\n" +
+	"birthplace\x18\a \x01(\tR\n" +
+	"birthplace\x128\n" +
+	"\tbirthdate\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tbirthdate\x12\x10\n" +
+	"\x03sex\x18\t \x01(\tR\x03sexB\b\n" +
+	"\x06_emailB\v\n" +
+	"\t_usernameB\x11\n" +
+	"\x0f_school_user_id\"k\n" +
+	"\x19CreateUserAccountResponse\x12&\n" +
+	"\x04auth\x18\x01 \x01(\v2\x12.auth.v1.AuthAdminR\x04auth\x12&\n" +
+	"\x04user\x18\x02 \x01(\v2\x12.user.v1.UserAdminR\x04user2\xda\x01\n" +
 	"\x0eAccountService\x12f\n" +
-	"\x13CreateSchoolProfile\x12&.account.v1.CreateSchoolProfileRequest\x1a'.account.v1.CreateSchoolProfileResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
+	"\x13CreateSchoolProfile\x12&.account.v1.CreateSchoolProfileRequest\x1a'.account.v1.CreateSchoolProfileResponse\x12`\n" +
+	"\x11CreateUserAccount\x12$.account.v1.CreateUserAccountRequest\x1a%.account.v1.CreateUserAccountResponseBAZ?github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apisb\x06proto3"
 
 var (
 	file_v1_account_api_proto_rawDescOnce sync.Once
@@ -306,27 +487,36 @@ func file_v1_account_api_proto_rawDescGZIP() []byte {
 	return file_v1_account_api_proto_rawDescData
 }
 
-var file_v1_account_api_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_v1_account_api_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_v1_account_api_proto_goTypes = []any{
 	(*CreateSchoolProfileRequest)(nil),  // 0: account.v1.CreateSchoolProfileRequest
 	(*CreateSchoolProfileResponse)(nil), // 1: account.v1.CreateSchoolProfileResponse
-	(*timestamppb.Timestamp)(nil),       // 2: google.protobuf.Timestamp
-	(*School)(nil),                      // 3: school.v1.School
-	(*Auth)(nil),                        // 4: auth.v1.Auth
-	(*AuthToken)(nil),                   // 5: auth.v1.AuthToken
+	(*CreateUserAccountRequest)(nil),    // 2: account.v1.CreateUserAccountRequest
+	(*CreateUserAccountResponse)(nil),   // 3: account.v1.CreateUserAccountResponse
+	(*timestamppb.Timestamp)(nil),       // 4: google.protobuf.Timestamp
+	(*School)(nil),                      // 5: school.v1.School
+	(*Auth)(nil),                        // 6: auth.v1.Auth
+	(*AuthToken)(nil),                   // 7: auth.v1.AuthToken
+	(*AuthAdmin)(nil),                   // 8: auth.v1.AuthAdmin
+	(*UserAdmin)(nil),                   // 9: user.v1.UserAdmin
 }
 var file_v1_account_api_proto_depIdxs = []int32{
-	2, // 0: account.v1.CreateSchoolProfileRequest.established_at:type_name -> google.protobuf.Timestamp
-	3, // 1: account.v1.CreateSchoolProfileResponse.school:type_name -> school.v1.School
-	4, // 2: account.v1.CreateSchoolProfileResponse.auth:type_name -> auth.v1.Auth
-	5, // 3: account.v1.CreateSchoolProfileResponse.auth_token:type_name -> auth.v1.AuthToken
-	0, // 4: account.v1.AccountService.CreateSchoolProfile:input_type -> account.v1.CreateSchoolProfileRequest
-	1, // 5: account.v1.AccountService.CreateSchoolProfile:output_type -> account.v1.CreateSchoolProfileResponse
-	5, // [5:6] is the sub-list for method output_type
-	4, // [4:5] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	4, // 0: account.v1.CreateSchoolProfileRequest.established_at:type_name -> google.protobuf.Timestamp
+	5, // 1: account.v1.CreateSchoolProfileResponse.school:type_name -> school.v1.School
+	6, // 2: account.v1.CreateSchoolProfileResponse.auth:type_name -> auth.v1.Auth
+	7, // 3: account.v1.CreateSchoolProfileResponse.auth_token:type_name -> auth.v1.AuthToken
+	4, // 4: account.v1.CreateUserAccountRequest.birthdate:type_name -> google.protobuf.Timestamp
+	8, // 5: account.v1.CreateUserAccountResponse.auth:type_name -> auth.v1.AuthAdmin
+	9, // 6: account.v1.CreateUserAccountResponse.user:type_name -> user.v1.UserAdmin
+	0, // 7: account.v1.AccountService.CreateSchoolProfile:input_type -> account.v1.CreateSchoolProfileRequest
+	2, // 8: account.v1.AccountService.CreateUserAccount:input_type -> account.v1.CreateUserAccountRequest
+	1, // 9: account.v1.AccountService.CreateSchoolProfile:output_type -> account.v1.CreateSchoolProfileResponse
+	3, // 10: account.v1.AccountService.CreateUserAccount:output_type -> account.v1.CreateUserAccountResponse
+	9, // [9:11] is the sub-list for method output_type
+	7, // [7:9] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_v1_account_api_proto_init() }
@@ -336,14 +526,16 @@ func file_v1_account_api_proto_init() {
 	}
 	file_v1_auth_api_proto_init()
 	file_v1_school_api_proto_init()
+	file_v1_user_api_proto_init()
 	file_v1_account_api_proto_msgTypes[0].OneofWrappers = []any{}
+	file_v1_account_api_proto_msgTypes[2].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_account_api_proto_rawDesc), len(file_v1_account_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

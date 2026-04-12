@@ -5,11 +5,13 @@ package account.v1;
 import "google/protobuf/timestamp.proto";
 import "v1/auth_api.proto";
 import "v1/school_api.proto";
+import "v1/user_api.proto";
 
 option go_package = "github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apis";
 
 service AccountService {
   rpc CreateSchoolProfile (CreateSchoolProfileRequest) returns (CreateSchoolProfileResponse);
+  rpc CreateUserAccount (CreateUserAccountRequest) returns (CreateUserAccountResponse);
 }
 
 message CreateSchoolProfileRequest {
@@ -36,4 +38,24 @@ message CreateSchoolProfileResponse {
   school.v1.School school = 1;
   auth.v1.Auth auth = 2;
   auth.v1.AuthToken auth_token = 3;
+}
+
+message CreateUserAccountRequest {
+  // Auth
+  optional string email = 1;
+  optional string username = 2;
+  string password = 3;
+  string role = 4;
+
+  // User
+  optional string school_user_id = 5;
+  string name = 6;
+  string birthplace = 7;
+  google.protobuf.Timestamp birthdate = 8;
+  string sex = 9;
+}
+
+message CreateUserAccountResponse {
+  auth.v1.AuthAdmin auth = 1;
+  user.v1.UserAdmin user = 2;
 }

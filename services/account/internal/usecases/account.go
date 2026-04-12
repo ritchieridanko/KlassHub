@@ -21,22 +21,29 @@ import (
 
 type AccountUsecase interface {
 	CreateSchoolProfile(ctx context.Context, req *models.CreateSchoolProfileReq) (s *models.School, a *models.Auth, at *models.AuthToken, err *ce.Error)
+	CreateUserAccount(ctx context.Context, req *models.CreateUserAccountReq) (a *models.Auth, u *models.User, err *ce.Error)
 }
 
 type accountUsecase struct {
 	appName string
 	ac      clients.AuthClient
 	sc      clients.SchoolClient
+	uc      clients.UserClient
+	acp     *publisher.Publisher
 	asufp   *publisher.Publisher
+	ucfp    *publisher.Publisher
 	logger  *logger.Logger
 }
 
-func NewAccountUsecase(appName string, ac clients.AuthClient, sc clients.SchoolClient, asufp *publisher.Publisher, l *logger.Logger) AccountUsecase {
+func NewAccountUsecase(appName string, ac clients.AuthClient, sc clients.SchoolClient, uc clients.UserClient, acp *publisher.Publisher, asufp *publisher.Publisher, ucfp *publisher.Publisher, l *logger.Logger) AccountUsecase {
 	return &accountUsecase{
 		appName: appName,
 		ac:      ac,
 		sc:      sc,
+		uc:      uc,
+		acp:     acp,
 		asufp:   asufp,
+		ucfp:    ucfp,
 		logger:  l,
 	}
 }
@@ -57,6 +64,7 @@ func (u *accountUsecase) CreateSchoolProfile(ctx context.Context, req *models.Cr
 	authIDField := logger.NewField("auth_id", authCtx.AuthID)
 	schoolIDField := logger.NewField("school_id", authCtx.SchoolID)
 	roleField := logger.NewField("role", authCtx.Role)
+	authFields := []logger.Field{authIDField, schoolIDField, roleField}
 
 	// School Creation
 	schoolID, s, err := u.sc.CreateSchool(
@@ -84,11 +92,7 @@ func (u *accountUsecase) CreateSchoolProfile(ctx context.Context, req *models.Cr
 		},
 	)
 	if err != nil {
-		return nil, nil, nil, err.Append(
-			authIDField,
-			schoolIDField,
-			roleField,
-		)
+		return nil, nil, nil, err.Append(authFields...)
 	}
 
 	// Auth School Update
@@ -149,4 +153,151 @@ func (u *accountUsecase) CreateSchoolProfile(ctx context.Context, req *models.Cr
 	}
 
 	return s, a, at, nil
+}
+
+func (u *accountUsecase) CreateUserAccount(ctx context.Context, req *models.CreateUserAccountReq) (*models.Auth, *models.User, *ce.Error) {
+	ctx, span := otel.Tracer(u.appName).Start(ctx, "account.usecase.CreateUserAccount")
+	defer span.End()
+
+	authCtx := utils.CtxAuth(ctx)
+	if authCtx == nil {
+		return nil, nil, ce.NewError(
+			ce.CodeMissingContextValue,
+			ce.MsgInternalServer,
+			errors.New("auth missing from context"),
+		)
+	}
+
+	creatorAuthIDField := logger.NewField("creator_auth_id", authCtx.AuthID)
+	creatorSchoolIDField := logger.NewField("creator_school_id", authCtx.SchoolID)
+	creatorRoleField := logger.NewField("creator_role", authCtx.Role)
+	creatorAuthFields := []logger.Field{
+		creatorAuthIDField,
+		creatorSchoolIDField,
+		creatorRoleField,
+	}
+
+	// School Existence Check
+	exists, err := u.sc.SchoolExists(ctx, authCtx.SchoolID)
+	if err != nil {
+		return nil, nil, err.Append(creatorAuthFields...)
+	}
+	if !exists {
+		return nil, nil, ce.NewError(
+			ce.CodeSchoolNotRegistered,
+			ce.MsgInvalidCredentials,
+			nil,
+			creatorAuthFields...,
+		)
+	}
+
+	// Auth Creation
+	authID, schoolID, a, verificationToken, err := u.ac.CreateUserAuth(
+		metadata.ToOutgoingCtx(
+			ctx,
+			metadata.Auth(authCtx, true, true, true, true)...,
+		),
+		&models.CreateUserAuthReq{
+			Email:    req.Email,
+			Username: req.Username,
+			Password: req.Password,
+			Role:     req.Role,
+		},
+	)
+	if err != nil {
+		return nil, nil, err.Append(creatorAuthFields...)
+	}
+
+	authFields := append(
+		creatorAuthFields,
+		logger.NewField("auth_id", authID),
+		logger.NewField("role", a.Role),
+	)
+
+	// User Creation
+	user, err := u.uc.CreateUser(
+		metadata.ToOutgoingCtx(
+			ctx,
+			metadata.Auth(authCtx, true, true, true, true)...,
+		),
+		&models.CreateUserReq{
+			AuthID:       authID,
+			SchoolID:     schoolID,
+			SchoolUserID: req.SchoolUserID,
+			Role:         a.Role,
+			Name:         req.Name,
+			Birthplace:   req.Birthplace,
+			Birthdate:    req.Birthdate,
+			Sex:          req.Sex,
+		},
+	)
+	if err != nil {
+		fields := append(
+			authFields,
+			logger.NewField("event_topic", constants.EventTopicUCF),
+		)
+
+		// Created Auth Cancellation (Async)
+		pubErr := u.ucfp.Publish(
+			ctx,
+			"auth_"+strconv.FormatInt(authID, 10),
+			&events.UserCreationFailed{
+				EventId:   utils.GenerateUUID().String(),
+				AuthId:    authID,
+				CreatedAt: timestamppb.New(time.Now().UTC()),
+			},
+		)
+		if pubErr != nil {
+			u.logger.Warn(
+				ctx,
+				"failed to create user account. failed to publish event",
+				append(
+					fields,
+					logger.NewField("error_code", ce.CodeEventPublishingFailed),
+					logger.NewField("error", pubErr),
+				)...,
+			)
+		} else {
+			u.logger.Info(ctx, "EVENT PUBLISHED", fields...)
+		}
+
+		return nil, nil, err.Append(fields...)
+	}
+
+	// Verification Requirement Check
+	if a.Email != nil && verificationToken != nil {
+		fields := append(
+			authFields,
+			logger.NewField("event_topic", constants.EventTopicAC),
+		)
+
+		// Event Publishing
+		// NOTE: Fail to publish event does not fail create user account process
+		err := u.acp.Publish(
+			ctx,
+			"auth_"+strconv.FormatInt(authID, 10),
+			&events.AuthCreated{
+				EventId:           utils.GenerateUUID().String(),
+				Role:              a.Role,
+				Email:             *a.Email,
+				VerificationToken: *verificationToken,
+				CreatedAt:         timestamppb.New(time.Now().UTC()),
+			},
+		)
+		if err != nil {
+			u.logger.Warn(
+				ctx,
+				"created user account. failed to publish event",
+				append(
+					fields,
+					logger.NewField("error_code", ce.CodeEventPublishingFailed),
+					logger.NewField("error", err),
+				)...,
+			)
+		} else {
+			u.logger.Info(ctx, "EVENT PUBLISHED", fields...)
+		}
+	}
+
+	return a, user, nil
 }

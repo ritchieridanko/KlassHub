@@ -22,6 +22,7 @@ type CreateSchoolReq struct {
 }
 
 type CreateSchoolProfileReq struct {
+	// School
 	NPSN          *string
 	Name          string
 	Level         string
@@ -39,8 +40,41 @@ type CreateSchoolProfileReq struct {
 	Website       *string
 	Timezone      string
 
-	// For Auth Token Refresh
+	// Auth
 	RefreshToken string
+}
+
+type CreateUserAccountReq struct {
+	// Auth
+	Email    *string
+	Username *string
+	Password string
+	Role     string
+
+	// User
+	SchoolUserID *string
+	Name         string
+	Birthplace   string
+	Birthdate    *time.Time
+	Sex          string
+}
+
+type CreateUserAuthReq struct {
+	Email    *string
+	Username *string
+	Password string
+	Role     string
+}
+
+type CreateUserReq struct {
+	AuthID       int64
+	SchoolID     int64
+	SchoolUserID *string
+	Role         string
+	Name         string
+	Birthplace   string
+	Birthdate    *time.Time
+	Sex          string
 }
 
 type UpdateSchoolReq struct {

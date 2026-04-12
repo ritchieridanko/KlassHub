@@ -16,12 +16,24 @@ service:
     name: "school-service"
     host: "localhost"
     port: 50053
+  user:
+    name: "user-service"
+    host: "localhost"
+    port: 50054
 
 broker:
   brokers: "localhost:9092,localhost:9093,localhost:9094"
   publisher:
+    auth_created:
+      name: "auth.created"
+      batch_size: 1
+      batch_timeout: "5ms"
     auth_school_update_failed:
       name: "auth.school.update.failed"
+      batch_size: 10
+      batch_timeout: "1m"
+    user_creation_failed:
+      name: "user.creation.failed"
       batch_size: 10
       batch_timeout: "1m"
 

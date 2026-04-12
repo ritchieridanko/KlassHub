@@ -71,3 +71,9 @@ func ToTimestamp(t *time.Time) *timestamppb.Timestamp {
 	}
 	return timestamppb.New(*t)
 }
+
+// Must convert value to UUID
+// NOTE: Panic if value cannot be converted
+func ToUUIDMust(value string) uuid.UUID {
+	return uuid.MustParse(value)
+}

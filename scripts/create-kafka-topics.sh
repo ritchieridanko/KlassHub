@@ -9,6 +9,7 @@ TOPICS=(
   "auth.created"
   "auth.verification.requested"
   "auth.school.update.failed"
+  "user.creation.failed"
 )
 
 # Create Kafka topics

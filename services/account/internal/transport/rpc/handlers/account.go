@@ -51,32 +51,31 @@ func (h *AccountHandler) CreateSchoolProfile(ctx context.Context, req *apis.Crea
 	}, nil
 }
 
-func (h *AccountHandler) toSchool(s *models.School) *apis.School {
-	if s == nil {
-		return nil
+func (h *AccountHandler) CreateUserAccount(ctx context.Context, req *apis.CreateUserAccountRequest) (*apis.CreateUserAccountResponse, error) {
+	a, u, err := h.au.CreateUserAccount(
+		ctx,
+		&models.CreateUserAccountReq{
+			// Auth
+			Email:    req.Email,
+			Username: req.Username,
+			Password: req.GetPassword(),
+			Role:     req.GetRole(),
+
+			// User
+			SchoolUserID: req.SchoolUserId,
+			Name:         req.GetName(),
+			Birthplace:   req.GetBirthplace(),
+			Birthdate:    utils.ToTime(req.GetBirthdate()),
+			Sex:          req.GetSex(),
+		},
+	)
+	if err != nil {
+		return nil, err
 	}
-	return &apis.School{
-		NPSN:           s.NPSN,
-		NPSNVerifiedAt: utils.ToTimestamp(s.NPSNVerifiedAt),
-		Name:           s.Name,
-		Level:          s.Level,
-		Ownership:      s.Ownership,
-		ProfilePicture: s.ProfilePicture,
-		ProfileBanner:  s.ProfileBanner,
-		Accreditation:  s.Accreditation,
-		EstablishedAt:  utils.ToTimestamp(s.EstablishedAt),
-		Province:       s.Province,
-		CityRegency:    s.CityRegency,
-		District:       s.District,
-		Subdistrict:    s.Subdistrict,
-		Street:         s.Street,
-		Postcode:       s.Postcode,
-		Phone:          s.Phone,
-		Email:          s.Email,
-		Website:        s.Website,
-		Timezone:       s.Timezone,
-		CreatedAt:      utils.ToTimestamp(s.CreatedAt),
-	}
+	return &apis.CreateUserAccountResponse{
+		Auth: h.toAuthAdmin(a),
+		User: h.toUserAdmin(u),
+	}, nil
 }
 
 func (h *AccountHandler) toAuth(a *models.Auth) *apis.Auth {
@@ -90,6 +89,18 @@ func (h *AccountHandler) toAuth(a *models.Auth) *apis.Auth {
 		IsVerified:        a.IsVerified,
 		SchoolExists:      a.SchoolExists,
 		PasswordChangedAt: utils.ToTimestamp(a.PasswordChangedAt),
+	}
+}
+
+func (h *AccountHandler) toAuthAdmin(a *models.Auth) *apis.AuthAdmin {
+	if a == nil {
+		return nil
+	}
+	return &apis.AuthAdmin{
+		Email:      a.Email,
+		Username:   a.Username,
+		Role:       a.Role,
+		IsVerified: a.IsVerified,
 	}
 }
 
@@ -120,5 +131,62 @@ func (h *AccountHandler) toRefreshToken(rt *models.RefreshToken) *apis.RefreshTo
 	return &apis.RefreshToken{
 		Token:     rt.Token,
 		ExpiresIn: rt.ExpiresIn,
+	}
+}
+
+func (h *AccountHandler) toUserAdmin(u *models.User) *apis.UserAdmin {
+	if u == nil {
+		return nil
+	}
+
+	var createdBy *string
+	if u.CreatedBy != nil {
+		creator := u.CreatedBy.String()
+		createdBy = &creator
+	}
+
+	return &apis.UserAdmin{
+		Id:             u.ID.String(),
+		SchoolUserId:   u.SchoolUserID,
+		Role:           u.Role,
+		Name:           u.Name,
+		Nickname:       u.Nickname,
+		Birthplace:     u.Birthplace,
+		Birthdate:      utils.ToTimestamp(u.Birthdate),
+		Sex:            u.Sex,
+		Phone:          u.Phone,
+		ProfilePicture: u.ProfilePicture,
+		ProfileBanner:  u.ProfileBanner,
+		CreatedBy:      createdBy,
+		CreatedAt:      utils.ToTimestamp(u.CreatedAt),
+		UpdatedAt:      utils.ToTimestamp(u.UpdatedAt),
+	}
+}
+
+func (h *AccountHandler) toSchool(s *models.School) *apis.School {
+	if s == nil {
+		return nil
+	}
+	return &apis.School{
+		NPSN:           s.NPSN,
+		NPSNVerifiedAt: utils.ToTimestamp(s.NPSNVerifiedAt),
+		Name:           s.Name,
+		Level:          s.Level,
+		Ownership:      s.Ownership,
+		ProfilePicture: s.ProfilePicture,
+		ProfileBanner:  s.ProfileBanner,
+		Accreditation:  s.Accreditation,
+		EstablishedAt:  utils.ToTimestamp(s.EstablishedAt),
+		Province:       s.Province,
+		CityRegency:    s.CityRegency,
+		District:       s.District,
+		Subdistrict:    s.Subdistrict,
+		Street:         s.Street,
+		Postcode:       s.Postcode,
+		Phone:          s.Phone,
+		Email:          s.Email,
+		Website:        s.Website,
+		Timezone:       s.Timezone,
+		CreatedAt:      utils.ToTimestamp(s.CreatedAt),
 	}
 }

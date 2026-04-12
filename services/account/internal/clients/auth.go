@@ -11,6 +11,7 @@ import (
 )
 
 type AuthClient interface {
+	CreateUserAuth(ctx context.Context, req *models.CreateUserAuthReq) (authID int64, schoolID int64, a *models.Auth, verificationToken *string, err *ce.Error)
 	UpdateSchool(ctx context.Context, req *models.UpdateSchoolReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 }
 
@@ -20,6 +21,30 @@ type authClient struct {
 
 func NewAuthClient(c apis.AuthServiceClient) AuthClient {
 	return &authClient{client: c}
+}
+
+func (c *authClient) CreateUserAuth(ctx context.Context, req *models.CreateUserAuthReq) (int64, int64, *models.Auth, *string, *ce.Error) {
+	resp, err := c.client.CreateUserAuth(
+		ctx,
+		&apis.CreateUserAuthRequest{
+			Email:    req.Email,
+			Username: req.Username,
+			Password: req.Password,
+			Role:     req.Role,
+		},
+	)
+	if err != nil {
+		return 0, 0, nil, nil, ce.FromGRPCErr(
+			err,
+		).Append(
+			logger.NewField("service", "auth"),
+		)
+	}
+	return resp.GetAuthId(),
+		resp.GetSchoolId(),
+		c.toAuthFromAA(resp.GetAuth()),
+		resp.VerificationToken,
+		nil
 }
 
 func (c *authClient) UpdateSchool(ctx context.Context, req *models.UpdateSchoolReq) (*models.Auth, *models.AuthToken, *ce.Error) {
@@ -51,6 +76,18 @@ func (c *authClient) toAuth(a *apis.Auth) *models.Auth {
 		IsVerified:        a.GetIsVerified(),
 		SchoolExists:      a.GetSchoolExists(),
 		PasswordChangedAt: utils.ToTime(a.GetPasswordChangedAt()),
+	}
+}
+
+func (c *authClient) toAuthFromAA(aa *apis.AuthAdmin) *models.Auth {
+	if aa == nil {
+		return nil
+	}
+	return &models.Auth{
+		Email:      aa.Email,
+		Username:   aa.Username,
+		Role:       aa.GetRole(),
+		IsVerified: aa.GetIsVerified(),
 	}
 }
 

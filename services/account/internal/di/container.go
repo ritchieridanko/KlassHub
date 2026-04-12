@@ -18,8 +18,11 @@ type Container struct {
 
 	ac clients.AuthClient
 	sc clients.SchoolClient
+	uc clients.UserClient
 
+	acp   *publisher.Publisher
 	asufp *publisher.Publisher
+	ucfp  *publisher.Publisher
 
 	validator *validator.Validator
 
@@ -36,15 +39,18 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	// Clients
 	ac := clients.NewAuthClient(inf.AuthService())
 	sc := clients.NewSchoolClient(inf.SchoolService())
+	uc := clients.NewUserClient(inf.UserService())
 
 	// Publishers
+	acp := publisher.NewPublisher(inf.PublisherAC())
 	asufp := publisher.NewPublisher(inf.PublisherASUF())
+	ucfp := publisher.NewPublisher(inf.PublisherUCF())
 
 	// Utils
 	v := validator.Init()
 
 	// Usecases
-	au := usecases.NewAccountUsecase(cfg.App.Name, ac, sc, asufp, l)
+	au := usecases.NewAccountUsecase(cfg.App.Name, ac, sc, uc, acp, asufp, ucfp, l)
 
 	// Handlers
 	ah := handlers.NewAccountHandler(au)
@@ -57,7 +63,10 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 		logger:    l,
 		ac:        ac,
 		sc:        sc,
+		uc:        uc,
+		acp:       acp,
 		asufp:     asufp,
+		ucfp:      ucfp,
 		validator: v,
 		au:        au,
 		ah:        ah,

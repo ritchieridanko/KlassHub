@@ -10,3 +10,18 @@ type Auth struct {
 	SchoolExists      bool
 	PasswordChangedAt *time.Time
 }
+
+type AccessToken struct {
+	Token     string
+	ExpiresIn int64
+}
+
+type RefreshToken struct {
+	Token     string
+	ExpiresIn int64
+}
+
+type AuthToken struct {
+	AccessToken  *AccessToken
+	RefreshToken *RefreshToken
+}

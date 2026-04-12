@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package user.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/ritchieridanko/klasshub/shared/contract/events/v1;events";
+
+message UserCreationFailed {
+  string event_id = 1;
+  int64 auth_id = 2;
+  google.protobuf.Timestamp created_at = 3;
+}

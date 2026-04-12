@@ -12,6 +12,7 @@ const (
 	CodeMissingMetadata       errCode = "ERR_MISSING_METADATA"
 	CodeNotFound              errCode = "ERR_NOT_FOUND"
 	CodePermissionDenied      errCode = "ERR_PERMISSION_DENIED"
+	CodeSchoolNotRegistered   errCode = "ERR_SCHOOL_NOT_REGISTERED"
 	CodeTypeConversionFailed  errCode = "ERR_TYPE_CONVERSION_FAILED"
 	CodeUnauthenticated       errCode = "ERR_UNAUTHENTICATED"
 	CodeUnauthorizedRole      errCode = "ERR_UNAUTHORIZED_ROLE"
@@ -21,8 +22,9 @@ const (
 
 // External Error Messages
 const (
-	MsgAuthNotVerified string = "Require account verification"
-	MsgInternalServer  string = "Internal server error"
-	MsgUnauthenticated string = "Unauthenticated"
-	MsgUnauthorized    string = "Unauthorized"
+	MsgAuthNotVerified    string = "Require account verification"
+	MsgInternalServer     string = "Internal server error"
+	MsgInvalidCredentials string = "Invalid credentials"
+	MsgUnauthenticated    string = "Unauthenticated"
+	MsgUnauthorized       string = "Unauthorized"
 )
