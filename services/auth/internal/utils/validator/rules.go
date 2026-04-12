@@ -14,6 +14,12 @@ var (
 	rgxUppercase    *regexp.Regexp = regexp.MustCompile(`[A-Z]`)
 	rgxUsername     *regexp.Regexp = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9]|(?:[._][a-z0-9])){7,24}$`)
 
+	roles = map[string]struct{}{
+		constants.RoleAdministrator: {},
+		constants.RoleInstructor:    {},
+		constants.RoleStudent:       {},
+	}
+
 	roleAllowedSubdomains = map[string]string{
 		constants.RoleAdministrator: constants.SubdomainAdmin,
 		constants.RoleSchool:        constants.SubdomainAdmin,

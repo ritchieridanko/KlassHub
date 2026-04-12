@@ -60,6 +60,27 @@ func (h *AuthHandler) CreateSchoolAuth(ctx context.Context, req *apis.CreateScho
 	}, nil
 }
 
+func (h *AuthHandler) CreateUserAuth(ctx context.Context, req *apis.CreateUserAuthRequest) (*apis.CreateUserAuthResponse, error) {
+	a, verificationToken, err := h.au.CreateUserAuth(
+		ctx,
+		&models.CreateUserAuthReq{
+			Email:    req.Email,
+			Username: req.Username,
+			Password: req.GetPassword(),
+			Role:     req.GetRole(),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &apis.CreateUserAuthResponse{
+		AuthId:            a.ID,
+		SchoolId:          a.SchoolID,
+		Auth:              h.toAuthAdmin(a),
+		VerificationToken: verificationToken,
+	}, nil
+}
+
 func (h *AuthHandler) UpdateSchool(ctx context.Context, req *apis.UpdateSchoolRequest) (*apis.UpdateSchoolResponse, error) {
 	a, at, err := h.au.UpdateSchool(
 		ctx,
@@ -161,6 +182,18 @@ func (h *AuthHandler) toAuth(a *models.Auth) *apis.Auth {
 		IsVerified:        a.IsVerified(),
 		SchoolExists:      a.SchoolExists(),
 		PasswordChangedAt: utils.ToTimestamp(a.PasswordChangedAt),
+	}
+}
+
+func (h *AuthHandler) toAuthAdmin(a *models.Auth) *apis.AuthAdmin {
+	if a == nil {
+		return nil
+	}
+	return &apis.AuthAdmin{
+		Email:      a.Email,
+		Username:   a.Username,
+		Role:       a.Role,
+		IsVerified: a.IsVerified(),
 	}
 }
 

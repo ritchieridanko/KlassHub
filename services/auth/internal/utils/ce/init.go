@@ -54,11 +54,12 @@ func (e *Error) Append(fields ...logger.Field) *Error {
 
 func (e *Error) ToGRPCStatus() error {
 	switch e.code {
-	case CodeInvalidPayload, CodeTokenNotFound, CodeTokenNotOwned:
+	case CodeIdentifierNotProvided, CodeInvalidPayload, CodeTokenNotFound,
+		CodeTokenNotOwned:
 		return status.Error(codes.InvalidArgument, e.message)
 	case CodeAuthNotFound, CodeSessionNotFound:
 		return status.Error(codes.NotFound, e.message)
-	case CodeEmailNotAvailable:
+	case CodeEmailNotAvailable, CodeUsernameNotAvailable:
 		return status.Error(codes.AlreadyExists, e.message)
 	case CodeUnauthorizedRole, CodeUnauthorizedSubdomain:
 		return status.Error(codes.PermissionDenied, e.message)

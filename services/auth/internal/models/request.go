@@ -17,6 +17,13 @@ type CreateSessionReq struct {
 	IsVerified bool
 }
 
+type CreateUserAuthReq struct {
+	Email    *string
+	Username *string
+	Password string
+	Role     string
+}
+
 type LoginReq struct {
 	Identifier string
 	Password   string

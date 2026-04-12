@@ -50,6 +50,14 @@ func (v *Validator) Password(value string) (bool, string) {
 	return true, ""
 }
 
+func (v *Validator) Role(value string) (bool, string) {
+	_, exists := roles[value]
+	if !exists {
+		return false, fmt.Sprintf("Role is invalid: %s", value)
+	}
+	return true, ""
+}
+
 func (v *Validator) Username(value string) (bool, string) {
 	if !rgxUsername.MatchString(value) {
 		return false, fmt.Sprintf("Username is invalid: %s", value)

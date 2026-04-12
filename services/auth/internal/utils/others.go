@@ -70,6 +70,17 @@ func NormalizeString(s string) string {
 	return strings.ToLower(strings.TrimSpace(s))
 }
 
+// Strip string of leading and trailing whitespaces
+// and set it to all lowercase.
+// NOTE: Return nil if s is nil
+func NormalizeStringPtr(s *string) *string {
+	if s == nil {
+		return nil
+	}
+	res := NormalizeString(*s)
+	return &res
+}
+
 // Convert value to int64
 func ToInt64(value any) (int64, error) {
 	if v, ok := value.(string); ok {

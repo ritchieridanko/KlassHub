@@ -23,6 +23,7 @@ const (
 	AuthService_Login_FullMethodName               = "/auth.v1.AuthService/Login"
 	AuthService_Logout_FullMethodName              = "/auth.v1.AuthService/Logout"
 	AuthService_CreateSchoolAuth_FullMethodName    = "/auth.v1.AuthService/CreateSchoolAuth"
+	AuthService_CreateUserAuth_FullMethodName      = "/auth.v1.AuthService/CreateUserAuth"
 	AuthService_UpdateSchool_FullMethodName        = "/auth.v1.AuthService/UpdateSchool"
 	AuthService_ChangePassword_FullMethodName      = "/auth.v1.AuthService/ChangePassword"
 	AuthService_ResendVerification_FullMethodName  = "/auth.v1.AuthService/ResendVerification"
@@ -39,6 +40,7 @@ type AuthServiceClient interface {
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	CreateSchoolAuth(ctx context.Context, in *CreateSchoolAuthRequest, opts ...grpc.CallOption) (*CreateSchoolAuthResponse, error)
+	CreateUserAuth(ctx context.Context, in *CreateUserAuthRequest, opts ...grpc.CallOption) (*CreateUserAuthResponse, error)
 	UpdateSchool(ctx context.Context, in *UpdateSchoolRequest, opts ...grpc.CallOption) (*UpdateSchoolResponse, error)
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error)
 	ResendVerification(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ResendVerificationResponse, error)
@@ -80,6 +82,16 @@ func (c *authServiceClient) CreateSchoolAuth(ctx context.Context, in *CreateScho
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateSchoolAuthResponse)
 	err := c.cc.Invoke(ctx, AuthService_CreateSchoolAuth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) CreateUserAuth(ctx context.Context, in *CreateUserAuthRequest, opts ...grpc.CallOption) (*CreateUserAuthResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateUserAuthResponse)
+	err := c.cc.Invoke(ctx, AuthService_CreateUserAuth_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -163,6 +175,7 @@ type AuthServiceServer interface {
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Logout(context.Context, *LogoutRequest) (*emptypb.Empty, error)
 	CreateSchoolAuth(context.Context, *CreateSchoolAuthRequest) (*CreateSchoolAuthResponse, error)
+	CreateUserAuth(context.Context, *CreateUserAuthRequest) (*CreateUserAuthResponse, error)
 	UpdateSchool(context.Context, *UpdateSchoolRequest) (*UpdateSchoolResponse, error)
 	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error)
 	ResendVerification(context.Context, *emptypb.Empty) (*ResendVerificationResponse, error)
@@ -188,6 +201,9 @@ func (UnimplementedAuthServiceServer) Logout(context.Context, *LogoutRequest) (*
 }
 func (UnimplementedAuthServiceServer) CreateSchoolAuth(context.Context, *CreateSchoolAuthRequest) (*CreateSchoolAuthResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSchoolAuth not implemented")
+}
+func (UnimplementedAuthServiceServer) CreateUserAuth(context.Context, *CreateUserAuthRequest) (*CreateUserAuthResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateUserAuth not implemented")
 }
 func (UnimplementedAuthServiceServer) UpdateSchool(context.Context, *UpdateSchoolRequest) (*UpdateSchoolResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSchool not implemented")
@@ -281,6 +297,24 @@ func _AuthService_CreateSchoolAuth_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServiceServer).CreateSchoolAuth(ctx, req.(*CreateSchoolAuthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_CreateUserAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateUserAuthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).CreateUserAuth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_CreateUserAuth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).CreateUserAuth(ctx, req.(*CreateUserAuthRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -429,6 +463,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateSchoolAuth",
 			Handler:    _AuthService_CreateSchoolAuth_Handler,
+		},
+		{
+			MethodName: "CreateUserAuth",
+			Handler:    _AuthService_CreateUserAuth_Handler,
 		},
 		{
 			MethodName: "UpdateSchool",

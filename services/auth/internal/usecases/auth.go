@@ -26,6 +26,7 @@ type AuthUsecase interface {
 	Login(ctx context.Context, req *models.LoginReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	Logout(ctx context.Context, refreshToken string) (err *ce.Error)
 	CreateSchoolAuth(ctx context.Context, req *models.CreateSchoolAuthReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
+	CreateUserAuth(ctx context.Context, req *models.CreateUserAuthReq) (a *models.Auth, verificationToken *string, err *ce.Error)
 	UpdateSchool(ctx context.Context, req *models.UpdateSchoolReq) (a *models.Auth, at *models.AuthToken, err *ce.Error)
 	ChangePassword(ctx context.Context, req *models.ChangePasswordReq) (a *models.Auth, err *ce.Error)
 	ResendVerification(ctx context.Context) (email string, err *ce.Error)
@@ -256,6 +257,7 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 		"auth_"+strconv.FormatInt(a.ID, 10),
 		&events.AuthCreated{
 			EventId:           utils.GenerateUUID().String(),
+			Role:              constants.RoleSchool,
 			Email:             email,
 			VerificationToken: token.String(),
 			CreatedAt:         timestamppb.New(time.Now().UTC()),
@@ -285,6 +287,192 @@ func (u *authUsecase) CreateSchoolAuth(ctx context.Context, req *models.CreateSc
 	)
 
 	return a, at, nil
+}
+
+func (u *authUsecase) CreateUserAuth(ctx context.Context, req *models.CreateUserAuthReq) (*models.Auth, *string, *ce.Error) {
+	ctx, span := otel.Tracer(u.appName).Start(ctx, "auth.usecase.CreateUserAuth")
+	defer span.End()
+
+	authCtx := utils.CtxAuth(ctx)
+	if authCtx == nil {
+		return nil, nil, ce.NewError(
+			ce.CodeMissingContextValue,
+			ce.MsgInternalServer,
+			errors.New("auth missing from context"),
+		)
+	}
+
+	creatorAuthIDField := logger.NewField("creator_auth_id", authCtx.AuthID)
+	creatorSchoolIDField := logger.NewField("creator_school_id", authCtx.SchoolID)
+	creatorRoleField := logger.NewField("creator_role", authCtx.Role)
+	creatorAuthFields := []logger.Field{
+		creatorAuthIDField,
+		creatorSchoolIDField,
+		creatorRoleField,
+	}
+
+	// Identifier Validation
+	if req.Email == nil && req.Username == nil {
+		return nil, nil, ce.NewError(
+			ce.CodeIdentifierNotProvided,
+			ce.MsgIdentifierNotProvided,
+			nil,
+			creatorAuthFields...,
+		)
+	}
+
+	// Data Normalization
+	email := utils.NormalizeStringPtr(req.Email)
+	username := utils.NormalizeStringPtr(req.Username)
+	role := utils.NormalizeString(req.Role)
+
+	// Data Validation
+	if email != nil {
+		if ok, why := u.validator.Email(*email); !ok {
+			return nil, nil, ce.NewError(ce.CodeInvalidPayload, why, nil, creatorAuthFields...)
+		}
+	}
+	if username != nil {
+		if ok, why := u.validator.Username(*username); !ok {
+			return nil, nil, ce.NewError(ce.CodeInvalidPayload, why, nil, creatorAuthFields...)
+		}
+	}
+	if ok, why := u.validator.Password(req.Password); !ok {
+		return nil, nil, ce.NewError(ce.CodeInvalidPayload, why, nil, creatorAuthFields...)
+	}
+	if ok, why := u.validator.Role(role); !ok {
+		return nil, nil, ce.NewError(ce.CodeInvalidPayload, why, nil, creatorAuthFields...)
+	}
+	if authCtx.Role == role {
+		// NOTE: Creator cannot create a new auth of the same role
+		return nil, nil, ce.NewError(
+			ce.CodeUnauthorizedRole,
+			ce.MsgUnauthorized,
+			errors.New("unable to create auth of the same role"),
+			creatorAuthFields...,
+		)
+	}
+
+	var a *models.Auth
+	err := u.transactor.WithTx(ctx, func(ctx context.Context) *ce.Error {
+		// Email Availability Check
+		if email != nil {
+			available, err := u.ar.IsEmailAvailable(ctx, *email)
+			if err != nil {
+				return err.Append(creatorAuthFields...)
+			}
+			if !available {
+				return ce.NewError(
+					ce.CodeEmailNotAvailable,
+					ce.MsgEmailNotAvailable,
+					nil,
+					creatorAuthFields...,
+				)
+			}
+		}
+
+		// Username Availability Check
+		if username != nil {
+			available, err := u.ar.IsUsernameAvailable(ctx, *username)
+			if err != nil {
+				return err.Append(creatorAuthFields...)
+			}
+			if !available {
+				return ce.NewError(
+					ce.CodeUsernameNotAvailable,
+					ce.MsgUsernameNotAvailable,
+					nil,
+					creatorAuthFields...,
+				)
+			}
+		}
+
+		// Password Hashing
+		hash, err := u.bcrypt.Hash(req.Password)
+		if err != nil {
+			return ce.NewError(
+				ce.CodeBCryptHashingFailed,
+				ce.MsgInternalServer,
+				err,
+				creatorAuthFields...,
+			)
+		}
+
+		var verifiedAt *time.Time
+		if email == nil {
+			now := time.Now().UTC()
+			verifiedAt = &now
+		}
+
+		// New Auth Creation
+		na, createErr := u.ar.Create(
+			ctx,
+			&models.CreateAuthData{
+				SchoolID:   authCtx.SchoolID,
+				Email:      email,
+				Username:   username,
+				Password:   hash,
+				Role:       role,
+				VerifiedAt: verifiedAt,
+			},
+		)
+		if createErr != nil {
+			return ce.NewError(
+				createErr.Code(),
+				createErr.Message(),
+				createErr.Unwrap(),
+				creatorAuthIDField,
+				creatorSchoolIDField,
+				creatorRoleField,
+				logger.NewField("role", role),
+			)
+		}
+
+		a = na
+		return nil
+	})
+	if err != nil && err.Code() == ce.CodeDBTransaction {
+		return nil, nil, ce.NewError(
+			err.Code(),
+			err.Message(),
+			err.Unwrap(),
+			creatorAuthFields...,
+		)
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Verification Token Creation
+	// NOTE: Fail to create verification token does not fail create user auth process
+	token := utils.GenerateUUID()
+	err = u.tr.CreateVerification(
+		ctx,
+		&models.CreateVerificationTokenData{
+			AuthID:   a.ID,
+			Token:    token.String(),
+			Duration: u.verificationTokenExpiry,
+		},
+	)
+	if err != nil {
+		u.logger.Warn(
+			ctx,
+			"created user auth. failed to create verification token",
+			err.Append(
+				append(
+					creatorAuthFields,
+					logger.NewField("auth_id", a.ID),
+					logger.NewField("role", a.Role),
+					logger.NewField("error_code", err.Code()),
+					logger.NewField("error", err.Unwrap()),
+				)...,
+			).Fields()...,
+		)
+		return a, nil, nil
+	}
+
+	verificationToken := token.String()
+	return a, &verificationToken, nil
 }
 
 func (u *authUsecase) UpdateSchool(ctx context.Context, req *models.UpdateSchoolReq) (*models.Auth, *models.AuthToken, *ce.Error) {
@@ -384,6 +572,7 @@ func (u *authUsecase) ChangePassword(ctx context.Context, req *models.ChangePass
 	authIDField := logger.NewField("auth_id", authCtx.AuthID)
 	schoolIDField := logger.NewField("school_id", authCtx.SchoolID)
 	roleField := logger.NewField("role", authCtx.Role)
+	authFields := []logger.Field{authIDField, schoolIDField, roleField}
 
 	// Data Validation
 	if ok, why := u.validator.Password(req.NewPassword); !ok {
@@ -391,9 +580,7 @@ func (u *authUsecase) ChangePassword(ctx context.Context, req *models.ChangePass
 			ce.CodeInvalidPayload,
 			why,
 			nil,
-			authIDField,
-			schoolIDField,
-			roleField,
+			authFields...,
 		)
 	}
 
@@ -422,9 +609,7 @@ func (u *authUsecase) ChangePassword(ctx context.Context, req *models.ChangePass
 				ce.CodeWrongPassword,
 				ce.MsgInvalidCredentials,
 				err,
-				authIDField,
-				schoolIDField,
-				roleField,
+				authFields...,
 			)
 		}
 
@@ -435,9 +620,7 @@ func (u *authUsecase) ChangePassword(ctx context.Context, req *models.ChangePass
 				ce.CodeBCryptHashingFailed,
 				ce.MsgInternalServer,
 				hashErr,
-				authIDField,
-				schoolIDField,
-				roleField,
+				authFields...,
 			)
 		}
 
@@ -464,9 +647,7 @@ func (u *authUsecase) ChangePassword(ctx context.Context, req *models.ChangePass
 			err.Code(),
 			err.Message(),
 			err.Unwrap(),
-			authIDField,
-			schoolIDField,
-			roleField,
+			authFields...,
 		)
 	}
 
@@ -489,6 +670,7 @@ func (u *authUsecase) ResendVerification(ctx context.Context) (string, *ce.Error
 	authIDField := logger.NewField("auth_id", authCtx.AuthID)
 	schoolIDField := logger.NewField("school_id", authCtx.SchoolID)
 	roleField := logger.NewField("role", authCtx.Role)
+	authFields := []logger.Field{authIDField, schoolIDField, roleField}
 
 	// Auth Fetching
 	// NOTE: Resend verification is only allowed if not yet verified
@@ -512,9 +694,7 @@ func (u *authUsecase) ResendVerification(ctx context.Context) (string, *ce.Error
 			ce.CodeAuthAlreadyVerified,
 			ce.MsgAuthAlreadyVerified,
 			nil,
-			authIDField,
-			schoolIDField,
-			roleField,
+			authFields...,
 		)
 	}
 	if a.Email == nil {
@@ -522,9 +702,7 @@ func (u *authUsecase) ResendVerification(ctx context.Context) (string, *ce.Error
 			ce.CodeEmailNotRegistered,
 			ce.MsgEmailNotRegistered,
 			nil,
-			authIDField,
-			schoolIDField,
-			roleField,
+			authFields...,
 		)
 	}
 
@@ -595,6 +773,7 @@ func (u *authUsecase) VerifyEmail(ctx context.Context, req *models.VerifyEmailRe
 	authIDField := logger.NewField("auth_id", authCtx.AuthID)
 	schoolIDField := logger.NewField("school_id", authCtx.SchoolID)
 	roleField := logger.NewField("role", authCtx.Role)
+	authFields := []logger.Field{authIDField, schoolIDField, roleField}
 
 	// Data Normalization
 	verificationToken := strings.TrimSpace(req.VerificationToken)
@@ -606,9 +785,7 @@ func (u *authUsecase) VerifyEmail(ctx context.Context, req *models.VerifyEmailRe
 			ce.CodeInvalidPayload,
 			"Verification token is required",
 			nil,
-			authIDField,
-			schoolIDField,
-			roleField,
+			authFields...,
 		)
 	}
 	if refreshToken == "" {
@@ -616,16 +793,14 @@ func (u *authUsecase) VerifyEmail(ctx context.Context, req *models.VerifyEmailRe
 			ce.CodeUnauthenticated,
 			ce.MsgUnauthenticated,
 			errors.New("refresh token is empty"),
-			authIDField,
-			schoolIDField,
-			roleField,
+			authFields...,
 		)
 	}
 
 	// Verification Token Consumption
 	authID, err := u.tr.UseVerification(ctx, verificationToken)
 	if err != nil {
-		return nil, nil, err.Append(authIDField, schoolIDField, roleField)
+		return nil, nil, err.Append(authFields...)
 	}
 
 	// Verification Token Ownership Validation
