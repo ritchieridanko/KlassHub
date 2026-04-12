@@ -112,6 +112,126 @@ func (h *AccountHandler) CreateSchoolProfile(ctx *gin.Context) {
 	)
 }
 
+func (h *AccountHandler) CreateUserAccount(ctx *gin.Context) {
+	var payload dtos.CreateUserAccountRequest
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		ce.NewError(ce.CodeInvalidPayload, ce.MsgInvalidPayload, err).Bind(ctx)
+		return
+	}
+
+	authCtx := utils.CtxAuth(ctx.Request.Context())
+	if authCtx == nil {
+		ce.NewError(
+			ce.CodeMissingContextValue,
+			ce.MsgInternalServer,
+			errors.New("auth missing from context"),
+		).Bind(
+			ctx,
+		)
+		return
+	}
+
+	a, u, err := h.acc.CreateUserAccount(
+		metadata.ToOutgoingCtx(
+			ctx.Request.Context(),
+			metadata.Auth(authCtx, true, true, true, true)...,
+		),
+		&models.CreateUserAccountReq{
+			// Auth
+			Email:    payload.Email,
+			Username: payload.Username,
+			Password: payload.Password,
+			Role:     payload.Role,
+
+			// User
+			SchoolUserID: payload.SchoolUserID,
+			Name:         payload.Name,
+			Birthplace:   payload.Birthplace,
+			Birthdate:    payload.Birthdate,
+			Sex:          payload.Sex,
+		},
+	)
+	if err != nil {
+		err.Bind(ctx)
+		return
+	}
+
+	utils.SetResponse(
+		ctx,
+		http.StatusCreated,
+		"User created successfully",
+		dtos.CreateUserAccountResponse{
+			Auth: h.toAuthAdmin(a),
+			User: h.toUserAdmin(u),
+		},
+	)
+}
+
+func (h *AccountHandler) toAuth(a *models.Auth) *dtos.Auth {
+	if a == nil {
+		return nil
+	}
+	return &dtos.Auth{
+		Email:             a.Email,
+		Username:          a.Username,
+		Role:              a.Role,
+		IsVerified:        a.IsVerified,
+		SchoolExists:      a.SchoolExists,
+		PasswordChangedAt: a.PasswordChangedAt,
+	}
+}
+
+func (h *AccountHandler) toAuthAdmin(a *models.Auth) *dtos.AuthAdmin {
+	if a == nil {
+		return nil
+	}
+	return &dtos.AuthAdmin{
+		Email:      a.Email,
+		Username:   a.Username,
+		Role:       a.Role,
+		IsVerified: a.IsVerified,
+	}
+}
+
+func (h *AccountHandler) toAccessToken(at *models.AuthToken) *dtos.AccessToken {
+	if at == nil || at.AccessToken == nil {
+		return nil
+	}
+	return &dtos.AccessToken{
+		Token:     at.AccessToken.Token,
+		ExpiresIn: at.AccessToken.ExpiresIn,
+	}
+}
+
+func (h *AccountHandler) toUserAdmin(u *models.User) *dtos.UserAdmin {
+	if u == nil {
+		return nil
+	}
+
+	var createdBy *string
+	if u.CreatedBy != nil {
+		creator := u.CreatedBy.String()
+		createdBy = &creator
+	}
+
+	return &dtos.UserAdmin{
+		ID:             u.ID.String(),
+		SchoolUserID:   u.SchoolUserID,
+		Role:           u.Role,
+		Name:           u.Name,
+		Nickname:       u.Nickname,
+		Birthplace:     u.Birthplace,
+		Birthdate:      u.Birthdate,
+		Sex:            u.Sex,
+		Phone:          u.Phone,
+		ProfilePicture: u.ProfilePicture,
+		ProfileBanner:  u.ProfileBanner,
+		CreatedBy:      createdBy,
+		CreatedAt:      u.CreatedAt,
+		UpdatedAt:      u.UpdatedAt,
+	}
+}
+
 func (h *AccountHandler) toSchool(s *models.School) *dtos.School {
 	if s == nil {
 		return nil
@@ -137,29 +257,5 @@ func (h *AccountHandler) toSchool(s *models.School) *dtos.School {
 		Website:        s.Website,
 		Timezone:       s.Timezone,
 		CreatedAt:      s.CreatedAt,
-	}
-}
-
-func (h *AccountHandler) toAuth(a *models.Auth) *dtos.Auth {
-	if a == nil {
-		return nil
-	}
-	return &dtos.Auth{
-		Email:             a.Email,
-		Username:          a.Username,
-		Role:              a.Role,
-		IsVerified:        a.IsVerified,
-		SchoolExists:      a.SchoolExists,
-		PasswordChangedAt: a.PasswordChangedAt,
-	}
-}
-
-func (h *AccountHandler) toAccessToken(at *models.AuthToken) *dtos.AccessToken {
-	if at == nil || at.AccessToken == nil {
-		return nil
-	}
-	return &dtos.AccessToken{
-		Token:     at.AccessToken.Token,
-		ExpiresIn: at.AccessToken.ExpiresIn,
 	}
 }

@@ -3,6 +3,7 @@ package clients
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/models"
 	"github.com/ritchieridanko/klasshub/services/gateway/internal/utils"
@@ -12,6 +13,7 @@ import (
 
 type AccountClient interface {
 	CreateSchoolProfile(ctx context.Context, req *models.CreateSchoolProfileReq) (s *models.School, a *models.Auth, at *models.AuthToken, err *ce.Error)
+	CreateUserAccount(ctx context.Context, req *models.CreateUserAccountReq) (a *models.Auth, u *models.User, err *ce.Error)
 }
 
 type accountClient struct {
@@ -58,32 +60,34 @@ func (c *accountClient) CreateSchoolProfile(ctx context.Context, req *models.Cre
 		nil
 }
 
-func (c *accountClient) toSchool(s *apis.School) *models.School {
-	if s == nil {
-		return nil
+func (c *accountClient) CreateUserAccount(ctx context.Context, req *models.CreateUserAccountReq) (*models.Auth, *models.User, *ce.Error) {
+	resp, err := c.client.CreateUserAccount(
+		ctx,
+		&apis.CreateUserAccountRequest{
+			// Auth
+			Email:    req.Email,
+			Username: req.Username,
+			Password: req.Password,
+			Role:     req.Role,
+
+			// User
+			SchoolUserId: req.SchoolUserID,
+			Name:         req.Name,
+			Birthplace:   req.Birthplace,
+			Birthdate:    utils.ToTimestamp(req.Birthdate),
+			Sex:          req.Sex,
+		},
+	)
+	if err != nil {
+		return nil, nil, ce.FromGRPCErr(
+			err,
+		).Append(
+			logger.NewField("service", "account"),
+		)
 	}
-	return &models.School{
-		NPSN:           s.NPSN,
-		NPSNVerifiedAt: utils.ToTime(s.GetNPSNVerifiedAt()),
-		Name:           s.GetName(),
-		Level:          s.GetLevel(),
-		Ownership:      s.GetOwnership(),
-		ProfilePicture: s.ProfilePicture,
-		ProfileBanner:  s.ProfileBanner,
-		Accreditation:  s.Accreditation,
-		EstablishedAt:  utils.ToTime(s.GetEstablishedAt()),
-		Province:       s.GetProvince(),
-		CityRegency:    s.GetCityRegency(),
-		District:       s.GetDistrict(),
-		Subdistrict:    s.GetSubdistrict(),
-		Street:         s.GetStreet(),
-		Postcode:       s.GetPostcode(),
-		Phone:          s.Phone,
-		Email:          s.Email,
-		Website:        s.Website,
-		Timezone:       s.GetTimezone(),
-		CreatedAt:      utils.ToTime(s.GetCreatedAt()),
-	}
+	return c.toAuthFromAA(resp.GetAuth()),
+		c.toUserFromUA(resp.GetUser()),
+		nil
 }
 
 func (c *accountClient) toAuth(a *apis.Auth) *models.Auth {
@@ -97,6 +101,18 @@ func (c *accountClient) toAuth(a *apis.Auth) *models.Auth {
 		IsVerified:        a.GetIsVerified(),
 		SchoolExists:      a.GetSchoolExists(),
 		PasswordChangedAt: utils.ToTime(a.GetPasswordChangedAt()),
+	}
+}
+
+func (c *accountClient) toAuthFromAA(aa *apis.AuthAdmin) *models.Auth {
+	if aa == nil {
+		return nil
+	}
+	return &models.Auth{
+		Email:      aa.Email,
+		Username:   aa.Username,
+		Role:       aa.GetRole(),
+		IsVerified: aa.GetIsVerified(),
 	}
 }
 
@@ -127,5 +143,62 @@ func (c *accountClient) toRefreshToken(rt *apis.RefreshToken) *models.RefreshTok
 	return &models.RefreshToken{
 		Token:     rt.GetToken(),
 		ExpiresIn: rt.GetExpiresIn(),
+	}
+}
+
+func (c *accountClient) toUserFromUA(ua *apis.UserAdmin) *models.User {
+	if ua == nil {
+		return nil
+	}
+
+	var createdBy *uuid.UUID
+	if ua.CreatedBy != nil {
+		creator := utils.ToUUIDMust(ua.GetCreatedBy())
+		createdBy = &creator
+	}
+
+	return &models.User{
+		ID:             utils.ToUUIDMust(ua.GetId()),
+		SchoolUserID:   ua.SchoolUserId,
+		Role:           ua.GetRole(),
+		Name:           ua.GetName(),
+		Nickname:       ua.Nickname,
+		Birthplace:     ua.GetBirthplace(),
+		Birthdate:      utils.ToTime(ua.GetBirthdate()),
+		Sex:            ua.GetSex(),
+		Phone:          ua.Phone,
+		ProfilePicture: ua.ProfilePicture,
+		ProfileBanner:  ua.ProfileBanner,
+		CreatedBy:      createdBy,
+		CreatedAt:      utils.ToTime(ua.GetCreatedAt()),
+		UpdatedAt:      utils.ToTime(ua.GetUpdatedAt()),
+	}
+}
+
+func (c *accountClient) toSchool(s *apis.School) *models.School {
+	if s == nil {
+		return nil
+	}
+	return &models.School{
+		NPSN:           s.NPSN,
+		NPSNVerifiedAt: utils.ToTime(s.GetNPSNVerifiedAt()),
+		Name:           s.GetName(),
+		Level:          s.GetLevel(),
+		Ownership:      s.GetOwnership(),
+		ProfilePicture: s.ProfilePicture,
+		ProfileBanner:  s.ProfileBanner,
+		Accreditation:  s.Accreditation,
+		EstablishedAt:  utils.ToTime(s.GetEstablishedAt()),
+		Province:       s.GetProvince(),
+		CityRegency:    s.GetCityRegency(),
+		District:       s.GetDistrict(),
+		Subdistrict:    s.GetSubdistrict(),
+		Street:         s.GetStreet(),
+		Postcode:       s.GetPostcode(),
+		Phone:          s.Phone,
+		Email:          s.Email,
+		Website:        s.Website,
+		Timezone:       s.GetTimezone(),
+		CreatedAt:      utils.ToTime(s.GetCreatedAt()),
 	}
 }

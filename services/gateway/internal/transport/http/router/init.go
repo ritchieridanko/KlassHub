@@ -142,6 +142,22 @@ func Init(cfg *configs.Client, appName string, j *jwt.JWT, l *logger.Logger, auh
 		)
 	}
 
+	// USER ENDPOINTS
+	user := v1.Group("/users")
+	{
+		// Create
+		user.POST(
+			"",
+			middlewares.Auth(j),
+			middlewares.Authz(
+				true,
+				[]string{constants.SubdomainAdmin},
+				constants.AdminRoles,
+			),
+			ach.CreateUserAccount,
+		)
+	}
+
 	return &Router{router: r}
 }
 

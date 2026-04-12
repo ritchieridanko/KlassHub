@@ -11,6 +11,13 @@ type Auth struct {
 	PasswordChangedAt *time.Time `json:"password_changed_at"`
 }
 
+type AuthAdmin struct {
+	Email      *string `json:"email,omitempty"`
+	Username   *string `json:"username,omitempty"`
+	Role       string  `json:"role"`
+	IsVerified bool    `json:"is_verified"`
+}
+
 type AccessToken struct {
 	Token     string `json:"token"`
 	ExpiresIn int64  `json:"expires_in"`

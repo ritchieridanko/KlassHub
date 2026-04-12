@@ -20,3 +20,18 @@ type CreateSchoolProfileRequest struct {
 	Website       *string    `json:"website"`
 	Timezone      string     `json:"timezone" binding:"required"`
 }
+
+type CreateUserAccountRequest struct {
+	// Auth
+	Email    *string `json:"email"`
+	Username *string `json:"username"`
+	Password string  `json:"password" binding:"required"`
+	Role     string  `json:"role" binding:"required"`
+
+	// User
+	SchoolUserID *string    `json:"school_user_id"`
+	Name         string     `json:"name" binding:"required"`
+	Birthplace   string     `json:"birthplace" binding:"required"`
+	Birthdate    *time.Time `json:"birthdate" time_format:"2006-01-02"`
+	Sex          string     `json:"sex" binding:"required"`
+}

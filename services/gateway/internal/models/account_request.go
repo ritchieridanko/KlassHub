@@ -23,3 +23,18 @@ type CreateSchoolProfileReq struct {
 	// For Auth Token Refresh
 	RefreshToken string
 }
+
+type CreateUserAccountReq struct {
+	// Auth
+	Email    *string
+	Username *string
+	Password string
+	Role     string
+
+	// User
+	SchoolUserID *string
+	Name         string
+	Birthplace   string
+	Birthdate    *time.Time
+	Sex          string
+}
