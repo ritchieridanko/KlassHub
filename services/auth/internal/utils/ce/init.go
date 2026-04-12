@@ -69,9 +69,10 @@ func (e *Error) ToGRPCStatus() error {
 		CodeSessionNotOwned, CodeUnauthenticated, CodeWrongPassword, CodeWrongSubdomain:
 		return status.Error(codes.Unauthenticated, e.message)
 	case CodeBCryptHashingFailed, CodeCacheCommandExec, CodeCacheScriptExec,
-		CodeDBQueryExec, CodeDBTransaction, CodeEventPublishingFailed, CodeInternal,
-		CodeJWTGenerationFailed, CodeMissingContextValue, CodeMissingMetadata,
-		CodeTypeConversionFailed, CodeUnknown, CodeUUIDGenerationFailed:
+		CodeDBQueryExec, CodeDBTransaction, CodeEventCommittingFailed, CodeEventFetchingFailed,
+		CodeEventPublishingFailed, CodeInternal, CodeJWTGenerationFailed, CodeMissingContextValue,
+		CodeMissingMetadata, CodePanicOccurred, CodeProtobufParsingFailed, CodeTypeConversionFailed,
+		CodeUnknown, CodeUUIDGenerationFailed:
 		return status.Error(codes.Internal, e.message)
 	default:
 		return status.Error(codes.Internal, e.message)

@@ -18,6 +18,7 @@ type AuthDatabase interface {
 	UpdateSchool(ctx context.Context, authID, schoolID int64) (a *models.Auth, err *ce.Error)
 	UpdatePassword(ctx context.Context, authID int64, newPassword string) (a *models.Auth, err *ce.Error)
 	SetVerified(ctx context.Context, authID int64) (a *models.Auth, err *ce.Error)
+	Delete(ctx context.Context, authID int64) (err *ce.Error)
 	IsEmailRegistered(ctx context.Context, email string) (exists bool, err *ce.Error)
 	IsUsernameRegistered(ctx context.Context, username string) (exists bool, err *ce.Error)
 }
@@ -287,6 +288,36 @@ func (d *authDatabase) SetVerified(ctx context.Context, authID int64) (*models.A
 	}
 
 	return &a, nil
+}
+
+func (d *authDatabase) Delete(ctx context.Context, authID int64) *ce.Error {
+	query := "DELETE FROM auth WHERE id = $1"
+
+	err := d.database.Execute(
+		ctx, query,
+		authID,
+	)
+	if err != nil {
+		wrappedErr := fmt.Errorf("failed to delete auth: %w", err)
+		authIDField := logger.NewField("auth_id", authID)
+
+		if errors.Is(err, ce.ErrDBAffectNoRows) {
+			return ce.NewError(
+				ce.CodeAuthNotFound,
+				ce.MsgAuthNotFound,
+				wrappedErr,
+				authIDField,
+			)
+		}
+		return ce.NewError(
+			ce.CodeDBQueryExec,
+			ce.MsgInternalServer,
+			wrappedErr,
+			authIDField,
+		)
+	}
+
+	return nil
 }
 
 func (d *authDatabase) IsEmailRegistered(ctx context.Context, email string) (bool, *ce.Error) {

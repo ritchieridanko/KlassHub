@@ -11,6 +11,7 @@ import (
 type TokenRepository interface {
 	CreateVerification(ctx context.Context, data *models.CreateVerificationTokenData) (err *ce.Error)
 	UseVerification(ctx context.Context, token string) (authID int64, err *ce.Error)
+	DeleteVerification(ctx context.Context, authID int64) (err *ce.Error)
 }
 
 type tokenRepository struct {
@@ -27,4 +28,8 @@ func (r *tokenRepository) CreateVerification(ctx context.Context, data *models.C
 
 func (r *tokenRepository) UseVerification(ctx context.Context, token string) (int64, *ce.Error) {
 	return r.cache.UseVerification(ctx, token)
+}
+
+func (r *tokenRepository) DeleteVerification(ctx context.Context, authID int64) *ce.Error {
+	return r.cache.DeleteVerification(ctx, authID)
 }

@@ -16,6 +16,7 @@ type AuthRepository interface {
 	UpdateSchool(ctx context.Context, authID, schoolID int64) (a *models.Auth, err *ce.Error)
 	UpdatePassword(ctx context.Context, authID int64, newPassword string) (a *models.Auth, err *ce.Error)
 	SetVerified(ctx context.Context, authID int64) (a *models.Auth, err *ce.Error)
+	Delete(ctx context.Context, authID int64) (err *ce.Error)
 	IsEmailAvailable(ctx context.Context, email string) (available bool, err *ce.Error)
 	IsUsernameAvailable(ctx context.Context, username string) (available bool, err *ce.Error)
 }
@@ -51,6 +52,10 @@ func (r *authRepository) UpdatePassword(ctx context.Context, authID int64, newPa
 
 func (r *authRepository) SetVerified(ctx context.Context, authID int64) (*models.Auth, *ce.Error) {
 	return r.database.SetVerified(ctx, authID)
+}
+
+func (r *authRepository) Delete(ctx context.Context, authID int64) *ce.Error {
+	return r.database.Delete(ctx, authID)
 }
 
 func (r *authRepository) IsEmailAvailable(ctx context.Context, email string) (bool, *ce.Error) {

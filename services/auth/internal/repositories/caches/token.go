@@ -17,6 +17,7 @@ import (
 type TokenCache interface {
 	CreateVerification(ctx context.Context, data *models.CreateVerificationTokenData) (err *ce.Error)
 	UseVerification(ctx context.Context, token string) (authID int64, err *ce.Error)
+	DeleteVerification(ctx context.Context, authID int64) (err *ce.Error)
 }
 
 type tokenCache struct {
@@ -101,4 +102,35 @@ func (c *tokenCache) UseVerification(ctx context.Context, token string) (int64, 
 	}
 
 	return authID, nil
+}
+
+func (c *tokenCache) DeleteVerification(ctx context.Context, authID int64) *ce.Error {
+	prefix := constants.CachePrefixEmailVerification
+	script := `
+		local token = redis.call("GET", KEYS[1])
+		if token then
+			redis.call("DEL", KEYS[1])
+			redis.call("DEL", KEYS[2] .. ":" .. token)
+			return token
+		end
+		return nil
+	`
+
+	_, err := c.cache.Evaluate(
+		ctx, "s:delver", script,
+		[]string{
+			fmt.Sprintf("%s:%d", prefix, authID),
+			prefix,
+		},
+	)
+	if err != nil {
+		wrappedErr := fmt.Errorf("failed to delete verification token: %w", err)
+
+		if errors.Is(err, ce.ErrCacheNoResult) {
+			return ce.NewError(ce.CodeTokenNotFound, ce.MsgInvalidToken, wrappedErr)
+		}
+		return ce.NewError(ce.CodeCacheScriptExec, ce.MsgInternalServer, wrappedErr)
+	}
+
+	return nil
 }

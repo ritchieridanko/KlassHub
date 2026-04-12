@@ -55,6 +55,13 @@ broker:
       name: "auth.verification.requested"
       batch_size: 1
       batch_timeout: "5ms"
+  subscriber:
+    user_creation_failed:
+      name: "user.creation.failed"
+      max_bytes: 1000000
+      max_wait: "10s"
+      commit_interval: "1s"
+      process_timeout: "5s"
 
 tracer:
   host: "localhost"

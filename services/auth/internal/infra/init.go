@@ -11,6 +11,7 @@ import (
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/database"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/publisher"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/subscriber"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/tracer"
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
@@ -24,6 +25,7 @@ type Infra struct {
 	tracer   *tracer.Tracer
 	acp      *kafka.Writer
 	avrp     *kafka.Writer
+	ucfs     *kafka.Reader
 }
 
 func Init(cfg *configs.Config) (*Infra, error) {
@@ -69,6 +71,17 @@ func Init(cfg *configs.Config) (*Infra, error) {
 		l,
 	)
 
+	// Subscribers
+	ucfs := subscriber.Init(
+		cfg.App.Name,
+		cfg.Broker.Brokers,
+		cfg.Broker.Subscriber.UCF.Name,
+		cfg.Broker.Subscriber.UCF.MaxBytes,
+		cfg.Broker.Subscriber.UCF.MaxWait,
+		cfg.Broker.Subscriber.UCF.CommitInterval,
+		l,
+	)
+
 	return &Infra{
 		config:   cfg,
 		cache:    cc,
@@ -77,6 +90,7 @@ func Init(cfg *configs.Config) (*Infra, error) {
 		tracer:   t,
 		acp:      acp,
 		avrp:     avrp,
+		ucfs:     ucfs,
 	}, nil
 }
 
@@ -100,6 +114,10 @@ func (i *Infra) PublisherAVR() *kafka.Writer {
 	return i.avrp
 }
 
+func (i *Infra) SubscriberUCF() *kafka.Reader {
+	return i.ucfs
+}
+
 func (i *Infra) Close() error {
 	if err := i.cache.Close(); err != nil {
 		return fmt.Errorf("failed to close cache: %w", err)
@@ -115,6 +133,9 @@ func (i *Infra) Close() error {
 	}
 	if err := i.avrp.Close(); err != nil {
 		return fmt.Errorf("failed to close publisher (topic: %s): %w", constants.EventTopicAVR, err)
+	}
+	if err := i.ucfs.Close(); err != nil {
+		return fmt.Errorf("failed to close subscriber (topic: %s): %w", constants.EventTopicUCF, err)
 	}
 
 	i.database.Close()

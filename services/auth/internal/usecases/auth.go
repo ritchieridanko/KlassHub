@@ -34,6 +34,9 @@ type AuthUsecase interface {
 	RotateAuthToken(ctx context.Context, refreshToken string) (at *models.AuthToken, err *ce.Error)
 	IsEmailAvailable(ctx context.Context, email string) (available bool, err *ce.Error)
 	IsUsernameAvailable(ctx context.Context, username string) (available bool, err *ce.Error)
+
+	// Event Usecases
+	OnUserCreationFailed(ctx context.Context, authID int64) (err *ce.Error)
 }
 
 type authUsecase struct {
@@ -728,6 +731,7 @@ func (u *authUsecase) ResendVerification(ctx context.Context) (string, *ce.Error
 		"auth_"+strconv.FormatInt(a.ID, 10),
 		&events.AuthVerificationRequested{
 			EventId:           utils.GenerateUUID().String(),
+			Role:              a.Role,
 			Email:             *a.Email,
 			VerificationToken: token.String(),
 			CreatedAt:         timestamppb.New(time.Now().UTC()),

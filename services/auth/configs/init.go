@@ -101,6 +101,16 @@ type Broker struct {
 			BatchTimeout time.Duration `mapstructure:"batch_timeout"`
 		} `mapstructure:"auth_verification_requested"`
 	} `mapstructure:"publisher"`
+
+	Subscriber struct {
+		UCF struct {
+			Name           string        `mapstructure:"name"`
+			MaxBytes       int           `mapstructure:"max_bytes"`
+			MaxWait        time.Duration `mapstructure:"max_wait"`
+			CommitInterval time.Duration `mapstructure:"commit_interval"`
+			ProcessTimeout time.Duration `mapstructure:"process_timeout"`
+		} `mapstructure:"user_creation_failed"`
+	} `mapstructure:"subscriber"`
 }
 
 type Tracer struct {
@@ -150,6 +160,7 @@ func Init(path string) (*Config, error) {
 
 	constants.EventTopicAC = cfg.Broker.Publisher.AC.Name
 	constants.EventTopicAVR = cfg.Broker.Publisher.AVR.Name
+	constants.EventTopicUCF = cfg.Broker.Subscriber.UCF.Name
 
 	return &cfg, nil
 }

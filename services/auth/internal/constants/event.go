@@ -4,6 +4,7 @@ package constants
 var (
 	EventTopicAC  string = "auth.created"
 	EventTopicAVR string = "auth.verification.requested"
+	EventTopicUCF string = "user.creation.failed"
 )
 
 // Event Header Keys

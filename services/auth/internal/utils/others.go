@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/constants"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/models"
+	"github.com/segmentio/kafka-go"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -62,6 +63,16 @@ func GenerateUUID() uuid.UUID {
 // Create a new random UUID v7
 func GenerateUUIDv7() (uuid.UUID, error) {
 	return uuid.NewV7()
+}
+
+// Get Request ID from Kafka Message
+func MsgRequestID(msg kafka.Message) string {
+	for _, header := range msg.Headers {
+		if header.Key == constants.EventHeaderKeyRequestID {
+			return string(header.Value)
+		}
+	}
+	return ""
 }
 
 // Strip string of leading and trailing whitespaces

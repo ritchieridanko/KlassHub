@@ -7,10 +7,13 @@ import (
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/database"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/logger"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/publisher"
+	"github.com/ritchieridanko/klasshub/services/auth/internal/infra/subscriber"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/repositories"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/repositories/caches"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/repositories/databases"
-	"github.com/ritchieridanko/klasshub/services/auth/internal/transport/rpc/handlers"
+	eHandlers "github.com/ritchieridanko/klasshub/services/auth/internal/transport/event/handlers"
+	eMiddlewares "github.com/ritchieridanko/klasshub/services/auth/internal/transport/event/middlewares"
+	rHandlers "github.com/ritchieridanko/klasshub/services/auth/internal/transport/rpc/handlers"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/transport/rpc/server"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/usecases"
 	"github.com/ritchieridanko/klasshub/services/auth/internal/utils/bcrypt"
@@ -34,6 +37,8 @@ type Container struct {
 	acp  *publisher.Publisher
 	avrp *publisher.Publisher
 
+	ucfs *subscriber.Subscriber
+
 	ar repositories.AuthRepository
 	sr repositories.SessionRepository
 	tr repositories.TokenRepository
@@ -45,7 +50,19 @@ type Container struct {
 	su usecases.SessionUsecase
 	au usecases.AuthUsecase
 
-	ah     *handlers.AuthHandler
+	// Event Middlewares
+	rqm eHandlers.Middleware
+	rvm eHandlers.Middleware
+	tm  eHandlers.Middleware
+	lm  eHandlers.Middleware
+
+	// RPC Handlers
+	ah *rHandlers.AuthHandler
+
+	// Event Handlers
+	uh   *eHandlers.UserHandler
+	ucfh eHandlers.Handler
+
 	server *server.Server
 }
 
@@ -68,6 +85,9 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	acp := publisher.NewPublisher(inf.PublisherAC())
 	avrp := publisher.NewPublisher(inf.PublisherAVR())
 
+	// Subscribers
+	ucfs := subscriber.NewSubscriber(cfg.Broker.Subscriber.UCF.ProcessTimeout, inf.SubscriberUCF(), l)
+
 	// Repositories
 	ar := repositories.NewAuthRepository(adb, acc)
 	sr := repositories.NewSessionRepository(sdb)
@@ -82,8 +102,18 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	su := usecases.NewSessionUsecase(cfg.App.Name, cfg.Auth.JWT.Duration, cfg.Auth.Duration.Session, sr, tx, v, j)
 	au := usecases.NewAuthUsecase(cfg.App.Name, cfg.Auth.Duration.Verification, su, ar, tr, tx, acp, avrp, v, b, l)
 
-	// Handlers
-	ah := handlers.NewAuthHandler(au)
+	// Event Middlewares
+	rqm := eMiddlewares.Request()
+	rvm := eMiddlewares.Recovery(l)
+	tm := eMiddlewares.Tracing()
+	lm := eMiddlewares.Logging(l)
+
+	// RPC Handlers
+	ah := rHandlers.NewAuthHandler(au)
+
+	// Event Handlers
+	uh := eHandlers.NewUserHandler(au)
+	ucfh := eHandlers.NewHandler(uh.OnUserCreationFailed, rqm, rvm, tm, lm)
 
 	// Server
 	srv := server.Init(&cfg.Server, cfg.App.Name, v, l, ah)
@@ -100,6 +130,7 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 		tcc:        tcc,
 		acp:        acp,
 		avrp:       avrp,
+		ucfs:       ucfs,
 		ar:         ar,
 		sr:         sr,
 		tr:         tr,
@@ -108,11 +139,25 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 		validator:  v,
 		su:         su,
 		au:         au,
+		rqm:        rqm,
+		rvm:        rvm,
+		tm:         tm,
+		lm:         lm,
 		ah:         ah,
+		uh:         uh,
+		ucfh:       ucfh,
 		server:     srv,
 	}
 }
 
 func (c *Container) Server() *server.Server {
 	return c.server
+}
+
+func (c *Container) SubscriberUCF() *subscriber.Subscriber {
+	return c.ucfs
+}
+
+func (c *Container) HandlerUCF() eHandlers.Handler {
+	return c.ucfh
 }
