@@ -13,20 +13,18 @@ COPY services/course/go.mod services/course/go.sum ./
 RUN go mod download
 
 # Copy app source
-COPY services/course/cmd/migrator ./cmd/migrator
+COPY services/course/cmd/app ./cmd/app
 COPY services/course/configs ./configs
-COPY services/course/internal/constants ./internal/constants
-COPY services/course/internal/infra/database ./internal/infra/database
-COPY services/course/internal/infra/logger ./internal/infra/logger
-COPY services/course/internal/models ./internal/models
-COPY services/course/internal/utils ./internal/utils
-COPY services/course/migrations ./migrations
+COPY services/course/internal ./internal
 
 # Build binary
-RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/migrator cmd/migrator/main.go
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/app cmd/app/main.go
 
 # ---------- Runtime Stage ----------
 FROM alpine:3.22
+
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates
 
 # Set work directory
 WORKDIR /root
@@ -34,7 +32,9 @@ WORKDIR /root
 # Copy from the Build Stage
 COPY --from=builder /app/services/course/bin ./bin
 COPY --from=builder /app/services/course/configs ./configs
-COPY --from=builder /app/services/course/migrations ./migrations
+
+# Expose port
+EXPOSE 50055
 
 # Set entry point
-ENTRYPOINT ["./bin/migrator"]
+ENTRYPOINT ["./bin/app"]
