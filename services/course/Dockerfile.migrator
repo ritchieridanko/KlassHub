@@ -1,0 +1,37 @@
+# ---------- Build Stage ----------
+FROM golang:1.25.0-alpine3.22 AS builder
+
+# Install build dependencies
+RUN apk add --no-cache git
+
+# Set work directory
+WORKDIR /app/services/course
+
+# Copy and download app dependencies
+COPY shared ../../shared
+COPY services/course/go.mod services/course/go.sum ./
+RUN go mod download
+
+# Copy app source
+COPY services/course/cmd/migrator ./cmd/migrator
+COPY services/course/configs ./configs
+COPY services/course/internal/infra/database ./internal/infra/database
+COPY services/course/internal/utils ./internal/utils
+COPY services/course/migrations ./migrations
+
+# Build binary
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/migrator cmd/migrator/main.go
+
+# ---------- Runtime Stage ----------
+FROM alpine:3.22
+
+# Set work directory
+WORKDIR /root
+
+# Copy from the Build Stage
+COPY --from=builder /app/services/course/bin ./bin
+COPY --from=builder /app/services/course/configs ./configs
+COPY --from=builder /app/services/course/migrations ./migrations
+
+# Set entry point
+ENTRYPOINT ["./bin/migrator"]

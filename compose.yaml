@@ -351,6 +351,53 @@ services:
       interval: 10s
       retries: 3
 
+  course-database:
+    image: postgres:16-alpine
+    container_name: ${COURSE_DATABASE_HOST}
+    networks:
+      - klasshub-net
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${COURSE_DATABASE_USER}
+      - POSTGRES_PASSWORD=${COURSE_DATABASE_PASS}
+      - POSTGRES_DB=${COURSE_DATABASE_NAME}
+    volumes:
+      - course_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${COURSE_DATABASE_USER} -d ${COURSE_DATABASE_NAME}"]
+      interval: 5s
+      retries: 5
+
+  course-migrator:
+    image: klasshub-course-migrator
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: services/course/Dockerfile.migrator
+    container_name: course-migrator
+    networks:
+      - klasshub-net
+    restart: "no"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_HOST=${COURSE_DATABASE_HOST}
+      - DATABASE_PORT=${COURSE_DATABASE_PORT}
+      - DATABASE_USER=${COURSE_DATABASE_USER}
+      - DATABASE_PASS=${COURSE_DATABASE_PASS}
+      - DATABASE_NAME=${COURSE_DATABASE_NAME}
+      - DATABASE_SSL_MODE=${COURSE_DATABASE_SSL_MODE}
+    depends_on:
+      course-database:
+        condition: service_healthy
+    entrypoint: ["./bin/migrator"]
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "${COURSE_DATABASE_HOST}"]
+      interval: 10s
+      retries: 3
+
   notification-service:
     image: klasshub-notification-service
     platform: linux/amd64
@@ -547,6 +594,7 @@ volumes:
   auth_db_data:
   school_db_data:
   user_db_data:
+  course_db_data:
   notification_db_data:
   kafka1_data:
   kafka2_data:
