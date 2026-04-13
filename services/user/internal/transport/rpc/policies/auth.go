@@ -53,4 +53,18 @@ var AuthPolicies map[string]AuthPolicy = map[string]AuthPolicy{
 			constants.SubdomainAdmin: {},
 		},
 	},
+	"/user.v1.UserService/GetMe": AuthPolicy{
+		requireAuth:         true,
+		requireSchool:       true,
+		requireVerification: true,
+		roles: map[string]struct{}{
+			constants.RoleAdministrator: {},
+			constants.RoleInstructor:    {},
+			constants.RoleStudent:       {},
+		},
+		subdomains: map[string]struct{}{
+			constants.SubdomainAdmin: {},
+			constants.SubdomainLMS:   {},
+		},
+	},
 }

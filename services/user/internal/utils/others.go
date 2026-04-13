@@ -9,8 +9,12 @@ import (
 	"github.com/ritchieridanko/klasshub/services/user/internal/constants"
 	"github.com/ritchieridanko/klasshub/services/user/internal/models"
 	"go.opentelemetry.io/otel/trace"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+var titlecaser = cases.Title(language.English)
 
 // Get Auth Information from Context
 func CtxAuth(ctx context.Context) *models.AuthContext {
@@ -62,6 +66,21 @@ func ToTimestamp(t *time.Time) *timestamppb.Timestamp {
 		return nil
 	}
 	return timestamppb.New(*t)
+}
+
+// Set to all titlecase
+func ToTitlecase(s string) string {
+	return titlecaser.String(s)
+}
+
+// Set to all titlecase
+// NOTE: Return nil if s is nil
+func ToTitlecasePtr(s *string) *string {
+	if s == nil {
+		return nil
+	}
+	res := ToTitlecase(*s)
+	return &res
 }
 
 // Strip string of leading and trailing whitespaces

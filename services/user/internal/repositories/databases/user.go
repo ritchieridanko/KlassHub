@@ -35,10 +35,10 @@ func (d *userDatabase) Create(ctx context.Context, data *models.CreateUserData) 
 			$6, $7, $8, $9, $10
 		)
 		RETURNING
-			id, school_user_id, role, name, nickname,
+			id, school_user_id, role, name,
 			birthplace, birthdate, sex, phone,
-			profile_picture, profile_banner,
-			created_by, created_at, updated_at
+			profile_picture, created_by,
+			created_at, updated_at
 	`
 
 	var u models.User
@@ -48,10 +48,10 @@ func (d *userDatabase) Create(ctx context.Context, data *models.CreateUserData) 
 		data.Role, data.Name, data.Birthplace, data.Birthdate,
 		data.Sex, data.CreatedBy,
 	).Scan(
-		&u.ID, &u.SchoolUserID, &u.Role, &u.Name, &u.Nickname,
-		&u.Birthplace, &u.Birthdate, &u.Sex, &u.Phone,
-		&u.ProfilePicture, &u.ProfileBanner, &u.CreatedBy,
-		&u.CreatedAt, &u.UpdatedAt,
+		&u.ID, &u.SchoolUserID, &u.Role,
+		&u.Name, &u.Birthplace, &u.Birthdate,
+		&u.Sex, &u.Phone, &u.ProfilePicture,
+		&u.CreatedBy, &u.CreatedAt, &u.UpdatedAt,
 	)
 	if err != nil {
 		return nil, ce.NewError(

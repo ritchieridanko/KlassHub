@@ -2,15 +2,17 @@ syntax = "proto3";
 
 package user.v1;
 
+import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/ritchieridanko/klasshub/shared/contract/apis/v1;apis";
 
 service UserService {
   rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
+  rpc GetMe (google.protobuf.Empty) returns (UserGetMeResponse);
 }
 
-message UserAdmin {
+message User {
   string id = 1;
   optional string school_user_id = 2;
   string role = 3;
@@ -22,9 +24,21 @@ message UserAdmin {
   optional string phone = 9;
   optional string profile_picture = 10;
   optional string profile_banner = 11;
-  optional string created_by = 12;
-  google.protobuf.Timestamp created_at = 13;
-  google.protobuf.Timestamp updated_at = 14;
+}
+
+message UserAdmin {
+  string id = 1;
+  optional string school_user_id = 2;
+  string role = 3;
+  string name = 4;
+  string birthplace = 5;
+  google.protobuf.Timestamp birthdate = 6;
+  string sex = 7;
+  optional string phone = 8;
+  optional string profile_picture = 9;
+  optional string created_by = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
 }
 
 message CreateUserRequest {
@@ -40,4 +54,8 @@ message CreateUserRequest {
 
 message CreateUserResponse {
   UserAdmin user = 1;
+}
+
+message UserGetMeResponse {
+  User user = 1;
 }
