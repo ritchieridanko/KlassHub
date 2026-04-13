@@ -20,6 +20,7 @@ type Container struct {
 	auc clients.AuthClient
 	acc clients.AccountClient
 	sc  clients.SchoolClient
+	uc  clients.UserClient
 
 	cookie    *cookie.Cookie
 	jwt       *jwt.JWT
@@ -28,6 +29,7 @@ type Container struct {
 	auh *handlers.AuthHandler
 	ach *handlers.AccountHandler
 	sh  *handlers.SchoolHandler
+	uh  *handlers.UserHandler
 
 	router *router.Router
 	server *server.Server
@@ -41,6 +43,7 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	auc := clients.NewAuthClient(inf.AuthService())
 	acc := clients.NewAccountClient(inf.AccountService())
 	sc := clients.NewSchoolClient(inf.SchoolService())
+	uc := clients.NewUserClient(inf.UserService())
 
 	// Utils
 	c := cookie.Init(cfg.App.Env, "")
@@ -51,9 +54,10 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 	auh := handlers.NewAuthHandler(auc, v, c)
 	ach := handlers.NewAccountHandler(acc, c)
 	sh := handlers.NewSchoolHandler(sc)
+	uh := handlers.NewUserHandler(uc)
 
 	// Router
-	r := router.Init(&cfg.Client, cfg.App.Name, j, l, auh, ach, sh)
+	r := router.Init(&cfg.Client, cfg.App.Name, j, l, auh, ach, sh, uh)
 
 	// Server
 	srv := server.Init(&cfg.Server, r, l)
@@ -64,12 +68,14 @@ func Init(cfg *configs.Config, inf *infra.Infra) *Container {
 		auc:       auc,
 		acc:       acc,
 		sc:        sc,
+		uc:        uc,
 		cookie:    c,
 		jwt:       j,
 		validator: v,
 		auh:       auh,
 		ach:       ach,
 		sh:        sh,
+		uh:        uh,
 		router:    r,
 		server:    srv,
 	}

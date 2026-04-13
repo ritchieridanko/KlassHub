@@ -16,6 +16,13 @@ var (
 		RoleStudent,
 	}
 
+	// Roles: Administrator, Instructor, and Student
+	UserRoles []string = []string{
+		RoleAdministrator,
+		RoleInstructor,
+		RoleStudent,
+	}
+
 	// Roles: Administrator and School
 	AdminRoles []string = []string{
 		RoleAdministrator,

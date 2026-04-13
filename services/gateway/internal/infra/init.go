@@ -18,6 +18,7 @@ type Infra struct {
 	aus    *services.AuthService
 	acs    *services.AccountService
 	ss     *services.SchoolService
+	us     *services.UserService
 }
 
 func Init(cfg *configs.Config) (*Infra, error) {
@@ -44,6 +45,10 @@ func Init(cfg *configs.Config) (*Infra, error) {
 	if err != nil {
 		return nil, err
 	}
+	us, err := services.NewUserService(&cfg.Service, l)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Infra{
 		config: cfg,
@@ -52,6 +57,7 @@ func Init(cfg *configs.Config) (*Infra, error) {
 		aus:    aus,
 		acs:    acs,
 		ss:     ss,
+		us:     us,
 	}, nil
 }
 
@@ -71,6 +77,10 @@ func (i *Infra) SchoolService() apis.SchoolServiceClient {
 	return i.ss.Client()
 }
 
+func (i *Infra) UserService() apis.UserServiceClient {
+	return i.us.Client()
+}
+
 func (i *Infra) Close() error {
 	if err := i.logger.Sync(); err != nil {
 		return fmt.Errorf("failed to close logger: %w", err)
@@ -86,6 +96,9 @@ func (i *Infra) Close() error {
 	}
 	if err := i.ss.Close(); err != nil {
 		return fmt.Errorf("failed to close school service connection: %w", err)
+	}
+	if err := i.us.Close(); err != nil {
+		return fmt.Errorf("failed to close user service connection: %w", err)
 	}
 	return nil
 }
